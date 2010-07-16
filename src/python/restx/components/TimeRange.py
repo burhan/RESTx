@@ -35,9 +35,14 @@ class TimeRange(BaseComponent):
 
     PARAM_DEFINITION = {
                            "base_resource"   :  ParameterDef(PARAM_STRING, "The URI of the resource that accepts time ranges", required=True),
-                           "start_time_name" :  ParameterDef(PARAM_STRING, "Name of the parameter for the base resource, which sets the start time", required=True),
-                           "end_time_name"   :  ParameterDef(PARAM_STRING, "Name of the parameter for the base resource, which sets the end time", required=True),
-                           "count_flag_name" :  ParameterDef(PARAM_STRING, "Name of the flag to get only a log line count", required=False, default=""),
+                           "start_time_name" :  ParameterDef(PARAM_STRING, "Name of the parameter for the base resource, which sets the start time",
+                                                             required=False, default="start_time"),
+                           "end_time_name"   :  ParameterDef(PARAM_STRING, "Name of the parameter for the base resource, which sets the end time",
+                                                             required=False, default="end_time"),
+                           "count_flag_name" :  ParameterDef(PARAM_STRING, "Name of the flag to get only a log line count",
+                                                             required=False, default="count_only"),
+                           "filter_name"     :  ParameterDef(PARAM_STRING, "Name of the parameter to specify a filter",
+                                                             required=False, default="filter"),
                        }
     
     # A dictionary with information about each exposed service method (sub-resource).
@@ -50,19 +55,41 @@ class TimeRange(BaseComponent):
                            "today" : {
                                "desc" : "Today's entries",
                                "params" : {
-                                   "count_only" :  ParameterDef(PARAM_BOOL, "If set then we only get the count of lines, not the lines themselves.", required=False, default=False), 
+                                   "count_only" :  ParameterDef(PARAM_BOOL,   "If set then we only get the count of lines, not the lines themselves.", required=False, default=False), 
+                                   "filter" :      ParameterDef(PARAM_STRING, "Specify one or more filter expressions, separated by ';'. Specify exclusions by pre-pending a '-'. For example: 'foo;-bar;blah' means that 'foo' and 'bar' need to be in the line, but 'bar' must not be present.",
+                                                                required=False, default=""), 
                                 }
                            },
                            "yesterday" : {
                                "desc" : "Yesterday's entries",
                                "params" : {
                                    "count_only" :  ParameterDef(PARAM_BOOL, "If set then we only get the count of lines, not the lines themselves.", required=False, default=False), 
+                                   "filter" :      ParameterDef(PARAM_STRING, "Specify one or more filter expressions, separated by ';'. Specify exclusions by pre-pending a '-'. For example: 'foo;-bar;blah' means that 'foo' and 'bar' need to be in the line, but 'bar' must not be present.",
+                                                                required=False, default=""), 
                                 }
                            },
                            "last7days" : {
                                "desc" : "Entries over the last 7 days",
                                "params" : {
                                    "count_only" :  ParameterDef(PARAM_BOOL, "If set then we only get the count of lines, not the lines themselves.", required=False, default=False), 
+                                   "filter" :      ParameterDef(PARAM_STRING, "Specify one or more filter expressions, separated by ';'. Specify exclusions by pre-pending a '-'. For example: 'foo;-bar;blah' means that 'foo' and 'bar' need to be in the line, but 'bar' must not be present.",
+                                                                required=False, default=""), 
+                                }
+                           },
+                           "last30days" : {
+                               "desc" : "Entries over the last 30 days",
+                               "params" : {
+                                   "count_only" :  ParameterDef(PARAM_BOOL, "If set then we only get the count of lines, not the lines themselves.", required=False, default=False), 
+                                   "filter" :      ParameterDef(PARAM_STRING, "Specify one or more filter expressions, separated by ';'. Specify exclusions by pre-pending a '-'. For example: 'foo;-bar;blah' means that 'foo' and 'bar' need to be in the line, but 'bar' must not be present.",
+                                                                required=False, default=""), 
+                                }
+                           },
+                           "last90days" : {
+                               "desc" : "Entries over the last 90 days",
+                               "params" : {
+                                   "count_only" :  ParameterDef(PARAM_BOOL, "If set then we only get the count of lines, not the lines themselves.", required=False, default=False), 
+                                   "filter" :      ParameterDef(PARAM_STRING, "Specify one or more filter expressions, separated by ';'. Specify exclusions by pre-pending a '-'. For example: 'foo;-bar;blah' means that 'foo' and 'bar' need to be in the line, but 'bar' must not be present.",
+                                                                required=False, default=""), 
                                 }
                            },
                        }
@@ -70,12 +97,14 @@ class TimeRange(BaseComponent):
     def __make_time_str(self, dt):
         return dt.strftime("%d/%b/%Y:%H:%M:%S")
 
-    def __make_start_end_params(self, start, end, count_only):
+    def __make_params(self, start, end, count_only, filter):
         p = dict()
         p[self.start_time_name] = self.__make_time_str(start)
         p[self.end_time_name]   = self.__make_time_str(end)
         if self.count_flag_name:
             p[self.count_flag_name] = count_only
+        if self.filter_name:
+            p[self.filter_name] = filter
         return p
 
     def current_time(self, method, input):
@@ -85,22 +114,35 @@ class TimeRange(BaseComponent):
         """
         return Result.ok(self.__make_time_str(datetime.now()))
 
-    def today(self, method, input, count_only):
+    def today(self, method, input, count_only, filter):
         now   = datetime.now()
         start = datetime(now.year, now.month, now.day, 0, 0, 0)
-        status, data = accessResource(self.base_resource, params=self.__make_start_end_params(start, now, count_only))
+        status, data = accessResource(self.base_resource, params=self.__make_params(start, now, count_only, filter))
         return Result(status, data)
 
-    def yesterday(self, method, input, count_only):
-        end   = datetime.now()-timedelta(1)
-        start = end-timedelta(7)
-        status, data = accessResource(self.base_resource, params=self.__make_start_end_params(start, end, count_only))
+    def yesterday(self, method, input, count_only, filter):
+        ld    = datetime.now()-timedelta(1)
+        start = datetime(ld.year, ld.month, ld.day)
+        end   = start+timedelta(1)
+        status, data = accessResource(self.base_resource, params=self.__make_params(start, end, count_only, filter))
         return Result(status, data)
 
-    def last7days(self, method, input, count_only):
+    def last7days(self, method, input, count_only, filter):
         now   = datetime.now()
         start = now-timedelta(7)
-        status, data = accessResource(self.base_resource, params=self.__make_start_end_params(start, now, count_only))
+        status, data = accessResource(self.base_resource, params=self.__make_params(start, now, count_only, filter))
+        return Result(status, data)
+
+    def last30days(self, method, input, count_only, filter):
+        now   = datetime.now()
+        start = now-timedelta(30)
+        status, data = accessResource(self.base_resource, params=self.__make_params(start, now, count_only, filter))
+        return Result(status, data)
+
+    def last90days(self, method, input, count_only, filter):
+        now   = datetime.now()
+        start = now-timedelta(90)
+        status, data = accessResource(self.base_resource, params=self.__make_params(start, now, count_only, filter))
         return Result(status, data)
 
        

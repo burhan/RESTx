@@ -19,12 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 """
-A logfile access component.
-
-Thank you to Dennis Williamson who so graciously shared the actual file
-access code with all of us here:
-
-    http://serverfault.com/questions/101744/fast-extraction-of-a-time-range-from-syslog-logfile/102531#102531
+A sample template for RESTx components, written in Python.
 
 """
 # Imports all aspects of the API
@@ -76,8 +71,7 @@ class SignalException(Exception):
 
 # Function to read lines from file and extract the date and time
 def getdata(handle, bufsize):
-    """
-    Read a line from a file
+    """Read a line from a file
 
     Return a tuple containing:
         the date/time in a format such as 'Jan 15 20:14:01'
@@ -126,9 +120,8 @@ class LogFileComponent(BaseComponent):
 
     PARAM_DEFINITION = {
                            "filename"  :      ParameterDef(PARAM_STRING, "Full file name of the logfile", required=True), 
-                           "mustContain_1"  : ParameterDef(PARAM_STRING, "The log line must contain at least this substring", required=False, default=""),
-                           "mustContain_2"  : ParameterDef(PARAM_STRING, "If defined, the log line must contain at least this substring", required=False, default=""),
-                           "mustNotContain" : ParameterDef(PARAM_STRING, "If defined, substring the log line must not contain", required=False, default=""),
+                           "mustContain" :    ParameterDef(PARAM_STRING, "Filter terms a line must contain, separate multiples with ';'", required=False, default=""),
+                           "mustNotContain" : ParameterDef(PARAM_STRING, "Filter terms a line must NOT contain, separate multiples with ';'", required=False, default=""),
                        }
     
     # A dictionary with information about each exposed service method (sub-resource).
@@ -137,15 +130,17 @@ class LogFileComponent(BaseComponent):
                                "desc" : "Accesses a region of lines from the logfile, based on start and end time. " + \
                                         "If no times are provided then it just takes the last 24 hours.",
                                "params" : {
-                                   "start_time" :  ParameterDef(PARAM_STRING, "Start of time/date range. Format: DD/mmm/YYYY:HH:MM[:SS]", required=False, default=""), 
-                                   "end_time"   :  ParameterDef(PARAM_STRING, "End of time/date range.   Format: DD/mmm/YYYY:HH:MM[:SS]", required=False, default=""), 
-                                   "count_only" :  ParameterDef(PARAM_BOOL,   "If set then we only get the count of lines, not the lines themselves.", required=False, default=False), 
+                                   "filter"      :  ParameterDef(PARAM_STRING, "Filter terms, separated by ';'. Prepend a '-' for exclusion.", required=False, default=""), 
+                                   "start_time"  :  ParameterDef(PARAM_STRING, "Start of time/date range. Format: DD/mmm/YYYY:HH:MM[:SS]", required=False, default=""), 
+                                   "end_time"    :  ParameterDef(PARAM_STRING, "End of time/date range.   Format: DD/mmm/YYYY:HH:MM[:SS]", required=False, default=""), 
+                                   "count_only"  :  ParameterDef(PARAM_BOOL,   "If set then we only get the count of lines, not the lines themselves.", required=False, default=False), 
+                                   "unique_only" :  ParameterDef(PARAM_BOOL,   "If set then we only consider the first appearance of an IP address.", required=False, default=True), 
                                },
                            },
                        }
         
 
-    def subset(self, method, input, start_time, end_time, count_only):
+    def subset(self, method, input, filter, start_time, end_time, count_only, unique_only):
         """
         The method that implements log search
         
@@ -156,8 +151,8 @@ class LogFileComponent(BaseComponent):
             raise RestxBadRequestException("Invalid start time specification")
         if end_time  and  not p.match(end_time):
             raise RestxBadRequestException("Invalid end time specification")
-
-        # Settinf default start and end time if one or both of those values are missing
+	
+        # Setting default start and end time if one or both of those values are missing
         now = datetime.now()
         if end_time and not start_time:
             # Everything from the beginning to the specified end time
@@ -234,18 +229,52 @@ class LogFileComponent(BaseComponent):
             # Now that the preliminaries are out of the way, we just loop,
             # reading lines and storing them in a list (or counting) until they
             # are beyond the end of the range we want
+            # However, if unique_only is set then we maintain a set, which
+            # tells us whether we have an entry for this IP address already
+            # and will ignore further entries.
+            if unique_only:
+                hitlist = set()
+            do_filter = False
+            inc_filters = list()
+            exl_filters = list()
+            if filter:
+                do_filter = True
+                filter_elems = filter.split(";")
+                inc_filters.extend([ f for f in filter_elems if not f.startswith("-") ])
+                exl_filters.extend([ f[1:] for f in filter_elems if f.startswith("-") ])
+            if self.mustContain:
+                do_filter = True
+                inc_filters.extend(self.mustContain.split(";"))
+            if self.mustNotContain:
+                do_filter = True
+                exl_filters.extend(self.mustNotContain.split(";"))
+
             while linedate <= searchend:
-                old_line = line
+                old_line = unicode(line)
                 linedate, line = getdata(handle, bufsize)
 
-                # Check whether the text filters apply (must and must-not contain)
-                if self.mustContain_1 and self.mustContain_1 not in old_line:
-                    continue
-                if self.mustContain_2 and self.mustContain_2 not in old_line:
-                    continue
-                if self.mustNotContain and self.mustNotContain in old_line:
-                    continue
-                        
+                # Might not have to add this line, if the IP address appeared before
+                if unique_only:
+                    ipaddr, remainder = old_line.split(" ", 1)
+                    if ipaddr in hitlist:
+                        continue
+
+                # Check for filter expressions
+                if do_filter:
+                    filter_out = False
+                    for f in inc_filters:
+                        if f not in old_line:
+                            filter_out = True
+                            break
+                    for f in exl_filters:
+                        if f in old_line:
+                            filter_out = True
+                            break
+                    if filter_out:
+                        continue
+                    
+                if unique_only:
+                    hitlist.add(ipaddr)
                 if count_only:
                     out += 1
                 else:
