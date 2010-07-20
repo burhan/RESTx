@@ -28,6 +28,8 @@ import restxjson as json
 from restx.storageabstraction.file_storage import FileStorage
 from org.mulesoft.restx.exception        import *
 
+RESOURCE_EXTENSION = ".rxr"
+
 class ResourceStorage(FileStorage):
     """
     Implementation of resource storage methods.
@@ -47,7 +49,7 @@ class ResourceStorage(FileStorage):
 
         """
         try:
-            buf = self.loadFile(resource_name)
+            buf = self.loadFile(resource_name + RESOURCE_EXTENSION)
         except RestxFileNotFoundException, e:
             return None
         obj = json.loads(buf)
@@ -61,7 +63,7 @@ class ResourceStorage(FileStorage):
         @type resource_name:     string
 
         """
-        self.deleteFile(resource_name)
+        self.deleteFile(resource_name + RESOURCE_EXTENSION)
 
     def listResourcesInStorage(self):
         """
@@ -72,7 +74,7 @@ class ResourceStorage(FileStorage):
 
         """
         try:
-            dir_list = self.listFiles()
+            dir_list = [ name[:-len(RESOURCE_EXTENSION)] for name in self.listFiles() if name.endswith(RESOURCE_EXTENSION) ]
             return dir_list
         except Exception, e:
             raise RestxException("Problems getting resource list from storage: " + str(e))
@@ -94,7 +96,7 @@ class ResourceStorage(FileStorage):
         """
         try:
             buf = json.dumps(resource_def, indent=4)
-            self.storeFile(resource_name, buf)
+            self.storeFile(resource_name + RESOURCE_EXTENSION, buf)
         except Exception, e:
             raise RestxException("Problems storing new resource: " + str(e))
 
