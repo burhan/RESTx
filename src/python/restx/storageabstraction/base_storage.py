@@ -64,9 +64,12 @@ class BaseStorage(object):
         """
         pass
 
-    def listFiles(self):
+    def listFiles(self, ext=None):
         """
         Return list of all files in the storage.
+
+        @param ext:              If specified, returned files must end with that extension.
+        @type ext:               string
 
         @return:                 List of file names.
         @rtype:                  list

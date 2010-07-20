@@ -114,9 +114,12 @@ class FileStorage(FileStore):
         except Exception, e:
             raise RestxException("Cannot delete file '%s' (%s)" % (file_name, str(e)))
 
-    def listFiles(self):
+    def listFiles(self, ext=None):
         """
         Return list of all files in the storage.
+
+        @param ext:              If specified, returned files must end with that extension.
+        @type ext:               string
 
         @return:                 List of file names.
         @rtype:                  list
@@ -129,7 +132,7 @@ class FileStorage(FileStore):
                 our_files = [ name for name in dir_list if name.startswith(self.unique_prefix) ]
             else:
                 our_files = dir_list
-            no_prefix_dir_list = [ self.__remove_filename_prefix(name) for name in our_files ]
+            no_prefix_dir_list = [ self.__remove_filename_prefix(name) for name in our_files if not ext or name.endswith(ext) ]
             return no_prefix_dir_list
         except Exception, e:
             raise RestxException("Problems getting file list from storage: " + str(e))

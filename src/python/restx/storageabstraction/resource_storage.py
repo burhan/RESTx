@@ -74,7 +74,7 @@ class ResourceStorage(FileStorage):
 
         """
         try:
-            dir_list = [ name[:-len(RESOURCE_EXTENSION)] for name in self.listFiles() if name.endswith(RESOURCE_EXTENSION) ]
+            dir_list = [ name[:-len(RESOURCE_EXTENSION)] for name in self.listFiles(RESOURCE_EXTENSION) ]
             return dir_list
         except Exception, e:
             raise RestxException("Problems getting resource list from storage: " + str(e))
