@@ -238,7 +238,10 @@ class BaseComponent(object):
                                                 required=True),
                   desc           = ParameterDef(PARAM_STRING,
                                                 "Specifies a description for this new resource",
-                                                required=False, default="A '%s' resource" % self.getName())
+                                                required=False, default="A '%s' resource" % self.getName()),
+                  specialized    = ParameterDef(PARAM_BOOL,
+                                                "Specifies if we want to create a specialized component resource (true) or a normal resource (false)",
+                                                required=False, default=False)
                  )
         d['resource_creation_params'] = _change_params_to_plain_dict(rp)
         return d

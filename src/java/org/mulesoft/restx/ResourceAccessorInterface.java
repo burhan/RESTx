@@ -30,7 +30,7 @@ public interface ResourceAccessorInterface
 {
     public HttpResult         accessResourceProxy(String uri, String input, Map<?,?> params, HttpMethod method);
     public MakeResourceResult makeResourceProxy(String componentClassName, String suggestedResourceName,
-                                                String resourceDescription, Map<?,?> resourceParameters);
+                                                String resourceDescription, boolean specialized, Map<?,?> resourceParameters);
 }
 
 

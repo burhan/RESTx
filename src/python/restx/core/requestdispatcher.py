@@ -36,10 +36,11 @@ from restx.core.codebrowser       import CodeBrowser
 from restx.core.resourcebrowser   import ResourceBrowser 
 
 BROWSER_MAP   = {
-                    settings.PREFIX_META     : MetaBrowser,
-                    settings.PREFIX_RESOURCE : ResourceBrowser,
-                    settings.PREFIX_CODE     : CodeBrowser,
-                    settings.PREFIX_STATIC   : StaticBrowser,
+                    settings.PREFIX_META        : MetaBrowser,
+                    settings.PREFIX_RESOURCE    : ResourceBrowser,
+                    settings.PREFIX_SPECIALIZED : CodeBrowser,
+                    settings.PREFIX_CODE        : CodeBrowser,
+                    settings.PREFIX_STATIC      : StaticBrowser,
                 }
             
 class RequestDispatcher(object):
@@ -77,7 +78,9 @@ class RequestDispatcher(object):
             if browser_class:
                 browser_instance = browser_class(request)
                 result           = browser_instance.process()
-                if result.getStatus() >= 200  and  result.getStatus() < 300:
+                if not result:
+                    result = Result.badRequest("Cannot handle this request.")
+                elif result.getStatus() >= 200  and  result.getStatus() < 300:
                     headers = result.getHeaders()
                     # Check if the Content-type return header was set by
                     # the component. If so, we assume that the component

@@ -159,12 +159,13 @@ def test_10_home():
     should = {
                     "code"     : DOCROOT + "/code",
                     "resource" : DOCROOT + "/resource",
+                    "specialized code" : DOCROOT + "/specialized",
                     "doc"      : DOCROOT + "/meta/doc",
                     "static"   : DOCROOT + "/static",
                     "name"     : "MuleSoft RESTx server",
                     "version"  : "0.9"
              }
-    allkeys = [ 'code', 'resource', 'doc', 'static', 'name', 'version' ]
+    allkeys = [ 'code', 'resource', 'doc', 'static', 'name', 'version', 'specialized code' ]
 
     for name in should:
         assert(name in actual)
@@ -263,21 +264,59 @@ def test_40_twitter_code():
             "desc": "Can be used to suggest the resource name to the server", 
             "required": True, 
             "type": "string"
+        },
+        'specialized': {
+            'desc': 'Specifies if we want to create a specialized component resource (true) or a normal resource (false)',
+            'type': 'boolean',
+            'required': False,
+            'default': False
         }
     } 
 
     _dict_compare(cdef['resource_creation_params'], resource_creation_params_def)
 
     services_def = {
-        "status": {
-            "desc": "You can GET the status or POST a new status to it.", 
-            "uri": DOCROOT + "/code/TwitterComponent/status"
-        }, 
-        "timeline": {
-            "desc": "You can GET the timeline of the user.", 
-            "uri": DOCROOT + "/code/TwitterComponent/timeline"
+        u'status': {
+            u'desc': u'You can GET the status or POST a new status to it.',
+            u'uri': u'/code/TwitterComponent/status'
+        },
+        u'home_timeline': {
+            u'desc': u'You can GET the home timeline of the user.',
+            u'params': {
+                u'count': {
+                    u'desc': u'Number of results',
+                    u'type': u'number',
+                    u'required': False,
+                    u'default': 20
+                },
+                u'filter': {
+                    u'desc': u"If set, only 'important' fields are returned",
+                    u'type': u'boolean',
+                    u'required': False,
+                    u'default': True
+                }
+            },
+            u'uri': u'/code/TwitterComponent/home_timeline'
+        },
+        u'timeline': {
+            u'desc': u'You can GET the timeline of the user.',
+            u'params': {
+                u'count': {
+                    u'desc': u'Number of results',
+                    u'type': u'number',
+                    u'required': False,
+                    u'default': 20
+                },
+                u'filter': {
+                    u'desc': u"If set, only 'important' fields are returned",
+                    u'type': u'boolean',
+                    u'required': False,
+                    u'default': True
+                }
+            },
+            u'uri': u'/code/TwitterComponent/timeline'
         }
-    } 
+    }
 
     _dict_compare(cdef['services'], services_def)
 
@@ -348,7 +387,7 @@ def test_50_make_resource():
             "params"                   : { "account_password" : "Foo", "account_name" : "Bar" },
             "resource_creation_params" : { "suggested_name" : "_test_foobar", "desc" : "A foobar resource" }
         }
-    TEST_RESOURCES.append("_test_foobar")
+    TEST_RESOURCES.append("/resource/_test_foobar")
     data, resp = _send_data(DOCROOT + "/code/TwitterComponent", d)
     assert(resp.getStatus() == 201)
     assert(data['status']   == "created")
@@ -356,7 +395,7 @@ def test_50_make_resource():
     assert(data['uri']      == DOCROOT + "/resource/_test_foobar")
     assert(len(data)        == 3)
 
-def test_60_examine_resource():
+def test_55_examine_resource():
     """
     Test retrieval of information about a reosurce.
 
@@ -372,8 +411,40 @@ def test_60_examine_resource():
             }, 
             "timeline": {
                 "uri": DOCROOT + "/resource/_test_foobar/timeline", 
-                "desc": "You can GET the timeline of the user."
-            }
+                "desc": "You can GET the timeline of the user.",
+                'params': {
+                    'count': {
+                        'desc': 'Number of results',
+                        'type': 'number',
+                        'required': False,
+                        'default': 20
+                    },
+                    'filter': {
+                        'desc': "If set, only 'important' fields are returned",
+                        'type': 'boolean',
+                        'required': False,
+                        'default': True
+                    }
+                },
+             },
+            'home_timeline': {
+                "uri": DOCROOT + "/resource/_test_foobar/home_timeline", 
+                'desc': 'You can GET the home timeline of the user.',
+                'params': {
+                    'count': {
+                        'desc': 'Number of results',
+                        'type': 'number',
+                        'required': False,
+                        'default': 20
+                    },
+                    'filter': {
+                        'desc': "If set, only 'important' fields are returned",
+                        'type': 'boolean',
+                        'required': False,
+                        'default': True
+                    }
+                },
+            },
         }, 
         "uri": DOCROOT + "/resource/_test_foobar", 
         "name": "_test_foobar", 
@@ -381,6 +452,178 @@ def test_60_examine_resource():
     }
     _dict_compare(data, resource_def)
 
+
+def test_60_make_partial_resource():
+    """
+    Test creation of a new resource.
+
+    """
+    cdef, resp = _get_data("/code/TwitterComponent")
+
+    d = {
+            "params"                   : { "account_password" : "FOOOOOOOOOOOOOOOOOO" },
+            "resource_creation_params" : { "suggested_name" : "_test_partial_base", "desc" : "A partial test resource", "specialized" : False }
+        }
+    TEST_RESOURCES.append("/specialized/_test_partial_base")
+    data, resp = _send_data(DOCROOT + "/code/TwitterComponent", d)
+    assert(resp.getStatus() == 400)
+    assert("Missing mandatory parameter 'account_name' in section 'params'" in data)
+
+    d['resource_creation_params']['specialized'] = True
+    data, resp = _send_data(DOCROOT + "/code/TwitterComponent", d)
+
+    assert(resp.getStatus() == 201)
+    assert(data['status']   == "created")
+    assert(data['name']     == "_test_partial_base")
+    assert(data['uri']      == DOCROOT + "/specialized/_test_partial_base")
+    assert(len(data)        == 3)
+
+def test_62_examine_partial_resource():
+    """
+    Test retrieval of information about a partial reosurce.
+
+    """
+    data, resp = _get_data("/specialized/_test_partial_base")
+    assert(resp.getStatus() == 200)
+
+    resource_def = {
+        "resource_creation_params": {
+            "suggested_name": {
+                "desc": "Can be used to suggest the resource name to the server", 
+                "type": "string", 
+                "required": True, 
+                "default": None
+            }, 
+            "desc": {
+                "desc": "Specifies a description for this new resource", 
+                "type": "string", 
+                "required": False, 
+                "default": "A partial test resource"
+            }
+        }, 
+        "doc": "/specialized/_test_partial_base/doc", 
+        "services": {
+            "status": {
+                "desc": "You can GET the status or POST a new status to it.", 
+                "uri": "/code/TwitterComponent/status"
+            }, 
+            "home_timeline": {
+                "desc": "You can GET the home timeline of the user.", 
+                "params": {
+                    "count": {
+                        "desc": "Number of results", 
+                        "type": "number", 
+                        "required": False, 
+                        "default": 20
+                    }, 
+                    "filter": {
+                        "desc": "If set, only 'important' fields are returned", 
+                        "type": "boolean", 
+                        "required": False, 
+                        "default": True
+                    }
+                }, 
+                "uri": "/code/TwitterComponent/home_timeline"
+            }, 
+            "timeline": {
+                "desc": "You can GET the timeline of the user.", 
+                "params": {
+                    "count": {
+                        "desc": "Number of results", 
+                        "type": "number", 
+                        "required": False, 
+                        "default": 20
+                    }, 
+                    "filter": {
+                        "desc": "If set, only 'important' fields are returned", 
+                        "type": "boolean", 
+                        "required": False, 
+                        "default": True
+                    }
+                }, 
+                "uri": "/code/TwitterComponent/timeline"
+            }
+        }, 
+        "desc": "A partial test resource", 
+        "params": {
+            "account_password": {
+                "is_settable": False, 
+                "desc": "Password", 
+                "type": "password", 
+                "required": True, 
+                "default": "*** PROVIDED BY COMPONENT SPECIALIZATION ***"
+            }, 
+            "account_name": {
+                "desc": "Twitter account name", 
+                "type": "string", 
+                "required": True, 
+                "default": None
+            }
+        }, 
+        "uri": "/specialized/_test_partial_base", 
+        "name": "_test_partial_base"
+    }
+
+    _dict_compare(data, resource_def)
+
+
+def test_65_make_from_partial_resource():
+    """
+    Test creation of a new resource, based on partial resource.
+
+    """
+    uri = "/specialized/_test_partial_base"
+    cdef, resp = _get_data(uri)
+
+    d = {
+            "foo"                   : { "blah" : 123 },
+        }
+    data, resp = _send_data(DOCROOT + uri, d)
+    assert(resp.getStatus() == 400)
+    assert("Malformed resource parameter definition. Unknown key: foo" in data)
+
+    d = {
+            "params"                   : { "account_password" : "Foo", "account_name" : "Bar" },
+        }
+    data, resp = _send_data(DOCROOT + uri, d)
+    assert(resp.getStatus() == 400)
+    assert("Missing mandatory parameter 'suggested_name' in section 'resource_creation_params'" in data)
+
+    d = {
+            "params"                   : { "account_password" : "Foo" },
+        }
+    data, resp = _send_data(DOCROOT + uri, d)
+    assert(resp.getStatus() == 400)
+    assert("Missing mandatory parameter 'account_name' in section 'params'" in data)
+
+    d = {
+            "params"                   : { "blah" : 123 },
+        }
+    data, resp = _send_data(DOCROOT + uri, d)
+    assert(resp.getStatus() == 400)
+    assert("Unknown parameter in 'params' section: blah" in data)
+
+    d = {
+            "params"                   : { "account_password" : "Foo", "account_name" : "Bar" },
+            "resource_creation_params" : { "suggested_name" : "foobar", "blah" : 123 }
+        }
+    data, resp = _send_data(DOCROOT + uri, d)
+    assert("Unknown parameter in 'resource_creation_params' section: blah" in data)
+    assert(resp.getStatus() == 400)
+
+    d = {
+            "params"                   : { "account_password" : "Foo", "account_name" : "Bar" },
+            "resource_creation_params" : { "suggested_name" : "_test_foobar_from_partial" }  #    , "desc" : "A foobar resource" }
+        }
+    TEST_RESOURCES.append("/resource/_test_foobar_from_partial")
+    data, resp = _send_data(DOCROOT + uri, d)
+    assert(resp.getStatus() == 201)
+    assert(data['status']   == "created")
+    assert(data['name']     == "_test_foobar_from_partial")
+    assert(data['uri']      == DOCROOT + "/resource/_test_foobar_from_partial")
+    assert(len(data)        == 3)
+
+ 
 def test_70_positional_params():
     """
     Test that positional parameters can be used successfully.
@@ -390,7 +633,7 @@ def test_70_positional_params():
     d = {
             "resource_creation_params" : { "suggested_name" : "_test_foobarstorage", "desc" : "A foobar storage resource" }
         }
-    TEST_RESOURCES.append("_test_foobarstorage")
+    TEST_RESOURCES.append("/resource/_test_foobarstorage")
     data, resp = _send_data(DOCROOT + "/code/StorageComponent", d)
     assert(resp.getStatus() == 201)
     assert(data['status']   == "created")
@@ -431,8 +674,8 @@ def test_999_cleanup():
     for name in rlist:
     """
     for name in TEST_RESOURCES:
-        if name.startswith("_test_"):
-            buf, resp = _delete(DOCROOT + "/resource/" + name)
+        if "/_test_" in name:
+            buf, resp = _delete(DOCROOT + name)
             assert(resp.getStatus() == 200)
 
 
@@ -483,7 +726,7 @@ if __name__ == '__main__':
     test_methods.sort()
     for method_name in test_methods:
         start_time = datetime.datetime.now()
-        _log("Executing: %s" % string.ljust(method_name, 30), cur_time=start_time, eol=False)
+        _log("Executing: %s" % string.ljust(method_name, 36), cur_time=start_time, eol=False)
         method = globals()[method_name]
         method()
         msg = "Ok"

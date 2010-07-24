@@ -48,10 +48,10 @@ class ResourceAccessor(ResourceAccessorInterface):
         res.data = self.to_java_conversion_func(res.data)
         return res
 
-    def makeResourceProxy(self, componentClassName, suggestedName, resourceDescription, params):
-        rd = { "resource_creation_params" : { "suggested_name" : suggestedName, "desc" : resourceDescription },
+    def makeResourceProxy(self, componentClassName, suggestedName, resourceDescription, specialized, params):
+        rd = { "resource_creation_params" : { "suggested_name" : suggestedName, "desc" : resourceDescription, "specialized" : specialized },
                "params" : self.from_java_conversion_func(params) }
-        res = makeResource(componentClassName, rd)
+        res = makeResource(componentClassName, rd, specialized)
         ret = MakeResourceResult()
         ret.status = res['status']
         ret.name   = res['name']

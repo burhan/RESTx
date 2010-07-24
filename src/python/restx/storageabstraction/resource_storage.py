@@ -28,7 +28,8 @@ import restxjson as json
 from restx.storageabstraction.file_storage import FileStorage
 from org.mulesoft.restx.exception        import *
 
-RESOURCE_EXTENSION = ".rxr"
+RESOURCE_EXTENSION         = ".rxr"
+PARTIAL_RESOURCE_EXTENSION = ".prxr"
 
 class ResourceStorage(FileStorage):
     """
@@ -36,12 +37,15 @@ class ResourceStorage(FileStorage):
 
     """
 
-    def loadResourceFromStorage(self, resource_name):
+    def loadResourceFromStorage(self, resource_name, is_partial=False):
         """
         Load the specified resource from storage.
 
         @param resource_name:    Name of the selected resource.
         @type resource_name:     string
+
+        @param is_partial:       Indicates whether we are loading a parrral resource.
+        @type is_partial:        boolean
 
         @return                  A Python dictionary representation or None
                                  if not found.
@@ -49,54 +53,83 @@ class ResourceStorage(FileStorage):
 
         """
         try:
-            buf = self.loadFile(resource_name + RESOURCE_EXTENSION)
+            buf = self.loadFile(resource_name + (PARTIAL_RESOURCE_EXTENSION if is_partial else RESOURCE_EXTENSION))
         except RestxFileNotFoundException, e:
             return None
         obj = json.loads(buf)
+        if "extends" in obj:
+            base_obj = self.loadResourceFromStorage(obj["extends"], is_partial=True)  # Base resources can only be partial
+            try:
+                # Merge any parameters that are defined in the base resource into the output dictionary.
+                for key, val in base_obj['private']['params'].items():
+                    if key not in obj:
+                        obj['private']['params'][key] = val
+                obj['private']['code_uri'] = base_obj['private']['code_uri']
+            except:
+                return None
         return obj
 
-    def deleteResourceFromStorage(self, resource_name):
+    def deleteResourceFromStorage(self, resource_name, is_partial=False):
         """
         Delete the specified resource from storage.
 
         @param resource_name:    Name of the selected resource.
         @type resource_name:     string
 
-        """
-        self.deleteFile(resource_name + RESOURCE_EXTENSION)
+        @param is_partial:       Indicates whether we are loading a parrral resource.
+        @type is_partial:        boolean
 
-    def listResourcesInStorage(self):
+        """
+        self.deleteFile(resource_name + (PARTIAL_RESOURCE_EXTENSION if is_partial else RESOURCE_EXTENSION))
+
+    def listResourcesInStorage(self, partials=False):
         """
         Return list of resources which we currently have in storage.
 
-        @return:                 List of resource names.
-        @rtype:                  list
+        @param partials:       Indicates whether we are looking for partial resources.
+        @type partials:        boolean
+
+        @return:               List of resource names.
+        @rtype:                list
 
         """
+        if partials:
+            extension = PARTIAL_RESOURCE_EXTENSION
+        else:
+            extension = RESOURCE_EXTENSION
         try:
-            dir_list = [ name[:-len(RESOURCE_EXTENSION)] for name in self.listFiles(RESOURCE_EXTENSION) ]
+            dir_list = [ name[:-len(extension)] for name in self.listFiles(extension) ]
             return dir_list
         except Exception, e:
             raise RestxException("Problems getting resource list from storage: " + str(e))
 
-    def writeResourceToStorage(self, resource_name, resource_def):
+    def writeResourceToStorage(self, resource_name, resource_def, is_specialized=False):
         """
         Store a resource definition.
         
         No return value, but raises RestxException if there is an issue.
         
-        @param resource_name: The storage name for this resource
-        @type  resource_name: string
+        @param resource_name:  The storage name for this resource
+        @type  resource_name:  string
         
-        @param resource_def: The dictionary containing the resource definition.
-        @type  resource_def: dict
+        @param resource_def:   The dictionary containing the resource definition.
+        @type  resource_def:   dict
+
+        @param is_specialized: Flag indicates whether a specialized component resource should
+                               be created. Those can only serve as base for other resources
+                               and also carry a different file extension.
+        @type  is_specialized: boolean
         
         @raise RestxException: If the resource cannot be stored.
             
         """
+        if is_specialized:
+            extension = PARTIAL_RESOURCE_EXTENSION
+        else:
+            extension = RESOURCE_EXTENSION
         try:
             buf = json.dumps(resource_def, indent=4)
-            self.storeFile(resource_name + RESOURCE_EXTENSION, buf)
+            self.storeFile(resource_name + extension, buf)
         except Exception, e:
             raise RestxException("Problems storing new resource: " + str(e))
 

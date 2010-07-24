@@ -81,7 +81,7 @@ public class TestComponent extends BaseComponent
         params.put("api_key", "123123");
         params.put("default_search", "java");
 
-        MakeResourceResult res = makeResource("GoogleSearchComponent", "NewResourceName", "Description for my resource", params);
+        MakeResourceResult res = makeResource("GoogleSearchComponent", "NewResourceName", "Description for my resource", false, params);
         String resbuf = "Created a resource! Status: " + res.status + " --- Name: " + res.name + " --- URI: " + res.uri;
         return Result.ok(resbuf);
     }

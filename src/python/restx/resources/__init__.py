@@ -47,9 +47,11 @@ The stored representation of a resource looks like this:
 
 # Python imports
 import os
+import copy
 
 # RESTx imports
 import restx.components
+import restx.core.codebrowser
 import restx.settings as settings
 
 from restx.platform_specifics     import STORAGE_OBJECT
@@ -64,20 +66,27 @@ from org.mulesoft.restx.util      import Url
 EXCLUDED_NAMES = [ "readme.txt" ]
 EXCLUDE_PREFIXES = [ "_" ]
 
-def getResourceUri(resource_name):
+
+def getResourceUri(resource_name, is_partial=False):
     """
     Construct a resource's URI based on its name.
 
-    @return:  URI of the named resource.
-    @rtype:   string
+    @param is_partial:  Indicates whether this is a partial resource.
+    @type is_partial:   boolean
+
+    @return:            URI of the named resource.
+    @rtype:             string
     
     """
-    return settings.PREFIX_RESOURCE + "/" + resource_name
+    if is_partial:
+        return settings.PREFIX_SPECIALIZED + "/" + resource_name
+    else:
+        return settings.PREFIX_RESOURCE + "/" + resource_name
 
 
-def retrieveResourceFromStorage(uri, only_public=False):
+def retrieveResourceFromStorage(uri, only_public=False, is_partial=False):
     """
-    Return the details about a stored resource.
+    Return the details about a stored resource (partial or otherwise).
     
     The resource is identified via its URI.
     
@@ -87,16 +96,22 @@ def retrieveResourceFromStorage(uri, only_public=False):
     @param only_public: Flag indicating whether we only want to see the
                         public information about this resource.
     @type only_public:  boolean
+
+    @param is_partial:  Indicate whether we are loading a partial resource.
+    @type is_partial:   boolean
     
     @return:            Dictionary or None if not found.
     @rtype:             dict
     
     """
     # Need to take the resource URI prefix off to get the resource_name.
-    resource_name = uri[len(settings.PREFIX_RESOURCE)+1:]
+    if is_partial:
+        resource_name = uri[len(settings.PREFIX_SPECIALIZED)+1:]
+    else:
+        resource_name = uri[len(settings.PREFIX_RESOURCE)+1:]
     obj = None
     try:
-        obj = STORAGE_OBJECT.loadResourceFromStorage(resource_name)
+        obj = STORAGE_OBJECT.loadResourceFromStorage(resource_name, is_partial)
         if not obj:
             raise Exception("Unknown resource: " + resource_name)
         if type(obj) is not dict  or  'public' not in obj:
@@ -118,7 +133,7 @@ def retrieveResourceFromStorage(uri, only_public=False):
     return obj
 
 
-def deleteResourceFromStorage(uri):
+def deleteResourceFromStorage(uri, is_partial=False):
     """
     Delete a resource definition from storage.
 
@@ -126,27 +141,30 @@ def deleteResourceFromStorage(uri):
     @type  uri:   string
 
     """
-    resource_name = uri[len(settings.PREFIX_RESOURCE)+1:]
-    STORAGE_OBJECT.deleteResourceFromStorage(resource_name)
+    resource_name = uri[len(settings.PREFIX_SPECIALIZED if is_partial else settings.PREFIX_RESOURCE)+1:]
+    STORAGE_OBJECT.deleteResourceFromStorage(resource_name, is_partial)
 
-def listResources():
+def listResources(partials=False):
     """
     Return list of all stored resources.
     
     Data is returned as dictionary keyed by resource name.
     For each resource the complete URI, the name and the description
     are returned.
+
+    @param partials:     Indicate whether we want to list the partial resources
+    @type partials:      boolean
     
     @return: Dictionary of available resources.
     @rtype:  dict
     
     """
-    dir_list = STORAGE_OBJECT.listResourcesInStorage()
+    dir_list = STORAGE_OBJECT.listResourcesInStorage(partials)
     out = {}
     for resource_name in dir_list:
         rname = resource_name.lower()
         if rname not in EXCLUDED_NAMES  and  rname[0] not in EXCLUDE_PREFIXES:
-            resource_dict = retrieveResourceFromStorage(getResourceUri(resource_name), only_public=True)
+            resource_dict = retrieveResourceFromStorage(getResourceUri(resource_name, partials), only_public=True, is_partial=partials)
             if resource_dict:
                 out[resource_name] = dict(uri=Url(resource_dict['uri']), desc=resource_dict['desc'])
             else:
@@ -154,7 +172,7 @@ def listResources():
     return out
 
 
-def paramSanityCheck(param_dict, param_def_dict, name_for_errors):
+def paramSanityCheck(param_dict, param_def_dict, name_for_errors, make_specialized=False):
     """
     Check whether a provided parameter-dict is compatible
     with a parameter-definition-dict.
@@ -171,17 +189,21 @@ def paramSanityCheck(param_dict, param_def_dict, name_for_errors):
     The 'name_for_errors' is used in the error message and provides
     some context to make the error message more useful.
     
-    @param param_dict:      The parameter dictionary provided (for example by the client).
-    @type  param_dict:      dict
+    @param param_dict:       The parameter dictionary provided (for example by the client).
+    @type  param_dict:       dict
     
-    @param param_def_dict:  The parameter definition as provided by the component (the code).
-                            The provided parameters are checked against this definition.
-    @type  param_def_dict:  dict
+    @param param_def_dict:   The parameter definition as provided by the component (the code).
+                             The provided parameters are checked against this definition.
+    @type  param_def_dict:   dict
     
-    @param name_for_errors: A section name, which helps to provide meaningful error messages.
-    @type  name_for_errors: string
+    @param name_for_errors:  A section name, which helps to provide meaningful error messages.
+    @type  name_for_errors:  string
+
+    @param make_specialized: Indicates whether we are creating a specialized component resource.
+                             In that case, we allow mandatory parameters to remain unset.
+    @type  make_specialized: boolean
     
-    @raise RestxException:    If the sanity check fails.
+    @raise RestxException:   If the sanity check fails.
     
     """
     #
@@ -214,11 +236,15 @@ def paramSanityCheck(param_dict, param_def_dict, name_for_errors):
                                        (pname, name_for_errors, str(e)))
                     
     #
-    # Check whether all required parameters are present
+    # Check whether all required parameters are present. This check
+    # is skipped for specialized component resources, since the users
+    # of those resources need to provide missing parameters when they
+    # create the 'normal' resources later on.
     #
-    for pname, pdict in param_def_dict.items():
-        if pdict['required']  and  (not param_dict  or  pname not in param_dict):
-            raise RestxMandatoryParameterMissingException("Missing mandatory parameter '%s' in section '%s'" % (pname, name_for_errors))
+    if not make_specialized:
+        for pname, pdict in param_def_dict.items():
+            if pdict['required']  and  (not param_dict  or  pname not in param_dict):
+                raise RestxMandatoryParameterMissingException("Missing mandatory parameter '%s' in section '%s'" % (pname, name_for_errors))
 
 def fillDefaults(param_def_dict, param_dict):
     """
@@ -275,7 +301,51 @@ def convertTypes(param_def_dict, param_dict):
                 raise RestxException("Incompatible type for parameter '%s': %s" % (pname, str(e)))
 
 
-def makeResourceFromClass(component_class, params):
+def specializedOverwrite(component_meta_data, specialized_component_data):
+    """
+    Combine component's meta data with specified data of specialized component data.
+
+    Overwrites the desc, name and uri of the component meta data with the
+    data appropriate for the specialized component (a partial resource definition).
+    Removes the 'specialized' parameter from the 'resource_creation_params'.
+
+    Also adds the 'is_settable = False' flag to parameters that have been defined
+    in the partial resource definition, so that the client can see that these
+    parameters cannot be provided anymore.
+
+    Adds a noticeable string in the 'default' value for those parameters as well.
+
+    @param component_meta_data:         The meta data as returned by the component.
+    @type component_meta_data:          dict
+
+    @param specialized_component_data:  The partial resource defintion for this specialized component.
+    @type specialized_component_data:   dict
+
+    @return:                            Updated component meta data.
+    @rtype:                             dict
+
+    """
+    component_meta_data['desc'] = specialized_component_data['public']['desc']
+    component_meta_data['name'] = specialized_component_data['public']['name']
+    component_meta_data['uri']  = specialized_component_data['public']['uri']
+    component_meta_data['doc']  = specialized_component_data['public']['uri'] + "/doc"
+    try:
+        rcp = specialized_component_data['private']['resource_creation_params']
+    except:
+        rcp = None
+    if rcp:
+        component_meta_data['resource_creation_params']['desc']['default'] = rcp['desc']
+        del component_meta_data['resource_creation_params']['specialized']   # Cannot create specialized resources from this one
+        data_params        = component_meta_data['params']
+        specialized_params = specialized_component_data['private']['params']
+        for pname in specialized_params:
+            data_params[pname]['default'] = "*** PROVIDED BY COMPONENT SPECIALIZATION ***"
+            data_params[pname]['is_settable'] = False
+
+    return component_meta_data
+
+
+def makeResourceFromClass(component_class, params, specialized=None, partial_resource_name=None):
     """
     Create a new resource representation from the
     specified component class and parameter dictionary
@@ -286,7 +356,8 @@ def makeResourceFromClass(component_class, params):
             {
                 "reource creation_params" : {
                         "suggested_name" : "my_twitter",
-                        "desc"           : "Our Twitter stream"
+                        "desc"           : "Our Twitter stream",
+                        "specialized"    : false
                 },
                 "params" : {
                         "user"     : "AccountName",
@@ -307,6 +378,20 @@ def makeResourceFromClass(component_class, params):
                             or a 'resource_creation_dictionary'. Can contain
                             both.
     @type  params:          dict
+
+    @param specialized:     If this resource should be based on a partial resource
+                            definition (specialized code) then we are given the
+                            resource definition dictionary of the partial resource
+                            here. Otherwise, this is None. This is only permitted
+                            if the resource-creation-parameters do NOT set the
+                            'specialized' flag. That flag indicates that we want
+                            to create a new specialized component resource, not a resource
+                            based on a specialized component.
+    @type specialized:      dict
+
+    @param partial_resource_name: Name of the partial resource from which we have the
+                                  specialized (partial resource) definition.
+    @type partial_resource_name:  string
     
     @return:                Success message in form of dictionary that contains
                             "status", "name" and "uri" fields.
@@ -320,6 +405,10 @@ def makeResourceFromClass(component_class, params):
     component            = component_class()
     component_params_def = component.getMetaData()
     component_params_def = languageStructToPython(component, component_params_def)
+    if specialized:
+        # Do an overwrite and merge with the specialized component (partial resource
+        # data). This may modify the description and suggested name defaults.
+        component_params_def = specializedOverwrite(component_params_def, specialized)
 
     #
     # First we check whether there are any unknown parameters specified
@@ -331,18 +420,44 @@ def makeResourceFromClass(component_class, params):
     for k in params.keys():
         if k not in [ 'params', 'resource_creation_params' ]:
             raise RestxException("Malformed resource parameter definition. Unknown key: %s" % k)
-    #
+
     # Check whether there are unknown parameters in the 'param' or 'resource_creation_params' section.
-    #
     provided_params = params.get('params')
+
     if not provided_params:
         # If no parameters were provided at all, we create them as
         # an empty dictionary. We need something here to be able
         # to merge some defaults into it later on.
         provided_params = dict()
         params['params'] = provided_params
+
+    # Merge with any parameters provided by a partial resource we may use as base
+    # If there are doubles (something was provided with the create request, which was
+    # also already defined in the partial base resource) then we are simply ignoring
+    # the provided value and overwrite them with what was defined in the partial
+    # resource.
+    specialized_params = None
+    if specialized:
+        try:
+            specialized_params  = specialized['private']['params']
+            provided_params.update(specialized_params)
+        except:
+            pass
+
     provided_resource_creation_params = params.get('resource_creation_params')
-    paramSanityCheck(provided_params, component_params_def['params'], 'params')
+    # Note the difference between 'specialized' and the 'make_specialized_component' flag:
+    # If a 'specialized' parameter is provided then we know that we want to create a new
+    # usable resource, based on a specialized component resource. However, if the
+    # resource-creation-parameters contain the 'specialized' flag, this means that we
+    # just want to create the specialized component resource (the base resource). Those
+    # two things are mutually exclusive.
+    if provided_resource_creation_params:
+        make_specialized_component = provided_resource_creation_params.get('specialized', False)
+        if make_specialized_component and specialized:
+            raise RestxException("Cannot create resource with specializec component resource as base AND set 'specialized' flag at the same time.")
+    else:
+        make_specialized_component = False
+    paramSanityCheck(provided_params, component_params_def['params'], 'params', make_specialized_component)
     paramSanityCheck(provided_resource_creation_params,
                      component_params_def['resource_creation_params'],
                      'resource_creation_params')
@@ -350,10 +465,9 @@ def makeResourceFromClass(component_class, params):
     # types that have been specified
     convertTypes(component_params_def['params'], provided_params)
 
-
     # The parameters passed the sanity checks. We can now create the resource definition.
     suggested_name = provided_resource_creation_params['suggested_name']
-    resource_uri   = settings.PREFIX_RESOURCE + "/" + suggested_name
+    resource_uri   = (settings.PREFIX_RESOURCE if not make_specialized_component else settings.PREFIX_SPECIALIZED) + "/" + suggested_name
     resource_name  = suggested_name # TODO: Should check if the resource exists already...
     params['code_uri'] = component.getCodeUri()  # Need a reference to the code that this applies to
     
@@ -361,6 +475,15 @@ def makeResourceFromClass(component_class, params):
     # we need to add their default values.
     fillDefaults(component_params_def['params'], provided_params)
     fillDefaults(component_params_def['resource_creation_params'], provided_resource_creation_params)
+
+    # After all parameters have been dealt with, we now
+    # should remove all the parameters that came from a partial resource
+    # if we are creating a component based on that.
+    private_params = params.get('params')
+    if specialized_params  and  private_params:
+        for key in specialized_params.keys():
+            if key in private_params:
+                del private_params[key]
 
     # Storage for a resource contains a private and public part. The public part is what
     # any user of the resource can see: URI, name and description. In the private part we
@@ -374,9 +497,12 @@ def makeResourceFromClass(component_class, params):
                         "desc" : provided_resource_creation_params['desc']
                     }
     }
+    if specialized:
+        resource_def['extends'] = partial_resource_name
+        del resource_def['private']['code_uri']
     
     # Storage to our 'database'.
-    STORAGE_OBJECT.writeResourceToStorage(resource_name, resource_def)
+    STORAGE_OBJECT.writeResourceToStorage(resource_name, resource_def, make_specialized_component)
 
     # Send a useful message back to the client.
     success_body = {
@@ -388,7 +514,7 @@ def makeResourceFromClass(component_class, params):
     return success_body
 
     
-def makeResource(component_name, params):
+def makeResource(component_name, params, specialized=False):
     """
     Create a new resource representation from the
     component class specified by its name and the parameter
@@ -404,6 +530,12 @@ def makeResource(component_name, params):
                             or a 'resource_creation_dictionary'. Can contain
                             both.
     @type  params:          dict
+
+    @param specialized:     Flag indicates whether this is based on a specialized
+                            component resource. In which case the params can be
+                            partial and 'component_name' really refers to the name
+                            of the specialized component resource.
+    @type  specialized:     boolean
     
     @return:                Success message in form of dictionary that contains
                             "status", "name" and "uri" fields.
@@ -413,6 +545,15 @@ def makeResource(component_name, params):
                             problem with the provided parameters.
 
     """
-    component_class = restx.components._CODE_MAP.get(component_name)
-    return makeResourceFromClass(component_class, params)
+    if specialized:
+        specialized_code      = retrieveResourceFromStorage(getResourceUri(component_name, is_partial=True), only_public=False, is_partial=True)
+        component_path        = specialized_code["private"]["code_uri"]
+        component_class       = restx.core.codebrowser.getComponentClass(component_path)
+        specialized_code_name = component_name
+    else:
+        component_class       = restx.components._CODE_MAP.get(component_name)
+        specialized_code      = None
+        specialized_code_name = None
+
+    return makeResourceFromClass(component_class, params, specialized_code, specialized_code_name)
 

@@ -71,12 +71,13 @@ class MetaBrowser(BaseBrowser):
         path = self.request.getRequestPath()
         if path in [ "/", settings.PREFIX_META ]:
             data = {
-                    "code"     : Url(settings.PREFIX_CODE),
-                    "resource" : Url(settings.PREFIX_RESOURCE),
-                    "static"   : Url(settings.PREFIX_STATIC),
-                    "name"     : "MuleSoft RESTx server",
-                    "version"  : settings.get_version(),
-                    "doc"      : Url(settings.PREFIX_META + "/doc")
+                    "code"             : Url(settings.PREFIX_CODE),
+                    "specialized code" : Url(settings.PREFIX_SPECIALIZED),
+                    "resource"         : Url(settings.PREFIX_RESOURCE),
+                    "static"           : Url(settings.PREFIX_STATIC),
+                    "name"             : "MuleSoft RESTx server",
+                    "version"          : settings.get_version(),
+                    "doc"              : Url(settings.PREFIX_META + "/doc")
             }
             result = Result.ok(data)
             

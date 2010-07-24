@@ -133,6 +133,7 @@ if not desc:
 
 rt.description    = desc
 rt.suggested_name = name
+rt.specialized    = False
 
 print "\n=== Attempting to create new resource on the server ==="
 r = rt.create_resource()

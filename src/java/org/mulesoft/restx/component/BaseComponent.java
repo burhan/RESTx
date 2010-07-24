@@ -128,9 +128,9 @@ public abstract class BaseComponent
     }
     
     public MakeResourceResult makeResource(String componentClassName, String suggestedResourceName,
-                                           String resourceDescription, Map<?,?> resourceParameters) throws RestxException
+                                           String resourceDescription, boolean specialized, Map<?,?> resourceParameters) throws RestxException
     {
-        return resourceAccessor.makeResourceProxy(componentClassName, suggestedResourceName, resourceDescription, resourceParameters);
+        return resourceAccessor.makeResourceProxy(componentClassName, suggestedResourceName, resourceDescription, specialized, resourceParameters);
     }
     
     private ParameterDef createParamDefType(Class<?> paramType, String desc,

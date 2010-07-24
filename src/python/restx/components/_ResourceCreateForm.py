@@ -27,6 +27,8 @@ import urllib
 import restx.components
 import restx.settings as settings
 
+from   restx.resources              import makeResourceFromClass
+from   restx.platform_specifics     import STORAGE_OBJECT
 from   restx.components.api         import *
 from   org.mulesoft.restx.exception import *
 
@@ -51,6 +53,7 @@ The user submits the filled-out form and a new resource is created.
                                "params" : {
                                    "component_name" : ParameterDef(PARAM_STRING, "Name of the component", required=True),
                                    "message"        : ParameterDef(PARAM_STRING, "An error message", required=False, default=""),
+                                   "specialized"    : ParameterDef(PARAM_BOOL,   "Indicates if this is based on a specialized component", required=False, default=False),
                                },
                                "positional_params": [ "component_name" ]
                             },
@@ -58,25 +61,27 @@ The user submits the filled-out form and a new resource is created.
                                "desc" : "Accepts a posted resource creation form",
                                "params" : {
                                    "component_name" : ParameterDef(PARAM_STRING, "Name of the component", required=True),
+                                   "specialized"    : ParameterDef(PARAM_BOOL,   "Indicates if this is based on a specialized component", required=False, default=False),
                                },
                                "positional_params": [ "component_name" ]
                            }
                        }
     
-    def error_return(self, component_name, message):
+    def error_return(self, component_name, message, specialized=False):
         """
         Sends client back to form page with error message.
 
         """
-        return Result.temporaryRedirect("%s%s/form/%s?message=%s" % (settings.DOCUMENT_ROOT, self.getMyResourceUri(), component_name, message))
+        return Result.temporaryRedirect("%s%s/form/%s?message=%s%s" % (settings.DOCUMENT_ROOT, self.getMyResourceUri(),
+                                                                       component_name, message, "&specialized=y" if specialized else ""))
 
-    def create(self, method, input, component_name):
+    def create(self, method, input, component_name, specialized=False):
         """
         Accept a resource creation form for a specified component.
 
         """
         if not input:
-            return self.error_return(component_name, "Need form input!")
+            return self.error_return(component_name, "Need form input!", specialized)
 
         elems = input.split("&")
         d = dict()
@@ -94,13 +99,13 @@ The user submits the filled-out form and a new resource is created.
                         d2[pe] = value
                     
         try:
-            ret_msg = makeResource(component_name, d)
+            ret_msg = makeResource(component_name, d, specialized)
         except RestxException, e:
-            return self.error_return(component_name, e.msg)
+            return self.error_return(component_name, e.msg, specialized)
         
         return Result.ok(ret_msg)
 
-    def form(self, method, input, component_name, message=""):
+    def form(self, method, input, component_name, message="", specialized=False):
         """
         Display a resource creation form for a specified component.
         
@@ -120,6 +125,16 @@ The user submits the filled-out form and a new resource is created.
         @rtype:                 Result
 
         """
+        if specialized:
+            # Need to read the definition of the partial resource and get the
+            # component name from there.
+            specialized_code_name = component_name
+            specialized_def       = STORAGE_OBJECT.loadResourceFromStorage(specialized_code_name, True)
+            component_uri         = specialized_def['private']['code_uri']
+            elems                 = component_uri.split("/")
+            component_name        = elems[len(elems)-1]
+
+        # Take the parameter map from the component
         cc = restx.components._CODE_MAP.get(component_name)
         if not cc:
             return Result.notFound("Cannot find component '%s'" % component_name)
@@ -129,6 +144,21 @@ The user submits the filled-out form and a new resource is created.
         params = dict()
         comp = cc()
         params.update(comp.getParams())  # In case this is a Java component, we get a Python dict this way
+
+        if specialized:
+            fname = specialized_def['public']['name']
+            fdesc = specialized_def['public']['desc']
+            # Remove all parameters that have been specified in the specialized component resource
+            # definition already
+            spec_params = specialized_def['private'].get('params')
+            if spec_params:
+                for name in spec_params:
+                    if name in params:
+                        del params[name]
+        else:
+            fname = comp.getName()
+            fdesc = comp.getDesc()
+
         param_fields_html = ""
         if params:
             param_field_names = params.keys()
@@ -158,7 +188,16 @@ The user submits the filled-out form and a new resource is created.
 Please enter the resource configuration...<br><p>
 %s
 <form name="input" action="%s" method="POST">
-    <table>
+    <table>""" % (fname, fdesc, msg, "%s%s/create/%s%s" % (settings.DOCUMENT_ROOT, self.getMyResourceUri(),
+                                                           component_name if not specialized else specialized_code_name, "?specialized=y" if specialized else ""))
+        if not specialized:
+            body += """
+        <tr>
+            <td>Make this a specialized component:</td>
+            <td><input type="checkbox" id=resource_creation_params__specialized name="resource_creation_params__specialized" /><label for=resource_creation_params__specialized><small>Can only be used as basis for other resources</small></label></td>
+        </tr>
+            """
+        body += """
         <tr>
             <td>Resource name:</td>
             <td><input type="text" name="resource_creation_params__suggested_name" /></td>
@@ -170,7 +209,7 @@ Please enter the resource configuration...<br><p>
         %s
         <tr><td colspan=2 align=center><input type="submit" value="Submit" /></tr></tr>
     </table>
-</form>""" % (comp.getName(), comp.getDesc(), msg, "%s%s/create/%s" % (settings.DOCUMENT_ROOT, self.getMyResourceUri(), component_name), param_fields_html)
+</form>""" % (param_fields_html)
 
         footer = settings.HTML_FOOTER
 

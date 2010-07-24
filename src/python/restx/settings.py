@@ -23,12 +23,13 @@ Settings for RESTx.
 
 """
 
-DOCUMENT_ROOT   = ""                # If run standalone, this is a good choice
-#DOCUMENT_ROOT   = "/restx"          # The proxy path if run behind a proxy
-PREFIX_META     = "/meta"
-PREFIX_CODE     = "/code"
-PREFIX_RESOURCE = "/resource"
-PREFIX_STATIC   = "/static"
+DOCUMENT_ROOT      = ""                # If run standalone, this is a good choice
+#DOCUMENT_ROOT      = "/restx"          # The proxy path if run behind a proxy
+PREFIX_META        = "/meta"
+PREFIX_CODE        = "/code"
+PREFIX_SPECIALIZED = "/specialized"
+PREFIX_RESOURCE    = "/resource"
+PREFIX_STATIC      = "/static"
 
 LISTEN_PORT     = 8001
 

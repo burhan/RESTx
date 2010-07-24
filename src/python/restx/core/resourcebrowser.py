@@ -142,7 +142,7 @@ class ResourceBrowser(BaseBrowser):
                     deleteResourceFromStorage(self.request.getRequestPath())
                     return Result.ok("Resource deleted")
                 except RestxException, e:
-                    return Result(e.code, str(e))
+                    return Result(e.code, e.msg)
 
             # Get the public representation of the resource
             rinfo = _getResourceDetails(resource_name)

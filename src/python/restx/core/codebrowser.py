@@ -33,7 +33,7 @@ from org.mulesoft.restx.component.api   import Result
 
 from restx.components                   import _CODE_MAP
 
-from restx.resources                    import makeResourceFromClass
+from restx.resources                    import makeResourceFromClass, listResources, retrieveResourceFromStorage, getResourceUri, specializedOverwrite, deleteResourceFromStorage
 from restx.core.basebrowser             import BaseBrowser
 from restx.languages                    import *
 
@@ -41,6 +41,7 @@ from org.mulesoft.restx.util            import Url
 from org.mulesoft.restx.component.api   import HTTP;
 
 EXCLUDE_PREFIXES = [ "_" ]
+
 
 def getComponentClass(uri):
     """
@@ -102,47 +103,92 @@ class CodeBrowser(BaseBrowser):
                                                                no_list_indices=False,
                                                                no_borders=False))
     
-    def __process_get(self):
+    def __process_get(self, is_code, prefix):
         """
         Respond to GET requests.
         
         When someone sends GET requests to the code then
         they want to browse the available code options.
+
+        Same with spezialiced code.
+
+        @param is_code:     Indicates whether this is a request for un-specialized code.
+        @type is_code:      boolean
+
+        @param prefix:      The prefix for this type of request.
+        @type prefix:       string
         
         @return:  HTTP return structure.
         @rtype:   Result
 
         """
         # It's the responsibility of the browser class to provide breadcrumbs
-        self.breadcrumbs = [ ("Home", "/"), ("Code", settings.PREFIX_CODE) ]
+        if is_code:
+            dirname = "Code"
+        else:
+            dirname = "Specialized"
+        self.breadcrumbs = [ ("Home", "/"), (dirname, prefix) ]
 
-        if self.request.getRequestPath() == settings.PREFIX_CODE:
+        if self.request.getRequestPath() == prefix:
             #
-            # Just show the home page of the code browser (list of all installed code)
+            # Just show the home page of the code browser (list of all installed (specialized) code)
             #
-            data = dict([ (name, { "uri" : Url(class_name().getCodeUri()), "desc" : class_name().getDesc() } ) \
-                                for (name, class_name) in _CODE_MAP.items() \
-                                    if name[0] not in EXCLUDE_PREFIXES ])
+            if is_code:
+                # Data to be taken from the code
+                data = dict([ (name, { "uri" : Url(class_name().getCodeUri()), "desc" : class_name().getDesc() } ) \
+                                    for (name, class_name) in _CODE_MAP.items() \
+                                        if name[0] not in EXCLUDE_PREFIXES ])
+            else:
+                # We are looking for partial resources
+                data = listResources(partials=True)
         else:
             # Path elements (the known code prefix is stripped off)
-            path_elems = self.request.getRequestPath()[len(settings.PREFIX_CODE):].split("/")[1:]
-            component_name  = path_elems[0]   # This should be the name of the code element
+            path_elems = self.request.getRequestPath()[len(prefix):].split("/")[1:]
+            if is_code:
+                # We are referencing actual components here
+                component_name  = path_elems[0]   # This should be the name of the code element
+                component_path  = self.request.getRequestPath()
+            else:
+                # We are looking at a partial resource. Therefore, we need to load
+                # that resource and then get the code URI from it.
+                specialized_code_name = path_elems[0]
+                specialized_code      = retrieveResourceFromStorage(getResourceUri(specialized_code_name, is_partial=True), only_public=False, is_partial=True)
+                component_path        = specialized_code["private"]["code_uri"]
             
             # Instantiate the component
-            component_class = getComponentClass(self.request.getRequestPath())
+            component_class = getComponentClass(component_path)
             if not component_class:
                 return Result.notFound("Unknown component")
             component          = component_class()
             component_home_uri = component.getCodeUri()
-            self.breadcrumbs.append((component_name, component_home_uri))
+
+            if is_code:
+                self.breadcrumbs.append((component_name, component_home_uri))
+            else:
+                self.breadcrumbs.append((specialized_code_name, specialized_code["public"]["uri"]))
 
             if len(path_elems) == 1:
                 #
                 # No sub-detail specified: We want meta info about a code segment (component)
                 #
                 data = component.getMetaData()
+
+                #
+                # If this is based on a specialized component then we need to overwrite some
+                # of the component's meta data with the info from the specialized component
+                # definition.
+                #
+                if not is_code:
+                    data = specializedOverwrite(data, specialized_code)
+
                 data = languageStructToPython(component, data)
-                self.context_header.append(("[ Create resource ]", settings.PREFIX_RESOURCE+"/_createResourceForm/form/"+component_name, "target=_blank"))
+                if is_code:
+                    qs = ""
+                    cname = component_name
+                else:
+                    qs = "?specialized=y"
+                    cname = specialized_code_name
+                self.context_header.append(("[ Create resource ]", settings.PREFIX_RESOURCE+"/_createResourceForm/form/"+cname+qs, "target=_blank"))
             else:
                 #
                 # Some sub-detail of the requested component was requested
@@ -155,23 +201,46 @@ class CodeBrowser(BaseBrowser):
                     return Result.notFound("Unknown code detail")
                 
         return Result.ok(data)
-    
-    
-    def __process_post(self):
+
+
+    def __process_post(self, is_code, prefix):
         """
         Process a POST request.
         
         The only allowed POST requests to code are requests
         to the base URI of a component. This creates a new resource.
         
+        Same with spezialiced code.
+
+        @param is_code:     Indicates whether this is a request for un-specialized code.
+        @type is_code:      boolean
+
+        @param prefix:      The prefix for this type of request.
+        @type prefix:       string
+
         @return:  HTTP return structure.
         @rtype:   Result
 
         """
+        if is_code:
+            # If we are dealing with actual components then the path of this request
+            # here is the correct path to find the component class.
+            component_path        = self.request.getRequestPath()
+            specialized_code_name = None
+            specialized_code      = None
+        else:
+            # But if we are dealing with specialized components then we first need to
+            # retrieve the partial resource definition and extract the component path
+            # from there.
+            path_elems = self.request.getRequestPath()[len(prefix):].split("/")[1:]
+            specialized_code_name = path_elems[0]
+            specialized_code      = retrieveResourceFromStorage(getResourceUri(specialized_code_name, is_partial=True), only_public=False, is_partial=True)
+            component_path        = specialized_code["private"]["code_uri"]
+
         #
         # Start by processing and sanity-checking the request.
         #
-        component_class = getComponentClass(self.request.getRequestPath())
+        component_class = getComponentClass(component_path)
         if not component_class:
             return Result.notFound("Unknown component")
         #component = component_class()
@@ -180,13 +249,39 @@ class CodeBrowser(BaseBrowser):
             param_dict = json.loads(body)
         except Exception, e:
             raise RestxException("Malformed request body: " + str(e))
-        ret_msg = makeResourceFromClass(component_class, param_dict)
+        ret_msg = makeResourceFromClass(component_class, param_dict, specialized_code, specialized_code_name)
         # This is returned back to the client, so we should take the URI
         # string and cast it to a Url() object. That way, the DOCUMENT_ROOT
         # can be applied as needed before returning this to the client.
         location = ret_msg['uri']
         ret_msg['uri'] = Url(location)
         return Result.created(location, ret_msg)
+
+    def __process_delete(self, is_code, prefix):
+        """
+        Process a DELETE request.
+        
+        The only allowed DELETE here is on specialized component resources.
+        
+        @param is_code:     Indicates whether this is a request for un-specialized code.
+        @type is_code:      boolean
+
+        @param prefix:      The prefix for this type of request.
+        @type prefix:       string
+
+        @return:            HTTP return structure.
+        @rtype:             Result
+
+        """
+        if not is_code:
+            try:
+                deleteResourceFromStorage(self.request.getRequestPath(), True)
+                return Result.ok("Resource deleted")
+            except RestxException, e:
+                return Result(e.code, str(e))
+        else:
+            return Result.badRequest("Can only delete specialized component resources")
+
     
     def process(self):
         """
@@ -197,7 +292,20 @@ class CodeBrowser(BaseBrowser):
         
         """
         method = self.request.getRequestMethod()
+
+        # We are also handling requests for specialized code. Let's
+        # detect them here and pass our findings to the request handlers.
+        if self.request.getRequestPath().startswith(settings.PREFIX_CODE):
+            is_code = True
+            prefix  = settings.PREFIX_CODE
+        else:
+            is_code = False
+            prefix  = settings.PREFIX_SPECIALIZED
+
         if method == HTTP.GET_METHOD:
-            return self.__process_get()
+            return self.__process_get(is_code, prefix)
         elif method == HTTP.POST_METHOD:
-            return self.__process_post()
+            return self.__process_post(is_code, prefix)
+        elif method == HTTP.DELETE_METHOD:
+            return self.__process_delete(is_code, prefix)
+
