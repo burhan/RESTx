@@ -51,7 +51,8 @@ class DownloadAnalysis(BaseComponent):
             ip = ip_date[0]
             dt = ip_date[1].split()[2][1:]
             if ip in download_ips:
-                result.append(dict(firstcontact_time=dt, download_time=download_ips[ip], ipaddr=ip, referrer=elems[3]))
+                result.append(dict(firstcontact_time=dt, download_time=download_ips[ip], ipaddr=ip,
+                                   trace="%s/subset?filter=%s&unique_only=f" % (self.access_log_resource, ip), referrer=elems[3]))
 
         return Result.ok(result)
 
