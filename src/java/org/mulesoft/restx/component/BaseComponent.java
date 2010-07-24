@@ -356,6 +356,8 @@ public abstract class BaseComponent
                                                         true, ""));
         rp.put("desc",           new ParameterDefString("Specifies a description for this new resource",
                                                         false, "A '" + getName() + "' resource")); 
+        rp.put("specialized",    new ParameterDefBoolean("Specifies if we want to create a specialized component resource (true) or a normal resource (false)",
+                                                        false, false)); 
 
         d.put("resource_creation_params", changeParamsToPlainDict(rp));
         
