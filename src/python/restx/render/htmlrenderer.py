@@ -235,7 +235,7 @@ class HtmlRenderer(BaseRenderer):
         out = ""
         if type(data) is dict:
             out += self.__dict_render(data)
-        elif type(data) is list:
+        elif type(data) in [ list, tuple ]:
             out += self.__list_render(data)
         else:
             out += self.__plain_render(data)
