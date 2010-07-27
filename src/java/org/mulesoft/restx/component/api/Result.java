@@ -81,6 +81,11 @@ public class Result
         return new Result(HTTP.BAD_REQUEST, message);
     }
     
+    public static Result unauthorized(String message)
+    {
+        return new Result(HTTP.UNAUTHORIZED, message);
+    }
+    
     public static Result noContent()
     {
         return new Result(HTTP.NO_CONTENT, null);
