@@ -45,17 +45,18 @@ def insert(tname, valdict):
 
 class DatabaseAccess(BaseComponent):
     NAME             = "DatabaseAccess"
-    DESCRIPTION      = "Accesses to the SnakeSQL database"
-    DOCUMENTATION    = "Service methods and capabilities to access a SnakeSQL database"
+    DESCRIPTION      = "Accesses to an SQL database"
+    DOCUMENTATION    = "Service methods and capabilities to access a SQL database"
 
     PARAM_DEFINITION = {
                            "db_connection_string" : ParameterDef(PARAM_STRING,  "The database connection string", required=True),
                            "table_name"           : ParameterDef(PARAM_STRING,  "Name of the DB table", required=True),
-                           "columns"              : ParameterDef(PARAM_STRING,  "Comma separated list of DB columns for the result", required=False, default="*"),
+                           "columns"              : ParameterDef(PARAM_STRING,  "Comma separated list of DB columns for the result, specify '*' for all", required=True),
                            "id_column"            : ParameterDef(PARAM_STRING,  "Name of the column that holds the unique ID", required=True),
-                           "where"                : ParameterDef(PARAM_STRING,  "Optional WHERE clause (SQL syntax)", required=False, default=""),
-                           "allow_updates"        : ParameterDef(PARAM_BOOL,    "Can the user create new entries or update existing ones?", required=False, default=False),
-                           "name_value_pairs"     : ParameterDef(PARAM_BOOL,    "Return name/value pairs if set, otherwise plain lists", required=False, default=False),
+                           "where1"               : ParameterDef(PARAM_STRING,  "WHERE clause (SQL syntax), specify '-' to leave unset", required=True),
+                           "where2"               : ParameterDef(PARAM_STRING,  "Additional WHERE clause (SQL syntax), specify '-' to leave unset", required=True),
+                           "allow_updates"        : ParameterDef(PARAM_BOOL,    "Can the user create new entries or update existing ones?", required=True),
+                           "name_value_pairs"     : ParameterDef(PARAM_BOOL,    "Return name/value pairs if set, otherwise plain lists", required=True),
                        }
     
     # A dictionary with information about each exposed service method (sub-resource).
@@ -90,11 +91,17 @@ class DatabaseAccess(BaseComponent):
                 raise RestxException("Malformed columns")
 
     def __get_where_str(self, id=None):
-        if self.where:
+        if self.where2 != "-" and (self.where1 == "-"  or  not self.where1):
+            # Making sure that where1 is set
+            self.where1 = self.where2
+            self.where2 = None
+        if self.where1  and  self.where1 != "-":
             if id and id > -1:
-                where_str = " WHERE %s and %s=%s" % (self.where, self.id_column, id)
+                where_str = " WHERE %s AND %s=%s" % (self.where1, self.id_column, id)
             else:
-                where_str = " WHERE %s" % self.where
+                where_str = " WHERE %s" % self.where1
+            if self.where2  and  self.where2 != "-":
+                where_str += " AND %s" % self.where2
         else:
             if id and id > -1:
                 where_str = " WHERE %s=%s" % (self.id_column, id)
@@ -201,8 +208,9 @@ class DatabaseAccess(BaseComponent):
                     for illegal in ";*()":
                         if illegal in name:
                             return Result.badRequest("Illegal character in column name: " + name)
-                        if illegal in value:
-                            return Result.badRequest("Illegal character in value for column '%s'" % name)
+                        if type(value) in [ str, unicode ]:
+                            if illegal in value:
+                                return Result.badRequest("Illegal character in value for column '%s'" % name)
 
                 # Get the properly ordered list of columns that we have actually specified.
                 # This allows us to ommit optional values.
