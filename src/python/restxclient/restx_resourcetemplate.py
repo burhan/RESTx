@@ -42,6 +42,7 @@ class RestxResourceTemplate(object):
     __RCP_KEY                       = "resource_creation_params"
     __RCP_DESC_KEY                  = "desc"
     __RCP_SUGGESTED_NAME_KEY        = "suggested_name"
+    __RCP_SPECIALIZED_KEY           = "specialized"
 
     def __init__(self, comp):
         """
@@ -180,14 +181,20 @@ class RestxResourceTemplate(object):
         Returns an initialized L{RestxResource} object, ready to use.
 
         """
+        """ Commented out: For with the arrival of specialized components,
+            we need to let the server do this sort of thing for us.
+
         # Check if all mandatory parameters have been set
         for name, pdef in self.get_all_parameters().items():
             if pdef.is_required():
                 if name not in self.__param_values:
                     raise RestxClientException("Required parameter '%s' is missing." % name)
+        """
 
         d = dict()
         d[self.__PARAMS_KEY] = self.__param_values
+        if self.__RCP_SPECIALIZED_KEY in self.__resource_creation_param_values:
+            del self.__resource_creation_param_values[self.__RCP_SPECIALIZED_KEY]
         d[self.__RCP_KEY]    = self.__resource_creation_param_values
 
         res = self.__component._create_resource(d)
@@ -198,6 +205,25 @@ class RestxResourceTemplate(object):
 
         return self.__component.get_server().get_resource(name)
 
+    def create_specialized_component(self):
+        """
+        Posts a new specialized component resource description to the server.
+
+        Returns an initialized L{RestxComponent} object, ready to use.
+
+        """
+        d = dict()
+        d[self.__PARAMS_KEY] = self.__param_values
+        self.__resource_creation_param_values[self.__RCP_SPECIALIZED_KEY] = True
+        d[self.__RCP_KEY]    = self.__resource_creation_param_values
+
+        res = self.__component._create_resource(d)
+        if res['status'] != "created":
+            raise RestxClientException("Specialized component resource could not be created.")
+
+        name = res['name']
+
+        return self.__component.get_server().get_component(name, specialized=True)
 
     #
     # For convenience, we offer write access to those settable

@@ -34,9 +34,10 @@ public class RestxResourceTemplate
     protected final static String     PARAMS_KEY             = "params";
     protected final static String     RCP_KEY                = "resource_creation_params";
     protected final static String     RCP_DESC_KEY           = "desc";
+    protected final static String     RCP_SPECIALIZED_KEY    = "specialized";
     protected final static String     RCP_SUGGESTED_NAME_KEY = "suggested_name";
 
-    protected RestxComponent            component;
+    protected RestxComponent          component;
     protected HashMap<String, Object> paramValues;
     protected HashMap<String, Object> resourceCreationParamValues;
 
@@ -137,8 +138,16 @@ public class RestxResourceTemplate
         return this;
     }
     
+    /**
+     * Create a new resource on the server, ready to use.
+     *
+     * @return       Newly created resource.
+     */
     public RestxResource createResource() throws RestxClientException
     {
+        /* Commented out: For with the arrival of specialized components,
+         * we need to let the server do this sort of thing for us.
+         *
         // Check whether all required parameters have been set
         HashMap<String, RestxParameter> parameters = getAllParameters();
         if (parameters != null  &&  !parameters.isEmpty()) {
@@ -148,12 +157,19 @@ public class RestxResourceTemplate
                 }
             }
         }
+        */
         
         // Assemble the resource creation dictionary, which is sent
         // to the component URI in order to create a resource on the
         // server.
         HashMap<String, Object> d = new HashMap<String, Object>();
         d.put(PARAMS_KEY, paramValues);
+        if (resourceCreationParamValues.containsKey(RCP_SPECIALIZED_KEY)) {
+            // If that was set at an earlier time, we don't need it anymore.
+            // In fact, if it's here then we really have to remove it since
+            // the server doesn't want to see it in that case.
+            resourceCreationParamValues.remove(RCP_SPECIALIZED_KEY);
+        }
         d.put(RCP_KEY,    resourceCreationParamValues);
         HashMap<String, Object> res = component.createResource(d);
         
@@ -169,6 +185,36 @@ public class RestxResourceTemplate
         // were given.
         String name = (String)res.get("name");
         return component.getServer().getResource(name);
+    }
+
+    /**
+     * Create a new specialized component resource on the server, ready to use.
+     *
+     * @return       Newly created specialized component resource.
+     */
+    public RestxComponent createSpecializedComponent() throws RestxClientException
+    {
+        // Assemble the resource creation dictionary, which is sent
+        // to the component URI in order to create a specialized component
+        // resource on the server.
+        HashMap<String, Object> d = new HashMap<String, Object>();
+        d.put(PARAMS_KEY, paramValues);
+        resourceCreationParamValues.put(RCP_SPECIALIZED_KEY, true);  // Letting the server know that this is for a specialized component resource
+        d.put(RCP_KEY,    resourceCreationParamValues);
+        HashMap<String, Object> res = component.createResource(d);
+        
+        // The server returned a dictionary with some information about
+        // the outcome of the operation.
+        String status = (String) res.get("status");
+        if (status == null  ||  !status.equals("created")) {
+            throw new RestxClientException("Specialized component resource could not be created.");
+        }
+        
+        // Quickest way for us to get the specialized component resource
+        // is to just get it directly from the server, using the name we
+        // were given.
+        String name = (String)res.get("name");
+        return component.getServer().getComponent(name, true);
     }
 
 }

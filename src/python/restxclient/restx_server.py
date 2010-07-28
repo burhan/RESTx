@@ -44,25 +44,27 @@ class RestxServer(object):
     __DEFAULT_REQ_HEADERS = dict(Accept="application/json")
 
     # The keys to the server's meta data dictionary.
-    __CODE_URI_KEY      = "code"
-    __DOC_URI_KEY       = "doc"
-    __NAME_KEY          = "name"
-    __RESOURCE_URI_KEY  = "resource"
-    __STATIC_URI_KEY    = "static"
-    __VERSION_KEY       = "version"
+    __CODE_URI_KEY            = "code"
+    __DOC_URI_KEY             = "doc"
+    __NAME_KEY                = "name"
+    __RESOURCE_URI_KEY        = "resource"
+    __SPECIALIZED_URI_KEY     = "specialized code"
+    __STATIC_URI_KEY          = "static"
+    __VERSION_KEY             = "version"
 
-    __META_URI          = "/"    # Location of the server's root directory (meta info)
+    __META_URI                = "/"    # Location of the server's root directory (meta info)
 
-    __server_uri        = None   # Stores the URI of the server to which we connect
-    __component_uri     = None   # The URI of where the components can be found
-    __doc_uri           = None   # The URI of the server documentation
-    __name              = None   # The name of the server
-    __resource_uri      = None   # The URI where resources can be found
-    __static_uri        = None   # The URI for static content
-    __version           = None   # The version string of the server
-    __doc               = None   # A cache for the servers's doc string
-    __resources         = None   # A cache for the resource-name-plus dictionary
-    __components        = None   # A cache for the component-name-plus dictionary
+    __server_uri              = None   # Stores the URI of the server to which we connect
+    __component_uri           = None   # The URI of where the components can be found
+    __doc_uri                 = None   # The URI of the server documentation
+    __name                    = None   # The name of the server
+    __resource_uri            = None   # The URI where resources can be found
+    __static_uri              = None   # The URI for static content
+    __version                 = None   # The version string of the server
+    __doc                     = None   # A cache for the servers's doc string
+    __resources               = None   # A cache for the resource-name-plus dictionary
+    __components              = None   # A cache for the component-name-plus dictionary
+    __specialized_components  = None   # A cache for the specialized component-name-plus dictionary
 
     def _send(self, url, data=None, method=None, status=None, headers=None):
         """
@@ -126,8 +128,8 @@ class RestxServer(object):
 
         if status is not None:
             if status != r.status:
-                r.read()    # Empty the input stream (if we don't do that the next request will be confused)
-                raise RestxClientException("Status code %s was expected for request to '%s'. Instead we received %s." % (status, url, r.status))
+                buf = r.read()    # Empty the input stream (if we don't do that the next request will be confused)
+                raise RestxClientException("Status code %s was expected for request to '%s'. Instead we received %s: %s" % (status, url, r.status, buf[:256]))
 
         data = r.read()
         server_conn.close()
@@ -140,6 +142,9 @@ class RestxServer(object):
 
         This is just a wrapper around _send(), which JSON serializes
         the request data and deserializes the return data.
+
+        We only try to decode JSON in the response if we didn't get
+        an error back.
 
         @param url:     Absolute URL to which the request should be sent.
         @type url:      string
@@ -167,7 +172,14 @@ class RestxServer(object):
             data = json.dumps(data)
 
         status, d = self._send(url, data=data, method=method, status=status, headers={"content-Type" : "application/json"})
-        return status, json.loads(d)
+        if status < 300:
+            try:
+                data = json.loads(d)
+            except Exception, e:
+                raise RestxClientException("Malformed JSON data in response! ", e)
+        else:
+            data = d
+        return status, data
 
 
     # --------------------------------------------
@@ -216,12 +228,13 @@ class RestxServer(object):
         status, d = self._json_send(self.__docroot + self.__META_URI, status=200)
 
         try:
-            self.__component_uri = d[self.__CODE_URI_KEY]
-            self.__doc_uri       = d[self.__DOC_URI_KEY]
-            self.__name          = d[self.__NAME_KEY]
-            self.__resource_uri  = d[self.__RESOURCE_URI_KEY]
-            self.__static_uri    = d[self.__STATIC_URI_KEY]
-            self.__version       = d[self.__VERSION_KEY]
+            self.__component_uri    = d[self.__CODE_URI_KEY]
+            self.__doc_uri          = d[self.__DOC_URI_KEY]
+            self.__name             = d[self.__NAME_KEY]
+            self.__resource_uri     = d[self.__RESOURCE_URI_KEY]
+            self.__specialized_uri  = d[self.__SPECIALIZED_URI_KEY]
+            self.__static_uri       = d[self.__STATIC_URI_KEY]
+            self.__version          = d[self.__VERSION_KEY]
         except KeyError, e:
             raise RestxClientException("Server error: Expected key '%s' missing in server meta data." % str(e))
 
@@ -339,7 +352,7 @@ class RestxServer(object):
         status, self.__resources = self._json_send(self.__resource_uri, status=200)
         return self.__resources
 
-    def get_all_component_names(self):
+    def get_all_component_names(self, specialized=False):
         """
         Return the list of all component names.
 
@@ -355,15 +368,16 @@ class RestxServer(object):
         to get_all_component_names() or get_all_component_names_plus()
         results in a request to the server.
 
-        @return:        List of component names.
-        @rtype:         list
+        @param specialized:  Flag indicates whether we want to see specialized component resources.
+        @type specialized:   bool
+
+        @return:             List of component names.
+        @rtype:              list
 
         """
-        if not self.__components:
-            status, self.__components = self._json_send(self.__component_uri, status=200)
-        return self.__components.keys()
+        return self.get_all_component_names_plus(specialized).keys()
 
-    def get_all_component_names_plus(self):
+    def get_all_component_names_plus(self, specialized=False):
         """
         Return dictionary with all high-level meta info about all component.
 
@@ -377,37 +391,57 @@ class RestxServer(object):
 
         The information is cached.
 
-        @return:        Dictionary with high-level component info.
-        @rtype:         dict
+        @param specialized:  Flag indicates whether we want to see specialized component resources.
+        @type specialized:   bool
+
+        @return:             Dictionary with high-level component info.
+        @rtype:              dict
 
         """
-        if not self.__components:
-            status, self.__components = self._json_send(self.__component_uri, status=200)
-        return self.__components
+        if specialized:
+            uri_prefix = self.__specialized_uri
+            cache      = self.__specialized_components
+        else:
+            uri_prefix = self.__component_uri
+            cache      = self.__components
+        if not cache:
+            status, cache = self._json_send(uri_prefix, status=200)
+            if specialized:
+                self.__specialized_components = cache
+            else:
+                self.__components             = cache
+        return cache
 
-    def get_component(self, name):
+    def get_component(self, name, specialized=False):
         """
         Return a L{RestxComponent} object for the specified component.
 
-        @param name:    Name of component.
-        @type name:     string
+        @param name:            Name of component.
+        @type name:             string
 
-        @return:        Client representation for the specified component.
-        @rtype:         L{RestxComponent}
+        @param specialized:     Flag indicating whether we want a specialzied component.
+        @type specialized:      bool
+
+        @return:                Client representation for the specified component.
+        @rtype:                 L{RestxComponent}
 
         """
-        status, d = self._json_send(self.__component_uri + "/" + name, status=200)
+        if specialized:
+            uri_prefix = self.__specialized_uri
+        else:
+            uri_prefix = self.__component_uri
+        status, d = self._json_send(uri_prefix + "/" + name, status=200)
         return RestxComponent(self, d)
 
     def get_resource(self, name):
         """
         Return a L{RestxResource} object for the specified resource.
 
-        @param name:    Name of resource.
-        @type name:     string
+        @param name:           Name of resource.
+        @type name:            string
 
-        @return:        Client representation for the specified resource.
-        @rtype:         L{RestxResource}
+        @return:               Client representation for the specified resource.
+        @rtype:                L{RestxResource}
 
         """
         status, d = self._json_send(self.__resource_uri + "/" + name, status=200)
@@ -417,8 +451,8 @@ class RestxServer(object):
     # For convenience, we offer read access to several
     # elements via properties.
     #
-    version  = property(get_server_version, None)
-    uri      = property(get_server_uri, None)
-    name     = property(get_server_name, None)
-    docs     = property(get_server_docs, None)
+    version = property(get_server_version, None)
+    uri     = property(get_server_uri, None)
+    name    = property(get_server_name, None)
+    docs    = property(get_server_docs, None)
 

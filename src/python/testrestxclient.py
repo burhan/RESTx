@@ -20,10 +20,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 import restxclient.api as restxapi
+import sys
 
 #server    = restxapi.RestxServer("http://localhost:8080/restx")   # For testing behind proxy
 server    = restxapi.RestxServer("http://localhost:8001")         # For direct connection
-component = server.get_component ("TestComponent")
+
+print server.get_all_component_names_plus(False)
+
+
+component = server.get_component("DatabaseAccess")
 print component.get_all_services()
 
 print "\n\nAll services...\n\n"
@@ -33,12 +38,7 @@ for sname, sdef in component.get_all_services().items():
 
 print "\n\nOne service...\n\n"
 
-srv = component.get_service("blahblah")
-print "@@@@ src: ", srv
-
-print "\n\nOne service...\n\n"
-
-srv = component.get_service("foobar")
+srv = component.get_service("entries")
 print "@@@@ src: ", srv
 
 print "\n\nPositional parameters...\n\n"
@@ -66,28 +66,38 @@ print r
 print "\n\n--------------------------------------------\n\n"
 
 rt = component.get_resource_template()
-#rt.set("api_key", "foo")
-rt.params         = dict(api_key="bar")
+rt.params         = dict(db_connection_string="/home/jbrendel/Programming/MuleSoft/RESTx/test_db", id_column="ID", table_name="Person")
 rt.description    = "Some description"
 rt.suggested_name = "somename_p"
 
-r = rt.create_resource()
-print r
-print r.get_all_services()
-s = r.get_service("blahblah")
+component = rt.create_specialized_component()
+print component
+
+component = server.get_component("somename_p", specialized=True)
+print component
+
+rt = component.get_resource_template()
+rt.suggested_name = "somename_p_final"
+rt.params = dict(db_connection_string="foo")
+c2 = rt.create_resource()
+
+
+print c2.get_all_services()
+s = c2.get_service("entries")
 print s
 
 print s.access()
+"""
 
 
 print "\n\n--------------------------------------------\n\n"
 
-status, data = server.get_resource("MyGoogleSearch").get_service("search").set("query", "mulesoft").access()
+#status, data = server.get_resource("MyGoogleSearch").get_service("search").set("query", "mulesoft").access()
 
-print data
+#print data
 
-r.delete()
-
+#r.delete()
+"""
 
 
  

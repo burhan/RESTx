@@ -47,19 +47,20 @@ import java.util.Map;
 public class RestxServer
 {
     // The well-known URIs where we can find specific server information
-    protected static final String            CODE_URI_KEY     = "code";
-    protected static final String            DOC_URI_KEY      = "doc";
-    protected static final String            NAME_KEY         = "name";
-    protected static final String            RESOURCE_URI_KEY = "resource";
-    protected static final String            STATIC_URI_KEY   = "static";
-    protected static final String            VERSION_KEY      = "version";
-    protected static final String            META_URI         = "/";
-    protected static final String            DESCURI_DESC_KEY = "desc";
-    protected static final String            DESCURI_URI_KEY  = "uri";
+    protected static final String            CODE_URI_KEY        = "code";
+    protected static final String            DOC_URI_KEY         = "doc";
+    protected static final String            NAME_KEY            = "name";
+    protected static final String            RESOURCE_URI_KEY    = "resource";
+    protected static final String            SPECIALIZED_URI_KEY = "specialized code";
+    protected static final String            STATIC_URI_KEY      = "static";
+    protected static final String            VERSION_KEY         = "version";
+    protected static final String            META_URI            = "/";
+    protected static final String            DESCURI_DESC_KEY    = "desc";
+    protected static final String            DESCURI_URI_KEY     = "uri";
     
-    protected static final String[]          REQUIRED_KEYS    = { CODE_URI_KEY, DOC_URI_KEY, NAME_KEY,
-                                                                  RESOURCE_URI_KEY, STATIC_URI_KEY,
-                                                                  VERSION_KEY };
+    protected static final String[]          REQUIRED_KEYS       = { CODE_URI_KEY, DOC_URI_KEY, NAME_KEY,
+                                                                     RESOURCE_URI_KEY, STATIC_URI_KEY,
+                                                                     VERSION_KEY, SPECIALIZED_URI_KEY };
 
     protected HashMap<String, String>        DEFAULT_REQ_HEADERS;
     protected String                         serverUri;
@@ -68,11 +69,13 @@ public class RestxServer
     protected String                         docRoot;
     protected String                         name;
     protected String                         resourceUri;
+    protected String                         specializedUri;
     protected String                         staticUri;
     protected String                         doc;
     protected String                         version;
     protected HashMap<String, DescUriHolder> resources;
     protected HashMap<String, DescUriHolder> components;
+    protected HashMap<String, DescUriHolder> specializedComponents;
 
     /**
      * Used to send requests to the server.
@@ -172,8 +175,11 @@ public class RestxServer
 
             if (status != null) {
                 if (status != respStatus) {
+                    if (buf.length() > 256) {
+                        buf.delete(256, buf.length());
+                    }
                     throw new RestxClientException("Status code " + status + " was expected for request to '" +
-                                                 fullUrl + "'. Instead we received " + respStatus);
+                                                   fullUrl + "'. Instead we received " + respStatus + " " + buf);
                 }
             }
             return new HttpResult(conn.getResponseCode(), buf.toString());
@@ -343,6 +349,8 @@ public class RestxServer
      * 
      * This is a wrapper around {@link send}, which serializes complex objects to
      * JSON strings and assume that the response can equally be de-serialized from JSON.
+     *
+     * We only decode the response as JSON if we did not get an error back.
      * 
      * @param url     The URL on the server to which the request should be sent. Since
      *                this relies on an established server connection, the URL here is
@@ -403,7 +411,9 @@ public class RestxServer
             dataStr = null;
         }
         HttpResult res = send(url, dataStr, method, status, headers);
-        res.data = jsonDeserialize((String) res.data); // / JSON de-serialized
+        if (res.status < 300) {
+            res.data = jsonDeserialize((String) res.data); // / JSON de-serialized
+        }
         return res;
     }
     
@@ -525,12 +535,13 @@ public class RestxServer
 
         // Store the meta data for later use
         try {
-            componentUri = hm.get(CODE_URI_KEY);
-            docUri       = hm.get(DOC_URI_KEY);
-            name         = hm.get(NAME_KEY);
-            resourceUri  = hm.get(RESOURCE_URI_KEY);
-            staticUri    = hm.get(STATIC_URI_KEY);
-            version      = hm.get(VERSION_KEY);
+            componentUri    = hm.get(CODE_URI_KEY);
+            docUri          = hm.get(DOC_URI_KEY);
+            name            = hm.get(NAME_KEY);
+            resourceUri     = hm.get(RESOURCE_URI_KEY);
+            specializedUri  = hm.get(SPECIALIZED_URI_KEY);
+            staticUri       = hm.get(STATIC_URI_KEY);
+            version         = hm.get(VERSION_KEY);
         }
         catch (Exception e) {
             throw new RestxClientException("Malformed server meta data: " + e.getMessage());
@@ -651,7 +662,7 @@ public class RestxServer
     }
     
     /**
-     * Return high level information about all components currently known on the server.
+     * Return high level information about all non-specialized components currently known on the server.
      * 
      * This retrieves a map from the server, which contains description and URI for
      * each component.
@@ -661,20 +672,55 @@ public class RestxServer
      */
     public HashMap<String, DescUriHolder> getAllComponentNamesPlus() throws RestxClientException
     {
-        components = getDescUriMap(componentUri);
-        return components;
+        return getAllComponentNamesPlus(false);
     }
 
     /**
-     * Return the names of all components currently known on the server.
+     * Return high level information about all components currently known on the server.
+     * 
+     * This retrieves a map from the server, which contains description and URI for
+     * each component.
+     *
+     * @param   specialized Flag indicating whether we want to see the specialized components.
+     * 
+     * @return  Map with information about each component.
+     * @throws  RestxClientException
+     */
+    public HashMap<String, DescUriHolder> getAllComponentNamesPlus(boolean specialized) throws RestxClientException
+    {
+        if (specialized) {
+            specializedComponents = getDescUriMap(specializedUri);
+            return specializedComponents;
+        }
+        else {
+            components = getDescUriMap(componentUri);
+            return components;
+        }
+    }
+
+    /**
+     * Return the names of all non-specialized components currently known on the server.
      * 
      * @return  Names of all components.
      * @throws  RestxClientException
      */
     public String[] getAllComponentNames() throws RestxClientException
     {
+        return getAllComponentNames(false);
+    }
+
+     /**
+     * Return the names of all components currently known on the server.
+     *
+     * @param   specialized Flag indicating whether we want to see the specialized components.
+     * 
+     * @return  Names of all components.
+     * @throws  RestxClientException
+     */
+    public String[] getAllComponentNames(boolean specialized) throws RestxClientException
+    {
         // Refresh the component list.
-        getAllComponentNamesPlus();
+        getAllComponentNamesPlus(specialized);
 
         // Jump through hoops to get the hash-map keys as a String[],
         // because we can't just do a simple cast on the array.
@@ -685,15 +731,37 @@ public class RestxServer
     }
     
     /**
-     * Return an initialized {@link RestxComponent} object for the specified component.
+     * Return an initialized {@link RestxComponent} object for the specified non-specialized component.
      * 
-     * @param  name   Name of the component.
+     * @param  name        Name of the component.
+     *
      * @return        Initialized {@link RestxComponent} object.
      * @throws        RestxClientException 
      */
     public RestxComponent getComponent(String name) throws RestxClientException
     {
-        HttpResult res = jsonSend(componentUri+"/"+name, null, null, 200, null);
+        return getComponent(name, false);
+    }
+
+     /**
+     * Return an initialized {@link RestxComponent} object for the specified component.
+     * 
+     * @param  name        Name of the component.
+     * @param  specialized Flag indicating whether we want to get a specialized components.
+     *
+     * @return        Initialized {@link RestxComponent} object.
+     * @throws        RestxClientException 
+     */
+    public RestxComponent getComponent(String name, boolean specialized) throws RestxClientException
+    {
+        String uriPrefix;
+        if (specialized) {
+            uriPrefix = specializedUri;
+        }
+        else {
+            uriPrefix = componentUri;
+        }
+        HttpResult res = jsonSend(uriPrefix+"/"+name, null, null, 200, null);
         // The data of the HTTP result should be a dictionary with the component info
         return new RestxComponent(this, (HashMap)res.data);
     }
