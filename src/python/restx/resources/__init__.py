@@ -472,8 +472,14 @@ def makeResourceFromClass(component_class, params, specialized=None, partial_res
     params['code_uri'] = component.getCodeUri()  # Need a reference to the code that this applies to
     
     # Some parameters are optional. If they were not supplied,
-    # we need to add their default values.
-    fillDefaults(component_params_def['params'], provided_params)
+    # we need to add their default values. However, we only do this
+    # when we create a normal resource. For specialized component
+    # resources, we don't want to set those default values, since
+    # otherwise they appear as 'set and unmodifiable' for those
+    # who want to create an actual resource based on a specialized
+    # component resource.
+    if not make_specialized_component:
+        fillDefaults(component_params_def['params'], provided_params)
     fillDefaults(component_params_def['resource_creation_params'], provided_resource_creation_params)
 
     # After all parameters have been dealt with, we now

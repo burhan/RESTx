@@ -51,12 +51,12 @@ class DatabaseAccess(BaseComponent):
     PARAM_DEFINITION = {
                            "db_connection_string" : ParameterDef(PARAM_STRING,  "The database connection string", required=True),
                            "table_name"           : ParameterDef(PARAM_STRING,  "Name of the DB table", required=True),
-                           "columns"              : ParameterDef(PARAM_STRING,  "Comma separated list of DB columns for the result, specify '*' for all", required=True),
+                           "columns"              : ParameterDef(PARAM_STRING,  "Comma separated list of DB columns for the result, specify '*' for all", required=False, default="*"),
                            "id_column"            : ParameterDef(PARAM_STRING,  "Name of the column that holds the unique ID", required=True),
-                           "where1"               : ParameterDef(PARAM_STRING,  "WHERE clause (SQL syntax), specify '-' to leave unset", required=True),
-                           "where2"               : ParameterDef(PARAM_STRING,  "Additional WHERE clause (SQL syntax), specify '-' to leave unset", required=True),
-                           "allow_updates"        : ParameterDef(PARAM_BOOL,    "Can the user create new entries or update existing ones?", required=True),
-                           "name_value_pairs"     : ParameterDef(PARAM_BOOL,    "Return name/value pairs if set, otherwise plain lists", required=True),
+                           "where1"               : ParameterDef(PARAM_STRING,  "WHERE clause (SQL syntax), specify '-' to leave unset", required=False, default=""),
+                           "where2"               : ParameterDef(PARAM_STRING,  "Additional WHERE clause (SQL syntax), specify '-' to leave unset", required=False, default=""),
+                           "allow_updates"        : ParameterDef(PARAM_BOOL,    "Can the user create new entries or update existing ones?", required=False, default=False),
+                           "name_value_pairs"     : ParameterDef(PARAM_BOOL,    "Return name/value pairs if set, otherwise plain lists", required=False, default=True),
                        }
     
     # A dictionary with information about each exposed service method (sub-resource).
