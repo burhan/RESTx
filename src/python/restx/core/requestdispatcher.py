@@ -29,6 +29,7 @@ import restx.settings as settings
 from org.mulesoft.restx.exception             import *
 from org.mulesoft.restx.component.api         import HTTP, Result
 
+from restx.logger                 import *
 from restx.core.basebrowser       import BaseBrowser
 from restx.core.staticbrowser     import StaticBrowser
 from restx.core.metabrowser       import MetaBrowser
@@ -108,7 +109,8 @@ class RequestDispatcher(object):
         except RestxFileNotFoundException, e:
             result = Result(e.code, e.msg)
         except RestxException, e:
-            result = Result.badRequest("Bad request: " + e.msg)
+            log("General RestxException: %s" % e.msg)
+            result = Result.internalServerError("Internal Server Error")
 
         if content_type:
             result.addHeader("Content-type", content_type);

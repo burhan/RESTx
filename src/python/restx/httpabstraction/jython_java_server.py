@@ -361,8 +361,11 @@ class __HttpHandler(HttpHandler):
         @type native_request:     com.sun.net.httpserver.HttpExchange
         
         """
-        msg = "-"
-        all_ok = False
+        msg        = "-"
+        all_ok     = False
+        request_ms = -1
+        l          = -1
+        ret_status = 500
         try:
             start_time = datetime.datetime.now()
             req = JythonJavaHttpRequest()
@@ -379,31 +382,32 @@ class __HttpHandler(HttpHandler):
             req.setResponse(result.getStatus(), result.getEntity())
             req.sendResponse()
             native_request.close()
-            all_ok = True
-            end_time   = datetime.datetime.now()
-            td         = end_time-start_time
-            request_ms = td.seconds*1000 + td.microseconds//1000
             # This is something to improve: Sometimes we may get binary
             # data, which can't be converted to a string. In that case,
             # we should find other means to determine the size of the data.
             try:
                 l = len(str(result.getEntity()))
             except:
-                l = -1
-            log("%s : %sms : %s : %s" % (msg, request_ms, result.getStatus(), l),
-                                         start_time = start_time, facility=LOGF_ACCESS_LOG)
+                pass
+            ret_status = result.getStatus()
+            all_ok = True
         except Exception, e:
-            log("%s : Uncaught Python exception: %s" (msg, str(e)))
             print traceback.format_exc()
+            log("%s : Uncaught Python exception: %s" % (msg, str(e)))
         except JavaException, e:
-            log("%s : Uncaught Java exception: %s" % (msg, e.msg))
             print "JAVA exception: ", e.printStackTrace()
+            log("%s : Uncaught Java exception: %s" % (msg, e.msg))
 
         if not all_ok:
-            req.setResponse(500, "InternalServerError")
+            req.setResponse(500, "Internal Server Error")
             req.sendResponse()
             native_request.close()
 
+        end_time   = datetime.datetime.now()
+        td         = end_time-start_time
+        request_ms = td.seconds*1000 + td.microseconds//1000
+        log("%s : %sms : %s : %s" % (msg, request_ms, ret_status, l),
+                                     start_time = start_time, facility=LOGF_ACCESS_LOG)
 
 class JythonJavaHttpServer(BaseHttpServer):
     """

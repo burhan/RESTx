@@ -36,6 +36,8 @@ from restx.storageabstraction.file_storage import FileStorage
 from org.json                import JSONException
 from org.mulesoft.restx.util import Url, JsonProcessor
 
+ALLOWABLE_SERVICE_KEYS = [ "desc", "params", "positional_params" ]
+
 #
 # Utility method.
 #
@@ -332,6 +334,11 @@ class BaseComponent(object):
             ret = dict()
             for name in self.SERVICES.keys():
                 ret[name]  = deepcopy(self.SERVICES[name])  # That's a dictionary with params definitions and descs
+                # Sanity check the service definition
+                for key in ret[name].keys():
+                    if key not in ALLOWABLE_SERVICE_KEYS:
+                        raise RestxException("Unknown key '%s' in description for service '%s'. Only allowed keys are: %s" % (key, name, ', '.join(ALLOWABLE_SERVICE_KEYS)))
+                        
                 # Create proper dict representations of each parameter definition
                 if 'params' in ret[name]:
                     for pname in ret[name]['params'].keys():
