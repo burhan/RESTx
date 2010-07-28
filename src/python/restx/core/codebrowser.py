@@ -153,6 +153,8 @@ class CodeBrowser(BaseBrowser):
                 # that resource and then get the code URI from it.
                 specialized_code_name = path_elems[0]
                 specialized_code      = retrieveResourceFromStorage(getResourceUri(specialized_code_name, is_partial=True), only_public=False, is_partial=True)
+                if not specialized_code:
+                    return Result.notFound("Cannot find specialized component resource '%s'" % specialized_code_name)
                 component_path        = specialized_code["private"]["code_uri"]
             
             # Instantiate the component
@@ -235,6 +237,8 @@ class CodeBrowser(BaseBrowser):
             path_elems = self.request.getRequestPath()[len(prefix):].split("/")[1:]
             specialized_code_name = path_elems[0]
             specialized_code      = retrieveResourceFromStorage(getResourceUri(specialized_code_name, is_partial=True), only_public=False, is_partial=True)
+            if not specialized_code:
+                return Result.notFound("Cannot find specialized component resource '%s'" % specialized_code_name)
             component_path        = specialized_code["private"]["code_uri"]
 
         #

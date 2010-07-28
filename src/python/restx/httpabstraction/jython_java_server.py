@@ -361,6 +361,8 @@ class __HttpHandler(HttpHandler):
         @type native_request:     com.sun.net.httpserver.HttpExchange
         
         """
+        msg = "-"
+        all_ok = False
         try:
             start_time = datetime.datetime.now()
             req = JythonJavaHttpRequest()
@@ -377,6 +379,7 @@ class __HttpHandler(HttpHandler):
             req.setResponse(result.getStatus(), result.getEntity())
             req.sendResponse()
             native_request.close()
+            all_ok = True
             end_time   = datetime.datetime.now()
             td         = end_time-start_time
             request_ms = td.seconds*1000 + td.microseconds//1000
@@ -390,10 +393,16 @@ class __HttpHandler(HttpHandler):
             log("%s : %sms : %s : %s" % (msg, request_ms, result.getStatus(), l),
                                          start_time = start_time, facility=LOGF_ACCESS_LOG)
         except Exception, e:
+            log("%s : Uncaught Python exception: %s" (msg, str(e)))
             print traceback.format_exc()
-            sys.exit(1)
         except JavaException, e:
+            log("%s : Uncaught Java exception: %s" % (msg, e.msg))
             print "JAVA exception: ", e.printStackTrace()
+
+        if not all_ok:
+            req.setResponse(500, "InternalServerError")
+            req.sendResponse()
+            native_request.close()
 
 
 class JythonJavaHttpServer(BaseHttpServer):

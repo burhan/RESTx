@@ -553,6 +553,8 @@ def makeResource(component_name, params, specialized=False):
     """
     if specialized:
         specialized_code      = retrieveResourceFromStorage(getResourceUri(component_name, is_partial=True), only_public=False, is_partial=True)
+        if not specialized_code:
+            raise RestxResourceNotFoundException("Cannot find specialized component resource '%s'" % component_name)
         component_path        = specialized_code["private"]["code_uri"]
         component_class       = restx.core.codebrowser.getComponentClass(component_path)
         specialized_code_name = component_name
