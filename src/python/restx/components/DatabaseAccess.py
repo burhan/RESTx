@@ -28,21 +28,6 @@ import os
 
 import SnakeSQL
 
-def count(tname):
-    # Doesn't support count...
-    return len(cursor.execute("SELECT ID FROM %s" % tname))
-
-def insert(tname, valdict):
-    new_id = count(tname) + 1
-    colstr = ', '.join([k for k in valdict.keys()])
-    valstr = ', '.join([(valdict[k] if type(valdict[k]) in [int, long, float] else "'%s'" % valdict[k]) for k in valdict.keys()])
-    cmdstr = "INSERT INTO %s (ID, %s) VALUES (%d, %s)" % (tname, colstr, new_id, valstr)
-    print "@@@ Executing: ", cmdstr
-    cursor.execute(cmdstr)
-    connection.commit()
-    return new_id
-
-
 class DatabaseAccess(BaseComponent):
     NAME             = "DatabaseAccess"
     DESCRIPTION      = "Accesses to an SQL database"
