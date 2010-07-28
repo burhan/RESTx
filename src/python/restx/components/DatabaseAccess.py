@@ -185,7 +185,12 @@ class DatabaseAccess(BaseComponent):
                 #
                 # Creating a new entry or updating an existing one
                 #
-                obj = self.fromJson(input)
+                try:
+                    obj = self.fromJson(input)
+                except:
+                    return Result.badRequest("Format error: Input is not in proper JSON format")
+                if type(obj) is not dict:
+                    return Result.badRequest("Format error: Excpected JSON dictionary as input")
 
                 if method == HttpMethod.POST:
                     # Creating a new one?
@@ -201,7 +206,7 @@ class DatabaseAccess(BaseComponent):
                 colnames = cursor.columns(self.table_name)
                 for name in obj.keys():
                     if name not in colnames:
-                        return Result.badRequest("Unknown column '%s'" % name)
+                        return Result.badRequest("Unknown column '%s' in input" % name)
 
                 # Some sanity checking on those
                 for name, value in obj.items():
