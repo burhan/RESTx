@@ -99,6 +99,7 @@ class BaseBrowser(object):
             renderer = HtmlRenderer(self.renderer_args, self.breadcrumbs, self.context_header)
         else:
             renderer = JsonRenderer(self.renderer_args)
+        outbuf = renderer.base_renderer(data, top_level=True)
         return renderer.CONTENT_TYPE, renderer.base_renderer(data, top_level=True)
     
     def process(self):

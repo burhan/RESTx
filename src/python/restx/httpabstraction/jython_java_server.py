@@ -66,6 +66,7 @@ class JythonJavaHttpRequest(RestxHttpRequest):
     __request_uri_str  = None
     __request_headers  = None
     __response_headers = None
+    __response_encoded = False
 
     _native_mode = False
 
@@ -274,6 +275,12 @@ class JythonJavaHttpRequest(RestxHttpRequest):
         Send the previously specified response headers and code.
         
         """
+        if not self.__response_encoded:
+            # Need to do this before setting response headers, since the
+            # encoding might change the length of the response, thus modifying
+            # what should be written in the 'Content-length' header.
+            self.encodeResponseBody()
+
         if self.__native_req:
             response_headers = self.__native_req.getResponseHeaders()
             for name, value in self.__response_headers.items():
@@ -287,16 +294,23 @@ class JythonJavaHttpRequest(RestxHttpRequest):
         """
         if self.__native_req:
             os = self.__native_req.getResponseBody()
+            os.write(self.__response_body, 0, len(self.__response_body))
+            os.flush()
+            os.close()
+
+    def encodeResponseBody(self):
+        """
+        Encode the response body based on content type headers.
+
+        """
+        if not self.__response_code:
             if type(self.__response_body) is str or type(self.__response_body) is unicode:
                 if self.__response_headers.has_key('Content-type'):
                     (ct, enc) = self.__response_headers['Content-type'].split("charset=")
                 else:
                     enc = "US-ASCII"
-                os.write(self.__response_body.encode(enc), 0, len(self.__response_body))
-            else:
-                os.write(self.__response_body, 0, len(self.__response_body))
-            os.flush()
-            os.close()
+                self.__response_body = self.__response_body.encode(enc)
+            self.__response_encoded = True
         
     def sendResponse(self):
         """
