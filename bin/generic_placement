@@ -120,13 +120,13 @@ else
     #
     # Change the name in the file
     #
-    sed --in-place=.orig s/$SAMPLE_COMPONENT_NAME/$name/ $RESTX_HOME/$newfile
+    sed s/$SAMPLE_COMPONENT_NAME/$name/ $RESTX_HOME/$newfile > $RESTX_HOME/$newfile._new
     if [ $? == 1 ]; then
-        echo "Failed to modify name new component template to $name"
+        echo "Failed to modify name in new component template to $name"
         echo
         exit 1
     fi
-    rm "$newfile".orig
+    mv $RESTX_HOME/$newfile._new $RESTX_HOME/$newfile
 fi
 
 #
