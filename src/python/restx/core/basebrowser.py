@@ -68,8 +68,8 @@ class BaseBrowser(object):
         self.headers        = request.getRequestHeaders()
         accept_header       = self.headers.get("Accept")
         if not accept_header:
-            accept_header = list()
-        self.human_client   = False if "application/json" in accept_header or settings.NEVER_HUMAN else True
+            accept_header = [ "*/*" ]
+        self.human_client   = False if accept_header[0].startswith("application/json") or settings.NEVER_HUMAN else True
         self.header         = ""
         self.footer         = ""
         self.renderer_args  = renderer_args
