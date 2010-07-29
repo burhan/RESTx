@@ -169,7 +169,7 @@ class BaseComponent(object):
         """
         return self.__base_capabilities.httpSetCredentials(accountname, password)
     
-    def httpGet(self, url, headers=None):
+    def httpGet(self, url, headers=None, timeout=None):
         """
         Accesses the specified URL.
         
@@ -181,15 +181,18 @@ class BaseComponent(object):
         
         @param headers:    A dictionary of additional HTTP request headers.
         @type headers:     dict
+
+        @param timeout:    Timeout for the request in seconds, or None.
+        @type timeout:     float
         
         @return:           Status and data as tuple.
         @rtype:            tuple
         
         """
-        res = self.__base_capabilities.httpGet(url, headers=headers)
+        res = self.__base_capabilities.httpGet(url, headers=headers, timeout=timeout)
         return (res.status, res.data)
     
-    def httpPost(self, url, data, headers=None):
+    def httpPost(self, url, data, headers=None, timeout=None):
         """
         Send the specified data to the specified URL with the POST method.
         
@@ -205,11 +208,14 @@ class BaseComponent(object):
         @param headers:    A dictionary of additional HTTP request headers.
         @type headers:     dict
         
+        @param timeout:    Timeout for the request in seconds, or None.
+        @type timeout:     float
+        
         @return:           Status and data as tuple.
         @rtype:            tuple
         
         """
-        res = self.__base_capabilities.httpPost(url, data, headers)
+        res = self.__base_capabilities.httpPost(url, data, headers, timeout=timeout)
         return (res.status, res.data)
 
     def getMetaData(self):

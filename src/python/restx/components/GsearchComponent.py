@@ -93,7 +93,11 @@ class GsearchComponent(BaseComponent):
                     data      = self.fromJson(data_str)
                     new_batch = data['responseData']['results']
                     results  += new_batch
+                    start     = len(results)
                 except Exception, e:
                     return HTTP.BAD_REQUEST, "Result data was malformed: " + str(e)
-        return Result(code, results[:num])
+            else:
+                # Last request caused an error? Then that's what we will return
+                return Result(code, data_str)
+        return Result.ok(results[:num])
 

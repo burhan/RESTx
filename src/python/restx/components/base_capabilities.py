@@ -23,7 +23,7 @@ Defines a base class for all components.
 
 """
 # Python imports
-import urllib, urllib2, socket
+import urlparse, urllib, urllib2, socket, httplib, base64
 
 import restx.settings as settings
 
@@ -108,9 +108,12 @@ class BaseCapabilities(BaseComponentCapabilities):
         self.__accountname = accountname
         self.__password    = password
     
-    def __http_access(self, url, data=None, headers=None):
+    def __http_access(self, method, url, data=None, headers=None, timeout=None):
         """
         Access an HTTP resource with GET or POST.
+        
+        @param method:     The method for the HTTP request
+        @type method:      string
         
         @param url:        The URL to access.
         @type url:         string
@@ -120,6 +123,9 @@ class BaseCapabilities(BaseComponentCapabilities):
         
         @param headers:    A dictionary of additional HTTP request headers.
         @type headers:     dict
+
+        @param timeout:    Timeout for the request in seconds, or None.
+        @type timeout:     float
         
         @return:           Code and response data tuple.
         @rtype:            tuple
@@ -137,20 +143,10 @@ class BaseCapabilities(BaseComponentCapabilities):
         #
         # Wish I wouldn't have to do that...
         #
-        try:
-            start_of_hostname = url.index("//")
-            host_port, path   = urllib.splithost(url[start_of_hostname:])  # Wants URL starting at '//'
-            host, port        = urllib.splitport(host_port)
-            ipaddr            = socket.gethostbyname(host)                # One of the possible IP addresses for this host
-            url               = url.replace(host, ipaddr, 1)              # Replace only first occurence of host name with IP addr
-            add_headers = { "Host" : host }                               # Will add a proper host header
-        except Exception, e:
-            # Can't parse URI? Just leave it be and let itself sort out.
-            add_headers = None
-            pass
+        (scheme, host_port, path, params, query, fragment) = urlparse.urlparse(url)
+        allpath     = url[url.index(host_port)+len(host_port):]
+        host, port  = urllib.splitport(host_port)
 
-        opener = self.__get_http_opener(url)
-        # Add any custom headers we might have (list of tuples)
         if headers:
             if type(headers) is not type(dict):
                 # If this was called from Java then the headers are
@@ -159,24 +155,38 @@ class BaseCapabilities(BaseComponentCapabilities):
                 header_dict = dict()
                 header_dict.update(headers)
                 headers = header_dict
+        else:
+            headers = dict()
 
-            opener.addheaders.append(headers.items())
+        try:
+            ipaddr          = socket.gethostbyname(host)   # One of the possible IP addresses for this host
+            headers["Host"] = host                         # Will add a proper host header
+            host            = ipaddr
+        except Exception, e:
+            # Can't do IP address replacemenet? Let it sort itself out on its own
+            pass
 
-        request = urllib2.Request(url)
+        if (self.__accountname is not None)  and  (self.__password is not None):
+            headers["Authorization"] = "Basic " + base64.encodestring('%s:%s' % (self.__accountname, self.__password))[:-1]
 
-        if add_headers:
-            for name, value in add_headers.items():
-                request.add_header(name, value)
+        if scheme == 'https':
+            conn = httplib.HTTPSConnection(host)
+        else:
+            conn = httplib.HTTPConnection(host)
 
-        if data:
-            request.add_data(data)
-        resp = opener.open(request)
-        #resp = opener.open(url, data)
-        code = HTTP.OK
-        data = resp.read()
+        conn.request(method, allpath, data, headers)
+        conn.sock.settimeout(timeout)
+
+        try:
+            resp   = conn.getresponse()
+            code   = resp.status
+            data   = resp.read()
+        except socket.timeout, e:
+            return HTTP.REQUEST_TIMEOUT, "Request timed out"
+
         return code, data
         
-    def httpGet(self, url, headers=None):
+    def httpGet(self, url, headers=None, timeout=None):
         """
         Accesses the specified URL.
         
@@ -189,16 +199,19 @@ class BaseCapabilities(BaseComponentCapabilities):
         @param headers:    A dictionary of additional HTTP request headers.
         @type headers:     dict
         
+        @param timeout:    Timeout for the request in seconds, or None.
+        @type timeout:     float
+        
         @return:           HttpResult object.
         @rtype:            HttpResult
         
         """
         res                  = HttpResult()
-        res.status, res.data = self.__http_access(url, headers=headers)
+        res.status, res.data = self.__http_access("GET", url, headers=headers, timeout=timeout)
         return res
 
 
-    def httpPost(self, url, data, headers=None):
+    def httpPost(self, url, data, headers=None, timeout=None):
         """
         Send the specified data to the specified URL.
         
@@ -214,11 +227,14 @@ class BaseCapabilities(BaseComponentCapabilities):
         @param headers:    A dictionary of additional HTTP request headers.
         @type headers:     dict
         
+        @param timeout:    Timeout for the request in seconds, or None.
+        @type timeout:     float
+        
         @return:           HttpResult object.
         @rtype:            HttpResult
         
         """
         res                  = HttpResult()
-        res.status, res.data = self.__http_access(url, data, headers)
+        res.status, res.data = self.__http_access("POST", url, data, headers, timeout)
         return res
 
