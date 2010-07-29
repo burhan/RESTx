@@ -37,6 +37,7 @@ import restx.logger   as logger
 
 from restx.core                import RequestDispatcher
 from restx.platform_specifics  import *
+from restx.components          import get_code_map
 
 from org.mulesoft.restx      import Settings
 from org.mulesoft.restx.util import Url
@@ -96,6 +97,8 @@ if __name__ == '__main__':
             settings.set_root_dir(rootdir)
         elif o in ("-l", "--logfile"):
             logger.set_logfile(a)
+
+    get_code_map()   # Do the import of all components to get it out of the way
             
     my_server = HttpServer(port, RequestDispatcher())
 

@@ -31,7 +31,7 @@
 # $5:  source directory of template
 # $6:  $RESTX_SRC directory (development directory for that language)
 # $7:  name of the sample component (usually 'SampleComponent')
-# $8:  location of the __init__.py script where the component import needs to be added
+# $8:  location of the component's partially created config file
 # $9:  potential suffix to the module name for import
 # $10: flag indicating whether this language requires compilation or not
 #
@@ -43,7 +43,7 @@ LANGUAGE_ENDING="$4"
 LANGUAGES_SRC="$5"
 RESTX_SRC="$6"
 SAMPLE_COMPONENT_NAME="$7"
-COMPONENT_LIST="$8"
+COMPONENT_CONF_FILE="$8"
 MODULE_NAME_SUFFIX="$9"
 COMPILATION_NEEDED="${10}"
 
@@ -100,38 +100,40 @@ newfile="$newpath/$filename"
 #
 # Check whether a component with that name exists already
 #
-if [ -f "$newfile" ]; then
-    echo "A component with that name already exists in the development directory: $newfile"
-    echo
-    exit 1
+if [ -f "$RESTX_HOME/$newfile" ]; then
+    echo "A component with that name already exists in the development directory: $RESTX_HOME/$newfile"
+    echo "This component file will not be over-written."
+    echo "But a manifest file does not exist yet. Only creating manifest file."
+else
+
+    #
+    # Copy the sample component in the right place
+    #
+
+    cp "$LANGUAGES_SRC/$fullpath" "$RESTX_HOME/$newfile"
+    if [ $? == 1 ]; then
+        echo "Cannot copy sample component to $RESTX_HOME/$newfile..."
+        echo
+        exit 1
+    fi
+
+    #
+    # Change the name in the file
+    #
+    sed --in-place=.orig s/$SAMPLE_COMPONENT_NAME/$name/ $RESTX_HOME/$newfile
+    if [ $? == 1 ]; then
+        echo "Failed to modify name new component template to $name"
+        echo
+        exit 1
+    fi
+    rm "$newfile".orig
 fi
 
 #
-# Copy the sample component in the right place
+# Finalize the manifest file for the component
 #
-
-cp "$LANGUAGES_SRC/$fullpath" "$newfile"
-if [ $? == 1 ]; then
-    echo "Cannot copy sample component to $newfile..."
-    echo
-    exit 1
-fi
-
-#
-# Change the name in the file
-#
-sed --in-place=.orig s/$SAMPLE_COMPONENT_NAME/$name/ $newfile
-if [ $? == 1 ]; then
-    echo "Failed to modify name new component template to $name"
-    echo
-    exit 1
-fi
-rm "$newfile".orig
-
-#
-# Add an import statement to the components-list Python file
-#
-echo "from $modulename import $name#$LANGUAGE" >> $RESTX_HOME/$COMPONENT_LIST
+echo "module  = $modulename" >> $COMPONENT_CONF_FILE
+echo "path    = $newfile" >> $COMPONENT_CONF_FILE
 
 echo -e "Created new component: $newfile\n"
 

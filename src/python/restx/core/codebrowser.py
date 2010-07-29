@@ -31,7 +31,7 @@ import restx.settings as settings
 from org.mulesoft.restx.exception       import RestxException
 from org.mulesoft.restx.component.api   import Result
 
-from restx.components                   import _CODE_MAP
+from restx.components                   import get_code_map
 
 from restx.resources                    import makeResourceFromClass, listResources, retrieveResourceFromStorage, getResourceUri, specializedOverwrite, deleteResourceFromStorage
 from restx.core.basebrowser             import BaseBrowser
@@ -59,7 +59,7 @@ def getComponentClass(uri):
     component_name  = path_elems[0]   # This should be the name of the code element
     
     # Instantiate the component
-    return _CODE_MAP.get(component_name)
+    return get_code_map().get(component_name)
 
 def getComponentInstance(uri, resource_name = None):
     """
@@ -136,7 +136,7 @@ class CodeBrowser(BaseBrowser):
             if is_code:
                 # Data to be taken from the code
                 data = dict([ (name, { "uri" : Url(class_name().getCodeUri()), "desc" : class_name().getDesc() } ) \
-                                    for (name, class_name) in _CODE_MAP.items() \
+                                    for (name, class_name) in get_code_map().items() \
                                         if name[0] not in EXCLUDE_PREFIXES ])
             else:
                 # We are looking for partial resources

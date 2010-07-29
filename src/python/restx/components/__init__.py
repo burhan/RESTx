@@ -27,9 +27,14 @@ Also defines a base class for all components.
 # Import all the components
 import restx_components_list
 
-#
-# Assemble list of the known components
-#
-_KNOWN_COMPONENTS = [ getattr(restx_components_list, name) for name in dir(restx_components_list) if not name.startswith("__") ]
-_CODE_MAP = dict([ (component_class().getName(), component_class) for component_class in _KNOWN_COMPONENTS ])
+_CODE_MAP         = None
+_KNOWN_COMPONENTS = None
+
+def get_code_map():
+    global _CODE_MAP, _KNOWN_COMPONENTS
+    new_component_list = restx_components_list.import_all()
+    if new_component_list:
+        _KNOWN_COMPONENTS = new_component_list
+        _CODE_MAP         = dict([ (component_class().getName(), component_class) for component_class in _KNOWN_COMPONENTS ])
+    return _CODE_MAP
 

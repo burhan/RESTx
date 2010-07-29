@@ -5,7 +5,7 @@
 #
 # $1 is the name of the component.
 # $2 is the $RESTX_HOME directory
-# $3 is the path to the restx_components_list/__init__.py file
+# $3 is the partially created component config file
 #
 
 #
@@ -14,13 +14,13 @@
 
 name="$1"
 RESTX_HOME="$2"
-COMPONENT_LIST="$3"
+COMPONENT_CONF_FILE="$3"
 
 LANGUAGE="Java"
 LANGUAGE_ENDING=".java"
 LANGUAGES_SRC="$RESTX_HOME/languages/java/src"
-RESTX_SRC="$RESTX_HOME/src/java"
+RESTX_SRC="src/java"
 SAMPLE_COMPONENT_NAME="SampleComponent"
 
-"$RESTX_HOME"/bin/generic_placement "$name" "$RESTX_HOME" "$LANGUAGE" "$LANGUAGE_ENDING" "$LANGUAGES_SRC" "$RESTX_SRC" "$SAMPLE_COMPONENT_NAME" "$COMPONENT_LIST" "-" 1
+"$RESTX_HOME"/bin/generic_placement "$name" "$RESTX_HOME" "$LANGUAGE" "$LANGUAGE_ENDING" "$LANGUAGES_SRC" "$RESTX_SRC" "$SAMPLE_COMPONENT_NAME" "$COMPONENT_CONF_FILE" "-" 1
 

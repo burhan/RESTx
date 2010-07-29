@@ -135,7 +135,7 @@ The user submits the filled-out form and a new resource is created.
             component_name        = elems[len(elems)-1]
 
         # Take the parameter map from the component
-        cc = restx.components._CODE_MAP.get(component_name)
+        cc = restx.components.get_code_map().get(component_name)
         if not cc:
             return Result.notFound("Cannot find component '%s'" % component_name)
         header = settings.HTML_HEADER

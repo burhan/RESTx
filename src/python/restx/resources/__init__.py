@@ -559,7 +559,7 @@ def makeResource(component_name, params, specialized=False):
         component_class       = restx.core.codebrowser.getComponentClass(component_path)
         specialized_code_name = component_name
     else:
-        component_class       = restx.components._CODE_MAP.get(component_name)
+        component_class       = restx.components.get_code_map().get(component_name)
         specialized_code      = None
         specialized_code_name = None
 

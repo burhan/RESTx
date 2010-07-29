@@ -8,7 +8,9 @@
 # component templates for the various languages.
 #
 
-COMPONENT_LIST="src/python/restx_components_list/__init__.py"
+COMP_CONF_DIR=conf/components
+COMP_CONF_EXT=.cmfs
+
 LANGUAGES=
 
 function restx_help
@@ -67,7 +69,7 @@ function start_restx
     if [ $? == 0 ]; then
         sleep 4
     else
-        exit $?
+        exit 1 
     fi
 }
 
@@ -134,15 +136,27 @@ function create_component
     fi
 
     # Check if we have a component with the suggested name already
-    chk=`grep " import $name#" "$RESTX_HOME"/"$COMPONENT_LIST"`
-    if [ ! -z "$chk" ]; then
+    conf_file="$RESTX_HOME/$COMP_CONF_DIR/$name$COMP_CONF_EXT"
+    if [ -f "$conf_file" ]; then
         echo "A component with name '$name' exists already."
         exit 1
     fi
 
+    # Start creating the config file
+    echo "ENABLED = yes" > $conf_file
+    echo "cname   = $name" >> $conf_file
+    echo "lang    = $language" >> $conf_file
+
+
     # Call the language specific placement script
-    $RESTX_HOME/languages/$language/util/placement $1 $RESTX_HOME "$COMPONENT_LIST"
-    exit $?
+    $RESTX_HOME/languages/$language/util/placement $1 $RESTX_HOME "$conf_file"
+    if [ $? == 0 ]; then
+        exit 0
+    else
+        echo "Creation of new component failed..."
+        rm $conf_file
+        exit 1
+    fi
 }
 
 
