@@ -36,6 +36,10 @@ or restart a RESTx server. You can also
     echo      "             To compile Java components. Only needed when Java components are added or modified."
     echo -e "\n   or: $CTL_SCRIPT_NAME component create <name> <language>"
     echo      "             To create a new component template."
+    echo -e "\n   or: $CTL_SCRIPT_NAME component list"
+    echo      "             To list all known components, their language, module and enabled/disabled status."
+    echo -e "\n   or: $CTL_SCRIPT_NAME component enable|disable <name>"
+    echo      "             Enable or disable a component without removing. Server restart required."
     echo -e "\n   or: $CTL_SCRIPT_NAME help"
     echo      "             To show this help information."
     echo
@@ -159,6 +163,65 @@ function create_component
     fi
 }
 
+function print_component_info
+{
+    fname="$1"
+    awk '\
+    BEGIN { enabled=""; cname=""; lang=""; module="";} \
+    { \
+        if ($1 == "ENABLED") { enabled=$3 } \
+        else if ($1 == "cname") { cname=$3 } \
+        else if ($1 == "lang")  { lang=$3 } \
+        else if ($1 == "module") { module=$3 }\
+    }\
+    END { printf("%-30s    %-3s       %-10s   %s\n", cname, enabled, lang, module); }' $fname
+}
+
+function list_components
+{
+    echo "Component name                    Enabled   Language     Module"
+    echo "---------------------------------------------------------------------------------------------"
+    for f in $RESTX_HOME/$COMP_CONF_DIR/*$COMP_CONF_EXT
+    do
+        print_component_info $f
+    done
+}
+
+function enable_disable_component
+{
+    name="$1"
+    yesno="$2"
+    if [ "$yesno" == "yes" ]; then
+        word=enable
+    else
+        word=disable
+    fi
+    conf_file="$RESTX_HOME/$COMP_CONF_DIR/$name$COMP_CONF_EXT"
+    tmp_conf_file="$conf_file".tmp
+    if [ -f "$conf_file" ]; then
+        echo "ENABLED   = $yesno" > "$tmp_conf_file"
+        egrep -v "^ENABLED" "$conf_file" >> "$tmp_conf_file"
+        echo "Component '$name' ""$word""d. Restart the server to finalize..."
+        mv "$tmp_conf_file" "$conf_file"
+        exit 0
+    else
+        echo "Unknown component '$name'. Cannot $word..."
+        exit 1
+    fi
+}
+
+function enable_component
+{
+    name="$1"
+    enable_disable_component $name yes
+}
+
+
+function disable_component
+{
+    name="$1"
+    enable_disable_component $name no
+}
 
 case $1 in
     start)     start_restx $@;;
@@ -168,6 +231,9 @@ case $1 in
     component) case $2 in
                  compile) compile_components;;
                  create)  create_component $3 $4;;
+                 list)    list_components;;
+                 enable)  enable_component $3;;
+                 disable) disable_component $3;;
                  *)       restx_help "'component' parameter '$2'";;
                esac;;
     *)         restx_help $1;;

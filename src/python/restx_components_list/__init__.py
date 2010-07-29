@@ -136,7 +136,6 @@ def import_all():
             classname = conf['module']+"."+conf['cname']
             comp_classes.append(__get_class(classname))
 
-        print "Imported %d components..." % len(comp_classes)
         __IMPORT_COMPLETE = True
         return comp_classes
     else:
