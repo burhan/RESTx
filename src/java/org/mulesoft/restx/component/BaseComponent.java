@@ -204,7 +204,11 @@ public abstract class BaseComponent
             if (m.isAnnotationPresent(Service.class)) {
                 String            serviceName         = m.getName();
                 Service           at                  = m.getAnnotation(Service.class);
-                ServiceDescriptor sd                  = new ServiceDescriptor(at.description());
+                boolean           pinreq              = false;
+                if (m.isAnnotationPresent(ParamsInReqBody.class)) {
+                    pinreq = true;
+                }
+                ServiceDescriptor sd                  = new ServiceDescriptor(at.description(), pinreq);
                 Class<?>[]        types               = m.getParameterTypes();
                 Annotation[][]    allParamAnnotations = m.getParameterAnnotations();
                 int i = 0;

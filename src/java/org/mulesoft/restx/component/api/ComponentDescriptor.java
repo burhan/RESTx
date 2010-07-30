@@ -110,6 +110,9 @@ public class ComponentDescriptor
             servicesDict.put(name, serviceDef);
             serviceDef.put("desc", service.getDesc());
             serviceDef.put("params", service.getParamMap());
+            if (service.getParamsInReqBodyFlag()) {
+                serviceDef.put("allow_params_in_body", true);
+            }
             if (!service.getPositionalParams().isEmpty()) {
                 serviceDef.put("positional_params", service.getPositionalParams());
             }

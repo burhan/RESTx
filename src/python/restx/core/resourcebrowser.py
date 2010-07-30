@@ -173,7 +173,7 @@ class ResourceBrowser(BaseBrowser):
                 input             = self.request.getRequestBody()
                 try:
                     http_method = __HTTP_METHOD_LOOKUP.get(self.request.getRequestMethod().upper(), HttpMethod.UNKNOWN)
-                    result      = _accessComponentService(component, services, complete_resource_def,
+                    result      = _accessComponentService(component, complete_resource_def,
                                                           resource_name, service_name, positional_params,
                                                           runtime_param_dict, input, self.request,
                                                           http_method)

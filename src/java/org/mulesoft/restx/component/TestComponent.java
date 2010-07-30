@@ -39,6 +39,7 @@ public class TestComponent extends BaseComponent
     public String api_key;
     
     @Service(description = "This is the foobar service")
+    @ParamsInReqBody
     public Result foobar(HttpMethod method, String input,
                          
                          @Parameter(name="query", desc="This is the query string", positional=true)

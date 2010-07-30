@@ -83,11 +83,8 @@ The user submits the filled-out form and a new resource is created.
         if not input:
             return self.error_return(component_name, "Need form input!", specialized)
 
-        elems = input.split("&")
         d = dict()
-        for e in elems:
-            name, value = urllib.splitvalue(e)
-            value = urllib.unquote_plus(value)
+        for name, value in input.items():
             path_elems = name.split("__")
             d2 = d
             for i, pe in enumerate(path_elems):
@@ -97,7 +94,7 @@ The user submits the filled-out form and a new resource is created.
                 else:
                     if value:
                         d2[pe] = value
-                    
+
         try:
             ret_msg = makeResource(component_name, d, specialized)
         except RestxException, e:

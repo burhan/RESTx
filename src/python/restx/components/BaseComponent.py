@@ -36,7 +36,7 @@ from restx.storageabstraction.file_storage import FileStorage
 from org.json                import JSONException
 from org.mulesoft.restx.util import Url, JsonProcessor
 
-ALLOWABLE_SERVICE_KEYS = [ "desc", "params", "positional_params" ]
+ALLOWABLE_SERVICE_KEYS = [ "desc", "params", "positional_params", "allow_params_in_body" ]
 
 #
 # Utility method.

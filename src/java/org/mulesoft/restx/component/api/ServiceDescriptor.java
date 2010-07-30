@@ -32,16 +32,18 @@ public class ServiceDescriptor
     /*
      * Defines a single service for a resource.
      */
-    private String desc;
+    private String  desc;
+    private boolean paramsInReqBody;
     
     private HashMap<String, ParameterDef> params;
     private ArrayList<String>             positionalParams;
 
-    public ServiceDescriptor(String desc)
+    public ServiceDescriptor(String desc, boolean paramsInReqBody)
     {
         this.desc             = desc;
         this.params           = new HashMap<String, ParameterDef>();
         this.positionalParams = new ArrayList<String>();
+        this.paramsInReqBody  = paramsInReqBody;
     }
     
     public String getDesc()
@@ -49,6 +51,11 @@ public class ServiceDescriptor
         return desc;
     }
     
+    public boolean getParamsInReqBodyFlag()
+    {
+        return paramsInReqBody;
+    }
+
     public void addParameter(String name, ParameterDef param) throws RestxDuplicateKeyException
     {
         if (params.containsKey(name)) {

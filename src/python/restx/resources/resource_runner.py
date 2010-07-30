@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 
+import urllib, urllib2
 
 import restxjson as json
 
@@ -30,28 +31,39 @@ import restx.core.codebrowser  # Wanted to be much more selective here, but a ci
 from org.mulesoft.restx.exception import *
 from org.mulesoft.restx.component.api import HTTP, Result
 from restx.resources  import paramSanityCheck, fillDefaults, convertTypes, \
-                           retrieveResourceFromStorage, getResourceUri
+                             retrieveResourceFromStorage, getResourceUri
 
 from restx.languages import *
 
 from restx.components.base_capabilities import BaseCapabilities
 
+def __form_parse(input):
+    """
+    Assuming the input is in application/x-www-form-urlencoded format, return values as dict.
 
-def _accessComponentService(component, services, complete_resource_def, resource_name, service_name,
+    @param input:   An input string, containing the entire form data.
+    @type input:    string
+
+    @return:        Dictionary with the encoded values
+    @rtype:         dict
+
+    """
+    print "----------------------------------"
+    print input
+    print "----------------------------------"
+    d = urllib2.parse_keqv_list(input.split("&"))
+    for name, value in d.items():
+        d[name] = urllib.unquote_plus(value)
+    return d
+
+
+def _accessComponentService(component, complete_resource_def, resource_name, service_name,
                             positional_params, runtime_param_dict, input, request=None, method=None, direct_call=False):
     """
     Passes control to a service method exposed by a component.
     
     @param component:             An instance of the component.
     @type component:              BaseComponent (object of child class)
-    
-    @param services:              Dictionary of services definitions for this component. Can be had
-                                  by calling _getServices() on the component. But we would need the
-                                  resource's base URI to get those URIs exported properly. Since
-                                  we already did this call in process() from where we called this
-                                  method, we just pass the services dictionary in, rather than
-                                  calling _getServices() again.
-    @param services:              dict
     
     @param complete_resource_def: The entire resource definition as it was retrieved from storage.
     @type complete_resource_def:  dict
@@ -90,9 +102,10 @@ def _accessComponentService(component, services, complete_resource_def, resource
     
     """
     try:
-        service_def = services.get(service_name)
-        if not service_def:
-            raise RestxException("Service '%s' is not available in this resource." % service_name)
+        services = complete_resource_def['public']['services']
+        if not services  or  service_name not in services  or  not hasattr(component, service_name):
+            raise RestxException("Service '%s' is not exposed by this resource." % service_name)
+        service_def = services[service_name]
 
         #
         # Some runtime parameters may have been provided as arguments on
@@ -143,6 +156,28 @@ def _accessComponentService(component, services, complete_resource_def, resource
                         break
             
         runtime_param_def  = service_def.get('params')
+
+        # A request header may tell us about the request body type.
+        ct = None
+        if request:
+            req_headers = request.getRequestHeaders()
+            if req_headers:
+                ct = req_headers.get("Content-type")
+                if ct  and  "application/json" in ct:
+                    try:
+                        # Assume the body is JSON and get parameters from there
+                        input = json.loads(input.strip())
+                    except ValueError, e:
+                        # Probably couldn't parse JSON properly.
+                        pass
+
+                elif ct  and  "application/x-www-form-urlencoded" in ct:
+                    try:
+                        input = __form_parse(input.strip())
+                    except Exception, e:
+                        # Probably couln't parse form values correctly
+                        pass
+
         if runtime_param_def:
             # If the 'allow_params_in_body' flag is set for a service then we
             # allow runtime parameters to be passed in the request body PUT or POST.
@@ -150,13 +185,10 @@ def _accessComponentService(component, services, complete_resource_def, resource
             # should take the runtime parameters out of the body.
             # Sanity checking and filling in of defaults for the runtime parameters
             if service_def.get('allow_params_in_body')  and  input:
-                # Take the base definition of the parameters from the request body
-                try:
-                    base_params = json.loads(input.strip())
-                    input       = None  # The input is now 'used up'
-                except ValueError, e:
-                    # Probably couldn't parse JSON properly.
-                    base_param = {}
+                base_params = input
+                if base_params:
+                    input = None
+
                 # Load the values from the body into the runtime_param_dict, but
                 # only those which are not defined there yet. This allows the
                 # command line args to overwrite what's specified in the body.
@@ -168,35 +200,22 @@ def _accessComponentService(component, services, complete_resource_def, resource
             fillDefaults(runtime_param_def, runtime_param_dict)
             convertTypes(runtime_param_def, runtime_param_dict)
     
-        services = complete_resource_def['public']['services']
-        if service_name in services  and  hasattr(component, service_name):
-            service_method = getattr(component, service_name)
-            
-            # Get the parameters from the resource definition time
-            params = complete_resource_def['private']['params']
+        service_method = getattr(component, service_name)
+        
+        # Get the parameters from the resource definition time
+        params = complete_resource_def['private']['params']
 
-            if runtime_param_dict:
-                # Merge the runtime parameters with the static parameters
-                # from the resource definition.
-                params.update(runtime_param_dict)
+        if runtime_param_dict:
+            # Merge the runtime parameters with the static parameters
+            # from the resource definition.
+            params.update(runtime_param_dict)
 
-            component.setBaseCapabilities(BaseCapabilities(component))
-            
-            # A request header may tell us about the request body type. If it's
-            # JSON then we first convert this to a plain object
-            if request:
-                req_headers = request.getRequestHeaders()
-                if req_headers:
-                    ct = req_headers.get("Content-type")
-                    if ct  and  "application/json" in ct:
-                        if input:
-                            input = json.loads(input)
+        component.setBaseCapabilities(BaseCapabilities(component))
+        
+        result = serviceMethodProxy(component, service_method, service_name, request,
+                                    input, params, method)
+        return result
 
-            result = serviceMethodProxy(component, service_method, service_name, request,
-                                        input, params, method)
-            return result
-        else:
-            raise RestxException("Service '%s' is not exposed by this resource." % service_name)
     except RestxException, e:
         if direct_call:
             raise Exception(e.msg)
@@ -279,8 +298,7 @@ def accessResource(resource_uri, input=None, params=None, method=HTTP.GET):
     if params is None:
         params = dict()
     
-    result = _accessComponentService(rinfo['component'], rinfo['public_resource_def']['services'],
-                                     rinfo['complete_resource_def'], resource_name,
+    result = _accessComponentService(rinfo['component'], rinfo['complete_resource_def'], resource_name,
                                      service_name, positional_params, params, input, None, method, True)
     return result.getStatus(), result.getEntity()
  
