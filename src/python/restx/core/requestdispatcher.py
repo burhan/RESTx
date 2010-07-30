@@ -108,6 +108,8 @@ class RequestDispatcher(object):
             result = Result(e.code, e.msg)
         except RestxFileNotFoundException, e:
             result = Result(e.code, e.msg)
+        except RestxBadRequestException, e:
+            result = Result(e.code, e.msg)
         except RestxException, e:
             log("General RestxException: %s" % e.msg)
             result = Result.internalServerError("Internal Server Error")

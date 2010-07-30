@@ -409,7 +409,7 @@ class __HttpHandler(HttpHandler):
             print traceback.format_exc()
             log("%s : Uncaught Python exception: %s" % (msg, str(e)))
         except JavaException, e:
-            print "JAVA exception: ", e.printStackTrace()
+            print "JAVA exception: ", e.printStackTrace(), e.code
             log("%s : Uncaught Java exception: %s" % (msg, e.msg))
 
         if not all_ok:

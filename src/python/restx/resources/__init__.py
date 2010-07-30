@@ -216,7 +216,7 @@ def paramSanityCheck(param_dict, param_def_dict, name_for_errors, make_specializ
         for pname in param_dict:
             # Any unknown parameters
             if pname not in param_def_dict:
-                raise RestxException("Unknown parameter in '%s' section: %s" % (name_for_errors, pname))
+                raise RestxBadRequestException("Unknown parameter in '%s' section: %s" % (name_for_errors, pname))
             # Sanity check the types
             type_str    = param_def_dict[pname]['type']
             param_value = param_dict[pname]
@@ -232,8 +232,8 @@ def paramSanityCheck(param_dict, param_def_dict, name_for_errors, make_specializ
                         raise Exception("Cannot convert provided parameter type (%s) to necessary type(s) '%s'" % \
                                         (param_type, runtime_types))
                 except Exception, e:
-                    raise RestxException("Incompatible type for parameter '%s' in section '%s': %s" % \
-                                       (pname, name_for_errors, str(e)))
+                    raise RestxBadRequestException("Incompatible type for parameter '%s' in section '%s': %s" % \
+                                                   (pname, name_for_errors, str(e)))
                     
     #
     # Check whether all required parameters are present. This check
@@ -298,7 +298,7 @@ def convertTypes(param_def_dict, param_dict):
                     raise Exception("Cannot convert provided parameter type (%s) to necessary type(s) '%s'" % \
                                     (param_type, runtime_types))
             except Exception, e:
-                raise RestxException("Incompatible type for parameter '%s': %s" % (pname, str(e)))
+                raise RestxBadRequestException("Incompatible type for parameter '%s': %s" % (pname, str(e)))
 
 
 def specializedOverwrite(component_meta_data, specialized_component_data):
@@ -419,7 +419,7 @@ def makeResourceFromClass(component_class, params, specialized=None, partial_res
         
     for k in params.keys():
         if k not in [ 'params', 'resource_creation_params' ]:
-            raise RestxException("Malformed resource parameter definition. Unknown key: %s" % k)
+            raise RestxBadRequestException("Malformed resource parameter definition. Unknown key: %s" % k)
 
     # Check whether there are unknown parameters in the 'param' or 'resource_creation_params' section.
     provided_params = params.get('params')

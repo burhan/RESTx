@@ -23,14 +23,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
 import sys
-import restxjson as json
+#import restxjson as json
+import json
 import time
 import types
 import string
 import urllib
 import datetime
 
-from restx.core.parameter import *
+#from restx.core.parameter import *
 
 import snap_http_lib as http   # A decent URL library
 
@@ -163,7 +164,7 @@ def test_10_home():
                     "doc"      : DOCROOT + "/meta/doc",
                     "static"   : DOCROOT + "/static",
                     "name"     : "MuleSoft RESTx server",
-                    "version"  : "0.9"
+                    "version"  : "0.9.2"
              }
     allkeys = [ 'code', 'resource', 'doc', 'static', 'name', 'version', 'specialized code' ]
 
@@ -673,10 +674,14 @@ def test_999_cleanup():
     # Find any old test resources and delete them.
     for name in rlist:
     """
+    global TEST_RESOURCES
     for name in TEST_RESOURCES:
         if "/_test_" in name:
             buf, resp = _delete(DOCROOT + name)
             assert(resp.getStatus() == 200)
+    TEST_RESOURCES = []
+
+
 
 
 #
@@ -718,18 +723,30 @@ def _make_timediff_str(start_time, end_time):
     return "%d.%06d" % (td.seconds, (td.microseconds * 1000000) / 1000000)
 
 
-if __name__ == '__main__':
-    #
-    # Collect the names of all test methods
-    #
-    test_methods = [ name for name in dir() if name.startswith("test_") ]
-    test_methods.sort()
-    for method_name in test_methods:
+def run_all_tests(methods):
+    print "--- Starting all test..."
+    overall_start_time = datetime.datetime.now()
+    for method, method_name in methods:
         start_time = datetime.datetime.now()
         _log("Executing: %s" % string.ljust(method_name, 36), cur_time=start_time, eol=False)
-        method = globals()[method_name]
         method()
         msg = "Ok"
         end_time = datetime.datetime.now()
         _log(" - Duration: %ss - %s" % (_make_timediff_str(start_time, end_time), msg), continuation=True)
+    overall_end_time = datetime.datetime.now()
+    print "--- Completed run. Duration: %s\n" % (_make_timediff_str(overall_start_time, overall_end_time))
+
+
+
+if __name__ == '__main__':
+    #
+    # Collect the names of all test methods
+    #
+
+    test_methods = [ name for name in dir() if name.startswith("test_") ]
+    test_methods.sort()
+    methods = [ (globals()[method_name], method_name) for method_name in test_methods ]
+
+    while (True):
+        run_all_tests(methods)
 
