@@ -208,7 +208,14 @@ if [ $? == 1 ]; then
         read -p "Do you have Jython installed already? (y/n): " ui
         if [ ! -z "$ui" ]; then
             if [ "$ui" == "y" ]; then
-                read -p "Please specify the Jython install directory: " install_dir
+                if [ -d $DEFAULT_INSTALL_DIR ]; then
+                    read -p "Please specify the Jython install directory or or press enter if you have used default ($DEFAULT_INSTALL_DIR): " install_dir
+                    if [ -z "$install_dir" ]; then
+                        install_dir="$DEFAULT_INSTALL_DIR"
+                    fi
+                else
+                    read -p "Please specify the Jython install directory: " install_dir
+                fi
                 JYTHON_HOME="`cd $install_dir; pwd`"
                 exec_test "$JYTHON_HOME/jython" "The specified Jython directory does not contain a jython executable."
                 break
