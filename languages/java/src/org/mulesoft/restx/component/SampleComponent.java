@@ -61,6 +61,7 @@ public class SampleComponent extends BaseComponent
     // Service methods
     // ---------------
     @Service(description = "This is the XYZ subresource service")
+    @ParamsInReqBody                                                   // Optional: Allows parameters to be sent in the request body.
     public Result someSubresource(HttpMethod method, String input,     // These two parameters are always present
                          
                                   // Here now the parameters that are exposed on the URI command line
