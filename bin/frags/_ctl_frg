@@ -10,6 +10,8 @@
 
 COMP_CONF_DIR=conf/components
 COMP_CONF_EXT=.cmfs
+RESOURCE_DB=resourceDB
+CODE_PREFIX=code
 
 LANGUAGES=
 
@@ -34,12 +36,16 @@ or restart a RESTx server. You can also
     echo      "             To stop a currently running server process."
     echo -e "\n   or: $CTL_SCRIPT_NAME component compile"
     echo      "             To compile Java components. Only needed when Java components are added or modified."
-    echo -e "\n   or: $CTL_SCRIPT_NAME component create <name> <language>"
+    echo -e "\n   or: $CTL_SCRIPT_NAME component create <component_name> <language>"
     echo      "             To create a new component template."
     echo -e "\n   or: $CTL_SCRIPT_NAME component list"
     echo      "             To list all known components, their language, module and enabled/disabled status."
-    echo -e "\n   or: $CTL_SCRIPT_NAME component enable|disable <name>"
+    echo -e "\n   or: $CTL_SCRIPT_NAME component enable|disable <component_name>"
     echo      "             Enable or disable a component without removing. Server restart required."
+    echo -e "\n   or: $CTL_SCRIPT_NAME component delete <component_name>"
+    echo      "             Deletes a component and all related files (manifest and all resources based on it)."
+    echo -e "\n   or: $CTL_SCRIPT_NAME component resources <component_name>"
+    echo      "             List all resources, which are based on this component, either directly or indirectly."
     echo -e "\n   or: $CTL_SCRIPT_NAME help"
     echo      "             To show this help information."
     echo
@@ -223,18 +229,161 @@ function disable_component
     enable_disable_component $name no
 }
 
+function bullet_print
+{
+    # Print contents of a file with a defined prefix
+    fname="$1"
+    prefix="$2"
+    cat "$fname" | sed s/^/"$prefix"/
+}
+
+function myrmfile
+{
+    echo "   " $1
+    rm $1
+}
+
+function find_resources_for_component
+{
+    # If 'delete' is specified as second parameter then we will
+    # just quietly delete all the resource files we find.
+    comp_name="$1"
+    resource_dir="$RESTX_HOME/$RESOURCE_DB"
+    prefix="\ \ \ \ +\ "
+    delete="$2"
+    prxr_offset_len="4"
+    rxr_offset_len="3"
+
+    # First we find all the specialized component resources that use this component
+    # We write the result into a temp file, so that we can refer back to it when we
+    # look for resources based on those specialized component resources.
+    if [ "$delete" != "delete" ]; then 
+        echo "Specialized component resources based on component $comp_name..."
+    fi
+    cd "$RESTX_HOME/$RESOURCE_DB/"
+    tmp_file=__base_resource_$$.tmp
+    egrep -l -s "\"code_uri\": *\"/code/$comp_name"  *.prxr | awk '{ print substr($1, 0, length($1)-4); }' > $tmp_file
+    if [ "$delete" != "delete" ]; then 
+        # Print mode
+        bullet_print $tmp_file "$prefix"
+    fi
+
+    # Now look for resources that are based on those specialized component resources,
+    # but only there were any.
+    if [ -s "$tmp_file" ]; then    # Check whether this file contains some data
+        if [ "$delete" != "delete" ]; then 
+            # Print mode
+            echo "Resources based on these specialized component resources for $comp_name..."
+        fi
+        # Collecting list of files
+        for name in $(cat $tmp_file); do
+            egrep -l -s "\"extends\": *\"$name"  *.rxr | awk '{ print substr($1, 0, length($1)-3); }' >> "$tmp_file"_2
+        done
+        if [ -s "$tmp_file"_2 ]; then
+            if [ "$delete" != "delete" ]; then
+                # Print mode
+                bullet_print "$tmp_file"_2 "$prefix"
+            else
+                # Delete mode
+                for name in $(cat "$tmp_file"_2); do
+                    myrmfile "$name".rxr
+                done
+            fi
+        else
+            if [ "$delete" != "delete" ]; then 
+                echo "    *** None found"
+            fi
+        fi
+        if [ "$delete" == "delete" ]; then
+            if [ -s "$tmp_file" ]; then
+                for name in $(cat $tmp_file); do
+                    myrmfile "$name".prxr
+                done
+            fi
+        fi
+        rm "$tmp_file"_2
+    else
+        if [ "$delete" != "delete" ]; then
+            echo "    *** None found"   # That's the 'none found' message for the specialized component resources
+        fi
+    fi
+
+    # Now the 'normal' resources, which are referring to the component directly
+    if [ "$delete" != "delete" ]; then 
+        # Print mode
+        echo "Normal resources based on component $comp_name..."
+    fi
+    egrep -l -s "\"code_uri\": *\"/code/$comp_name"  *.rxr | awk '{ print substr($1, 0, length($1)-3); }' > $tmp_file
+    if [ -s "$tmp_file" ]; then    # Check whether this file contains some data
+        if [ "$delete" != "delete" ]; then 
+            bullet_print $tmp_file "$prefix"
+        else
+            for name in $(cat $tmp_file); do
+                myrmfile "$name".rxr
+            done
+        fi
+    else
+        if [ "$delete" != "delete" ]; then 
+            echo "    *** None found"
+        fi
+    fi
+
+    rm $tmp_file
+}
+
+function delete_component
+{
+    comp_name="$1"
+    resource_dir="$RESTX_HOME/$RESOURCE_DB"
+    conf_file="$RESTX_HOME/$COMP_CONF_DIR/$comp_name$COMP_CONF_EXT"
+
+    if [ -f "$conf_file" ]; then
+        echo "****"
+        echo "**** WARNING!"
+        echo "****"
+        echo "**** About to delete component '$comp_name'"
+        echo "****"
+        echo "**** About to delete component manifest file."
+        srcfile=`egrep -s "path" $conf_file | awk '{ print $3 }'`
+        if [ ! -z "$srcfile" ]; then
+            echo "**** About to delete component source file: "$srcfile
+        fi
+        echo "**** About to delete all resources based on this component:"
+        find_resources_for_component $comp_name
+
+        read -p "Are you sure you want to permanently delete all these files? (yes/no): " ui
+        if [ "$ui" == "yes" ]; then
+            echo
+            echo "**** Ok. Deleting all files related to this component..."
+            myrmfile "$RESTX_HOME/$srcfile"
+            find_resources_for_component $comp_name delete
+            myrmfile "$conf_file"
+            echo "All files related to the component have been deleted. Please restart the server."
+        else
+            echo "You did not enter 'yes'. Nothing was deleted..."
+        fi
+
+    else
+        echo "Unknown component '$comp_name'..."
+        exit 1
+    fi
+}
+
+
 case $1 in
     start)     start_restx $@;;
     stop)      stop_restx;;
     restart)   restart_restx $@;;
     help)      restx_help;;
     component) case $2 in
-                 compile) compile_components;;
-                 create)  create_component $3 $4;;
-                 list)    list_components;;
-                 enable)  enable_component $3;;
-                 disable) disable_component $3;;
-                 *)       restx_help "'component' parameter '$2'";;
+                 compile)   compile_components;;
+                 create)    create_component $3 $4;;
+                 list)      list_components;;
+                 enable)    enable_component $3;;
+                 disable)   disable_component $3;;
+                 resources) find_resources_for_component $3;;
+                 delete)    delete_component $3;;
+                 *)         restx_help "'component' parameter '$2'";;
                esac;;
     *)         restx_help $1;;
 esac
