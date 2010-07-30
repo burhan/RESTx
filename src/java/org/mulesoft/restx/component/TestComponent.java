@@ -24,6 +24,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.mulesoft.restx.component.BaseComponent;
 import org.mulesoft.restx.component.api.*;
 import org.mulesoft.restx.exception.*;
 

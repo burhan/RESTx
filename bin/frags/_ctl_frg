@@ -34,10 +34,19 @@ or restart a RESTx server. You can also
     echo      "             Use -l <logfile> to direct output to specified logfile instead of the console."
     echo -e "\n   or: $CTL_SCRIPT_NAME stop"
     echo      "             To stop a currently running server process."
-    echo -e "\n   or: $CTL_SCRIPT_NAME component compile"
+    echo -e "\n   or: $CTL_SCRIPT_NAME component compile [<component_folder>]"
     echo      "             To compile Java components. Only needed when Java components are added or modified."
-    echo -e "\n   or: $CTL_SCRIPT_NAME component create <component_name> <language>"
+    echo      "             If specified without options, this command compiles all the standard Java components that"
+    echo      "             come with a RESTx distribution or are located in the default directory for Java components."
+    echo      "             If your components are located in other directories, please specify the path to the root"
+    echo      "             directory of your component package."
+    echo -e "\n   or: $CTL_SCRIPT_NAME component create <component_name> <language> [<target_directory> <module_or_package>]"
     echo      "             To create a new component template."
+    echo      "             By default, the new component is created in the standard target directory that RESTx"
+    echo      "             uses for components of this language and the package/module is the standard one used by"
+    echo      "             RESTx for these components. However, if you are developing your components in a custom"
+    echo      "             location and/or package, please specify the target directory and full package/module"
+    echo      "             name as the two additional parameters."
     echo -e "\n   or: $CTL_SCRIPT_NAME component list"
     echo      "             To list all known components, their language, module and enabled/disabled status."
     echo -e "\n   or: $CTL_SCRIPT_NAME component enable|disable <component_name>"
@@ -114,8 +123,9 @@ function restart_restx
 
 function compile_components
 {
+    optional_path="$1"
     echo "Compiling RESTx Java components. Please wait..."
-    $COMPILE_SCRIPT components
+    $COMPILE_SCRIPT components "$optional_path"
     exit $?
 }
 
@@ -131,6 +141,8 @@ function create_component
 {
     name="$1"
     language="$2"
+    target="$3"
+    module="$4"
 
     # Check that we have all the parameters we need
     if [ -z $name  -o  -z $language ]; then
@@ -143,6 +155,18 @@ function create_component
         echo "RESTx does not know the specified language '$language'. Only these languages are known:"
         print_known_languages
         exit 1
+    fi
+
+    # Check that we have all the parameters we need
+    if [[ "$target" != "" ]]; then
+        if [[ "$module" == "" ]]; then
+            echo "When specifying a custom target directory you also must specify the module."
+            exit 1
+        fi
+        if [[ ! -d "$target" ]]; then
+            echo "Specified target directory '$target' does not exist..."
+            exit 1
+        fi
     fi
 
     # Check if we have a component with the suggested name already
@@ -159,7 +183,7 @@ function create_component
 
 
     # Call the language specific placement script
-    $RESTX_HOME/languages/$language/util/placement $1 $RESTX_HOME "$conf_file"
+    $RESTX_HOME/languages/$language/util/placement $1 $RESTX_HOME "$conf_file" "$target" "$module"
     if [ $? == 0 ]; then
         exit 0
     else
@@ -376,8 +400,8 @@ case $1 in
     restart)   restart_restx $@;;
     help)      restx_help;;
     component) case $2 in
-                 compile)   compile_components;;
-                 create)    create_component $3 $4;;
+                 compile)   compile_components $3;;
+                 create)    create_component $3 $4 $5 $6;;
                  list)      list_components;;
                  enable)    enable_component $3;;
                  disable)   disable_component $3;;

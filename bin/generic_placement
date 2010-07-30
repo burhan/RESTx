@@ -34,6 +34,8 @@
 # $8:  location of the component's partially created config file
 # $9:  potential suffix to the module name for import
 # $10: flag indicating whether this language requires compilation or not
+# $11: Possible optional target directory
+# $12: Possible optional module name
 #
 
 name="$1"
@@ -46,6 +48,8 @@ SAMPLE_COMPONENT_NAME="$7"
 COMPONENT_CONF_FILE="$8"
 MODULE_NAME_SUFFIX="$9"
 COMPILATION_NEEDED="${10}"
+OPTIONAL_TARGET="${11}"
+OPTIONAL_MODULE="${12}"
 
 SAMPLE_COMPONENT="$SAMPLE_COMPONENT_NAME""$LANGUAGE_ENDING"
 
@@ -62,13 +66,20 @@ echo
 #
 fullpath="`cd $LANGUAGES_SRC; find * -name $SAMPLE_COMPONENT`"
 
-#
-# The directory in which the new component should be stored
-#
-modulename=`dirname $fullpath`
-newpath="$RESTX_SRC/$modulename"
+if [ -z "$OPTIONAL_TARGET" ]; then
+    #
+    # The directory in which the new component should be stored
+    #
+    modulename=`dirname $fullpath`
+    manifestpath="$RESTX_SRC/$modulename"
+    newpath="$RESTX_HOME/$manifestpath"
+    modulename=`echo $modulename | sed 's/\//\./g'`
+else
+    modulename="$OPTIONAL_MODULE"
+    manifestpath="$OPTIONAL_TARGET"
+    newpath="$OPTIONAL_TARGET"
+fi
 
-modulename=`echo $modulename | sed 's/\//\./g'`
 if [ ! -z "$MODULE_NAME_SUFFIX"  -a  "$MODULE_NAME_SUFFIX" != "-" ]; then
     modulename=$modulename"$MODULE_NAME_SUFFIX"
 fi
@@ -100,7 +111,7 @@ newfile="$newpath/$filename"
 #
 # Check whether a component with that name exists already
 #
-if [ -f "$RESTX_HOME/$newfile" ]; then
+if [ -f "$newfile" ]; then
     echo "A component with that name already exists in the development directory: $RESTX_HOME/$newfile"
     echo "This component file will not be over-written."
     echo "But a manifest file does not exist yet. Only creating manifest file."
@@ -110,9 +121,9 @@ else
     # Copy the sample component in the right place
     #
 
-    cp "$LANGUAGES_SRC/$fullpath" "$RESTX_HOME/$newfile"
+    cp "$LANGUAGES_SRC/$fullpath" "$newfile"
     if [ $? == 1 ]; then
-        echo "Cannot copy sample component to $RESTX_HOME/$newfile..."
+        echo "Cannot copy sample component to $newfile..."
         echo
         exit 1
     fi
@@ -120,22 +131,33 @@ else
     #
     # Change the name in the file
     #
-    sed s/$SAMPLE_COMPONENT_NAME/$name/ $RESTX_HOME/$newfile > $RESTX_HOME/$newfile._new
+    sed s/$SAMPLE_COMPONENT_NAME/$name/ $newfile > $newfile._new
     if [ $? == 1 ]; then
         echo "Failed to modify name in new component template to $name"
         echo
         exit 1
     fi
-    mv $RESTX_HOME/$newfile._new $RESTX_HOME/$newfile
+
+    #
+    # Change the module placeholder
+    #
+    sed s/___MODULE_NAME_PLACEHOLDER___/$modulename/ $newfile._new > $newfile
+    if [ $? == 1 ]; then
+        echo "Failed to modify name in new component template to $name"
+        echo
+        exit 1
+    fi
+    rm $newfile._new
 fi
 
 #
 # Finalize the manifest file for the component
 #
 echo "module  = $modulename" >> $COMPONENT_CONF_FILE
-echo "path    = $newfile" >> $COMPONENT_CONF_FILE
+echo "path    = $manifestpath/$filename" >> $COMPONENT_CONF_FILE
 
-echo -e "Created new component: $newfile\n"
+echo -e "Created new component:           $newfile"
+echo -e "Module/package of the component: $modulename\n"
 
 if [ "$COMPILATION_NEEDED" == "0" ]; then
     echo -e "A server restart is required to enable the component: restxctl restart\n"

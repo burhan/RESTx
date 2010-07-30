@@ -22,11 +22,12 @@
  * A sample template for RESTx components, written in Python.
  */
 
-package org.mulesoft.restx.component;
+package ___MODULE_NAME_PLACEHOLDER___;
 
-import java.math.BigDecimal;                 // Default type for numeric values
+import java.math.BigDecimal;                        // Default type for numeric values
 
-import org.mulesoft.restx.component.api.*;   // Imports all aspects of the API
+import org.mulesoft.restx.component.BaseComponent;  // Base class for all components
+import org.mulesoft.restx.component.api.*;          // Imports all aspects of the API
 
 //
 // If you want to handle or throw RESTx specific exceptions, you might also want
