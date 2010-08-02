@@ -60,6 +60,9 @@ src/python/starter.py  The start script for the RESTx server. No need to call it
                 directly. The restxctl script performs all the necessary steps
                 for you.
 
+src/python/restx/settings.py  A settings file in which values like the port or
+                document root can be set.
+
 static_files/   The directory from where the RESTx erver can serve static files.
 
 resourceDB/     This is where the RESTx server stores resource definitions.
