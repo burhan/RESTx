@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 
-import urllib, urllib2
+import urllib
 
 import restxjson as json
 
@@ -48,9 +48,15 @@ def __form_parse(input):
     @rtype:         dict
 
     """
-    d = urllib2.parse_keqv_list(input.split("&"))
-    for name, value in d.items():
-        d[name] = urllib.unquote_plus(value)
+    name_val_pairs = input.split("&")
+    d = dict()
+    for nvpair in name_val_pairs:
+        elems = nvpair.split("=")
+        if len(elems) == 1:
+            # No value? That's as if the value wasn't set at all
+            continue
+        name, value = elems
+        d[name.strip()] = urllib.unquote_plus(value.strip())
     return d
 
 
