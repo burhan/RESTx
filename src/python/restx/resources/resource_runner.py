@@ -48,9 +48,6 @@ def __form_parse(input):
     @rtype:         dict
 
     """
-    print "----------------------------------"
-    print input
-    print "----------------------------------"
     d = urllib2.parse_keqv_list(input.split("&"))
     for name, value in d.items():
         d[name] = urllib.unquote_plus(value)
