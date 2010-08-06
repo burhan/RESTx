@@ -303,14 +303,13 @@ class JythonJavaHttpRequest(RestxHttpRequest):
         Encode the response body based on content type headers.
 
         """
-        if not self.__response_code:
-            if type(self.__response_body) is str or type(self.__response_body) is unicode:
-                if self.__response_headers.has_key('Content-type'):
-                    (ct, enc) = self.__response_headers['Content-type'].split("charset=")
-                else:
-                    enc = "US-ASCII"
-                self.__response_body = self.__response_body.encode(enc)
-            self.__response_encoded = True
+        if type(self.__response_body) is str or type(self.__response_body) is unicode:
+            if self.__response_headers.has_key('Content-type'):
+                (ct, enc) = self.__response_headers['Content-type'].split("charset=")
+            else:
+                enc = "US-ASCII"
+            self.__response_body = self.__response_body.encode(enc)
+        self.__response_encoded = True
         
     def sendResponse(self):
         """
