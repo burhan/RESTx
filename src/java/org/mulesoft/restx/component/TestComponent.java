@@ -97,6 +97,14 @@ public class TestComponent extends BaseComponent
         res = accessResource("/resource/MyGoogleSearch/search", null, params);
         return new Result(res.status, res.data);
     }
+
+    @Service(description = "This returns Japanese message for test")
+    public Result japanese(HttpMethod method, String input)
+    {
+	// This is a Japanese message (kore wa nihongo no message desu).
+        String message = "\u3053\u308c\u306f\u65e5\u672c\u8a9e\u306e\u30e1\u30c3\u30bb\u30fc\u30b8\u3067\u3059\u3002";
+	return Result.ok(message);
+    }
 }
 
 

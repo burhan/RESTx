@@ -661,6 +661,33 @@ def test_70_positional_params():
     buf, resp = _delete(DOCROOT + "/resource/_test_foobarstorage/files/foo")
     assert(resp.getStatus() == 200)
 
+def test_80_japanese_message():
+    """
+    Test Japanese message.
+
+    """
+    d = {
+            "params"                   : { "api_key" : "this_is_an_api_key" },
+            "resource_creation_params" : { "suggested_name" : "_test_component", "desc" : "A foobar storage resource" }
+        }
+    TEST_RESOURCES.append("/resource/_test_component")
+    data, resp = _send_data(DOCROOT + "/code/TestComponent", d)
+    assert(resp.getStatus() == 201)
+    assert(data['status']   == "created")
+    assert(data['name']     == "_test_component")
+    assert(data['uri']      == DOCROOT + "/resource/_test_component")
+    assert(len(data)        == 3)
+
+    data, resp = _get_data(DOCROOT + "/resource/_test_component/japanese");
+    # This is a Japanese message (kore wa nihongo no message desu).
+    # See TestComponent.japanese().
+    expected = u'\u3053\u308c\u306f\u65e5\u672c\u8a9e\u306e\u30e1\u30c3\u30bb\u30fc\u30b8\u3067\u3059\u3002'
+    #print(repr(data))
+    #print(repr(expected))
+    assert(data == expected)
+    assert(resp.getStatus() == 200)
+
+
 def test_999_cleanup():
     """
     Find all resources starting with "_test_" and delete them.
