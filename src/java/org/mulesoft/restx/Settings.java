@@ -20,7 +20,10 @@
 
 package org.mulesoft.restx;
 
+import java.util.List;
+
 import org.python.util.PythonInterpreter;
+import org.python.core.PyList;
 import org.python.core.PyObject;
 import org.python.core.PyString;
 
@@ -40,12 +43,23 @@ public class Settings
 
     /*
      * Used to initialize individual Java class members with values from
-     * the Python settings.py module.
+     * the Python settings.py module. For strings.
      */
-    private static String getFromPythonSettings(String objName)
+    private static String getStringFromPythonSettings(String objName)
     {
         PyObject pyObject = interp.get(objName);
         return (String)pyObject.__tojava__(String.class);        
+    }
+
+     /*
+     * Used to initialize individual Java class members with values from
+     * the Python settings.py module. For lists of strings.
+     */
+    private static List getListFromPythonSettings(String objName)
+    {
+        PyObject pyObject = interp.get(objName);
+        List poList = (List)pyObject.__tojava__(List.class);
+        return poList;
     }
     
     /*
@@ -54,14 +68,16 @@ public class Settings
     static {
         interp = new PythonInterpreter();
         interp.exec("from restx.settings import *");
+        interp.exec("from restx.render import DEFAULT_TYPES");
     }
 
     /*
      * Here finally we have the publicly exported symbols.
      */
-    public static String DOCUMENT_ROOT   = getFromPythonSettings("DOCUMENT_ROOT");
-    public static String PREFIX_CODE     = getFromPythonSettings("PREFIX_CODE");
-    public static String PREFIX_RESOURCE = getFromPythonSettings("PREFIX_RESOURCE");;
+    public static String    DOCUMENT_ROOT   = getStringFromPythonSettings("DOCUMENT_ROOT");
+    public static String    PREFIX_CODE     = getStringFromPythonSettings("PREFIX_CODE");
+    public static String    PREFIX_RESOURCE = getStringFromPythonSettings("PREFIX_RESOURCE");
+    public static List      DEFAULT_TYPES   = getListFromPythonSettings("DEFAULT_TYPES");
 }
 
 

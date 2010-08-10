@@ -32,13 +32,15 @@ public class Result
     private int                     code;
     private Object                  data;
     private HashMap<String, String> headers;
+    private String                  negotiatedType;
 
     
     public Result(int code, Object data)
     {
-        this.code    = code;
-        this.data    = data;
-        this.headers = null;
+        this.code           = code;
+        this.data           = data;
+        this.headers        = null;
+        this.negotiatedType = null;
     }
     
     public void addHeader(String name, String value)
@@ -111,6 +113,16 @@ public class Result
     public void setStatus(int code)
     {
         this.code = code;
+    }
+
+    public void setNegotiatedContentType(String negotiatedType)
+    {
+        this.negotiatedType = negotiatedType;
+    }
+
+    public String getNegotiatedContentType()
+    {
+        return negotiatedType;
     }
     
     public Object getEntity()

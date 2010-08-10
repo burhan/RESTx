@@ -72,7 +72,7 @@ class BaseRenderer(object):
 
     def render(self, data, top_level=False):
         """
-        Take Python object and produce output specific to this renderer.
+        Take object and produce output specific to this renderer.
         
         @param data:        An object containing the data to be rendered.
         @param data:        object

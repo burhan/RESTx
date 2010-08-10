@@ -29,5 +29,18 @@ You can import these classes straight from module level:
 """
 # Export classes on module level, so that users don't need
 # to specify the individual file names in their imports.
-from restx.render.htmlrenderer import HtmlRenderer
-from restx.render.jsonrenderer import JsonRenderer
+from restx.render.htmlrenderer   import HtmlRenderer
+from restx.render.jsonrenderer   import JsonRenderer
+
+KNOWN_RENDERERS = {
+    ""                   : HtmlRenderer,
+    "*/*"                : HtmlRenderer,
+    "text/html"          : HtmlRenderer,
+    "application/json"   : JsonRenderer,
+}
+
+
+DEFAULT_TYPES = [ "application/json", "text/html", "*/*" ]
+
+
+

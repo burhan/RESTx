@@ -61,14 +61,63 @@ class JythonJavaHttpRequest(RestxHttpRequest):
     the specific server implementation.
     
     """
-    __response_code    = None
-    __native_req       = None
-    __request_uri_str  = None
-    __request_headers  = None
-    __response_headers = None
-    __response_encoded = False
+    __response_code            = None
+    __native_req               = None
+    __request_uri_str          = None
+    __request_headers          = None
+    __response_headers         = None
+    __response_encoded         = False
+    __preferred_content_types  = None
 
-    _native_mode = False
+    _native_mode               = False
+
+
+    def preferredContentTypes(self):
+        """
+        Parses the accept header link and returns the most relevant header.
+
+        The 'list' will only have more than one element if there were multiple
+        'accept' header lines in the request. If you have a single accept header
+        line with multiple, comma separated types, then it will still just be a
+        single element in the list.
+
+        The accumulated content types are sorted by their q parameter and are
+        returned in a list, most-preferred type first.
+
+        @param hdr_list:        List of values from accept header lines.
+        @type hd_list:          list
+
+        @return:                List of content types, sorted by prefrerence,
+                                most preferred first.
+
+        """
+        if not self.__preferred_content_types:
+            # Don't have cached results of this already?
+
+            hdr_list = self.getRequestHeaders().get("Accept")
+            if not hdr_list:
+                return [ "*/*" ]
+            
+            # Create a list of all individual types that may be specified
+            # in one or more header lines.
+            elems = list()
+            for hdr in hdr_list:
+                elems.extend([ type_str.strip() for type_str in hdr.split(",") ])
+
+            # Each element may have a q parameter, somewhere between 0 and 1. The
+            # higher the value, the more desired that type is. If no q was defined
+            # then the default is q=1. However, to make sure that those who have
+            # no q defined appear first (that's usually the intend) we give them a
+            # q=2 for sorting purposes.
+            type_q_tuples = [ e.split(";") for e in elems ]
+
+            # Below, the sorted() returns a list of iterable list elements, each eith
+            # either one or two elements. We then only take the first element since
+            # we are not interested in returning the q=* value.
+            self.__preferred_content_types = [ e[0] for e in sorted(type_q_tuples, key=lambda x: x[1] if len(x) > 1 else "q=2", reverse=True) ]
+
+        return self.__preferred_content_types
+
 
     def __init__(self, *args, **kwargs):
         super(JythonJavaHttpRequest, self).__init__(*args, **kwargs)
@@ -304,9 +353,14 @@ class JythonJavaHttpRequest(RestxHttpRequest):
 
         """
         if type(self.__response_body) is str or type(self.__response_body) is unicode:
+            enc = None
             if self.__response_headers.has_key('Content-type'):
-                (ct, enc) = self.__response_headers['Content-type'].split("charset=")
-            else:
+                elems = self.__response_headers['Content-type'].split("charset=")
+                # Check if an encoding was specified in the content type
+                if len(elems) == 2:
+                    (ct, enc) = elems
+            if not enc:
+                # We still don't have an encoding, so we use default
                 enc = "US-ASCII"
             self.__response_body = self.__response_body.encode(enc)
         self.__response_encoded = True

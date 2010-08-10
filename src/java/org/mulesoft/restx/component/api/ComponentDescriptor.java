@@ -21,6 +21,7 @@
 package org.mulesoft.restx.component.api;
 
 import java.util.HashMap;
+import java.util.List;
 
 import org.mulesoft.restx.exception.RestxException;
 import org.mulesoft.restx.exception.RestxDuplicateKeyException;
@@ -110,11 +111,16 @@ public class ComponentDescriptor
             servicesDict.put(name, serviceDef);
             serviceDef.put("desc", service.getDesc());
             serviceDef.put("params", service.getParamMap());
+            serviceDef.put("output_types", service.getOutputTypes());
             if (service.getParamsInReqBodyFlag()) {
                 serviceDef.put("allow_params_in_body", true);
             }
             if (!service.getPositionalParams().isEmpty()) {
                 serviceDef.put("positional_params", service.getPositionalParams());
+            }
+            List outputTypes = service.getOutputTypes();
+            if (outputTypes != null  &&  !outputTypes.isEmpty()) {
+                serviceDef.put("output_types", outputTypes);
             }
         }
         

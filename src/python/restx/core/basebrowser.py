@@ -25,10 +25,10 @@ Base class for all content browser classes.
 # RESTx imports
 import restx.settings as settings
 
-from restx.render import HtmlRenderer
-from restx.render import JsonRenderer
-
+from restx.render                     import KNOWN_RENDERERS
+from org.mulesoft.restx.exception     import RestxNotAcceptableException
 from org.mulesoft.restx.component.api import HTTP, Result
+
 
 class BaseBrowser(object):
     """
@@ -46,6 +46,46 @@ class BaseBrowser(object):
     type and to format output according to that content type.
     
     """
+    '''
+    def __accept_header_parsing(self, hdr_list):
+        """
+        Parses the accept header link and returns the most relevant header.
+
+        The 'list' will only have more than one element if there were multiple
+        'accept' header lines in the request. If you have a single accept header
+        line with multiple, comma separated types, then it will still just be a
+        single element in the list.
+
+        The accumulated content types are sorted by their q parameter and are
+        returned in a list, most-preferred type first.
+
+        @param hdr_list:        List of values from accept header lines.
+        @type hd_list:          list
+
+        @return:                List of content types, sorted by prefrerence,
+                                most preferred first.
+
+        """
+        # Create a list of all individual types that may be specified
+        # in one or more header lines.
+        elems = list()
+        for hdr in hdr_list:
+            elems.extend([ type_str.strip() for type_str in hdr.split(",") ])
+
+        # Each element may have a q parameter, somewhere between 0 and 1. The
+        # higher the value, the more desired that type is. If no q was defined
+        # then the default is q=1. However, to make sure that those who have
+        # no q defined appear first (that's usually the intend) we give them a
+        # q=2 for sorting purposes.
+        type_q_tuples = [ e.split(";") for e in elems ]
+
+        # Below, the sorted() returns a list of iterable list elements, each eith
+        # either one or two elements. We then only take the first element since
+        # we are not interested in returning the q=* value.
+        return [ e[0] for e in sorted(type_q_tuples, key=lambda x: x[1] if len(x) > 1 else "q=2", reverse=True) ]
+    '''
+
+
     def __init__(self, request, renderer_args = None):
         """
         Initialize and perform analysis of request headers.
@@ -66,17 +106,28 @@ class BaseBrowser(object):
         """
         self.request        = request
         self.headers        = request.getRequestHeaders()
+        """
         accept_header       = self.headers.get("Accept")
         if not accept_header:
             accept_header = [ "*/*" ]
+        accept_header       = self.__accept_header_parsing(accept_header)
+        self.render_class   = None
+        for type_str in accept_header:
+            render_class = KNOWN_RENDERERS.get(type_str)
+            if render_class:
+                self.render_class = render_class
+                break
+        if not self.render_class:
+            raise RestxNotAcceptableException()
         self.human_client   = False if accept_header[0].startswith("application/json") or settings.NEVER_HUMAN else True
+        """
         self.header         = ""
         self.footer         = ""
         self.renderer_args  = renderer_args
         self.breadcrumbs    = list()
         self.context_header = list()  # Contextual menus or other header items, possibly displayed by renderer
     
-    def renderOutput(self, data):
+    def renderOutput(self, data, renderer_class):
         """
         Take a Python object and return it rendered.
         
@@ -90,15 +141,16 @@ class BaseBrowser(object):
                       example, there is a human_client flag, which if set indicates
                       that the output should be in HTML.
         @type data:   object
+
+        @param renderer_class:  The class of the renderer, which was selected through content negotiation.
+        @type renderer_class:   BaseRenderer
         
         @return:      Tuple with content type and rendered data, ready to be sent to the client.
         @rtype:       tuple of (string, string)
 
         """
-        if self.human_client:
-            renderer = HtmlRenderer(self.renderer_args, self.breadcrumbs, self.context_header)
-        else:
-            renderer = JsonRenderer(self.renderer_args)
+        self.renderer_args.update(dict(breadcrumbs=self.breadcrumbs, context_header=self.context_header))
+        renderer = renderer_class(self.renderer_args)
         return renderer.CONTENT_TYPE, renderer.base_renderer(data, top_level=True)
     
     def process(self):

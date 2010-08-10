@@ -34,13 +34,38 @@ from org.mulesoft.restx.exception       import *
 from org.mulesoft.restx.component.api   import HTTP, HttpMethod, Result
 
 from restx.logger                       import *
+from restx.render                       import DEFAULT_TYPES
 from restx.core.basebrowser             import BaseBrowser
 from restx.core.codebrowser             import getComponentInstance
 from restx.resources                    import paramSanityCheck, fillDefaults, listResources, \
                                                retrieveResourceFromStorage, getResourceUri, deleteResourceFromStorage
 from restx.resources.resource_runner    import _accessComponentService, _getResourceDetails
 
+import java.lang.String
 import java.lang.Exception
+
+
+def content_type_match(possible_types, accepted_types):
+    """
+    Find the first match between possible types and accepted types.
+
+    Throws exception if we can't find a match.
+
+    @param possible_types:      List of possible content types.
+    @type possible_types:       list
+
+    @param accepted_types:      List of content types accepted by the client.
+    @type accepted_types:       list
+
+    @return                     The best matched content type.
+    @rtype:                     string
+
+    """
+    for atype in accepted_types:
+        if atype in possible_types:
+            return atype
+
+    raise RestxNotAcceptableException()
 
 
 def get_request_query_dict(request):
@@ -169,6 +194,23 @@ class ResourceBrowser(BaseBrowser):
                 runtime_param_dict = get_request_query_dict(self.request)
 
                 service_name      = path_elems[1]
+
+                # Get the supported output content types for this service method
+                requested_content_types = self.request.preferredContentTypes()
+                service_def             = complete_resource_def['public']['services'][service_name]
+                possible_output_types   = service_def.get('output_types')
+                if not possible_output_types:
+                    # If the service method didn't define any type(s) then we just
+                    # indicate the ability to create any of the default types
+                    possible_output_types = DEFAULT_TYPES
+
+                if type(possible_output_types) in [ str, unicode, java.lang.String ]:
+                    # Always store the output types in a list, even if the service method just
+                    # defined a single one
+                    possible_output_types = [ possible_output_types ]
+
+                # See that we can match the accepted to possible types
+                matched_type      = content_type_match(possible_output_types, requested_content_types)
                 positional_params = path_elems[2:]
                 input             = self.request.getRequestBody()
                 try:
@@ -177,6 +219,7 @@ class ResourceBrowser(BaseBrowser):
                                                           resource_name, service_name, positional_params,
                                                           runtime_param_dict, input, self.request,
                                                           http_method)
+                    result.setNegotiatedContentType(matched_type)
                 except RestxException, e:
                     result = Result(e.code, e.msg)
                 except Exception, e:

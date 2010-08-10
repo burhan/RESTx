@@ -32,11 +32,12 @@ import restx.settings as settings
 from restx.languages                       import __javaStructToPython
 from restx.core.parameter                  import *
 from restx.storageabstraction.file_storage import FileStorage
+from restx.render                          import DEFAULT_TYPES
 
 from org.json                import JSONException
 from org.mulesoft.restx.util import Url, JsonProcessor
 
-ALLOWABLE_SERVICE_KEYS = [ "desc", "params", "positional_params", "allow_params_in_body" ]
+ALLOWABLE_SERVICE_KEYS = [ "desc", "params", "positional_params", "allow_params_in_body", "output_types" ]
 
 #
 # Utility method.
@@ -102,6 +103,16 @@ class BaseComponent(object):
         self.__resource_name     = None
         self.__http_request      = None
         self.__base_capabilities = None
+
+        #
+        # Fill in some default values in various places
+        #
+
+        # The output types of services, which don't specify their own output types
+        # should be set to the default types.
+        for sname, sdef in self.SERVICES.items():
+            if "output_types" not in sdef:
+                sdef["output_types"] = DEFAULT_TYPES
         
     def setBaseCapabilities(self, base_capabilities):
         self.__base_capabilities = base_capabilities

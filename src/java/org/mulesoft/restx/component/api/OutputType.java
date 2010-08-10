@@ -23,8 +23,9 @@ package org.mulesoft.restx.component.api;
 import java.lang.annotation.*; 
 
 @Retention(RetentionPolicy.RUNTIME)
-public @interface AnnotationTest
+@Target(ElementType.METHOD)
+public @interface OutputType
 {
-    String foo() default "bar";   
+    String value();
 }
 

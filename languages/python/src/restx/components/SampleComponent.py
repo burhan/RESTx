@@ -64,6 +64,9 @@ class SampleComponent(BaseComponent):
                            "some_subresource" : {
                                # A human readable, brief description of the service.
                                "desc" : "This is the XYZ subresource",
+                               # The supported output types. Optional. If not provided, JSON and HTML
+                               # are default. Can also just be a single type in a single string.
+                               "output_types" : [ "application/json", "text/html" ],
                                # Definition of all parameters that this service accepts and which
                                # therefore are exposed on the URI command line. Can be skipped if
                                # the service does not take parameters.

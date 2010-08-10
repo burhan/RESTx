@@ -22,7 +22,9 @@ package org.mulesoft.restx.component.api;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
+import org.mulesoft.restx.Settings;
 import org.mulesoft.restx.exception.RestxDuplicateKeyException;
 import org.mulesoft.restx.exception.RestxMalformedServiceDescriptorException;
 import org.mulesoft.restx.parameter.ParameterDef;
@@ -37,13 +39,15 @@ public class ServiceDescriptor
     
     private HashMap<String, ParameterDef> params;
     private ArrayList<String>             positionalParams;
+    private ArrayList<String>             outputTypes;
 
-    public ServiceDescriptor(String desc, boolean paramsInReqBody)
+    public ServiceDescriptor(String desc, boolean paramsInReqBody, ArrayList<String> outputTypes)
     {
         this.desc             = desc;
         this.params           = new HashMap<String, ParameterDef>();
         this.positionalParams = new ArrayList<String>();
         this.paramsInReqBody  = paramsInReqBody;
+        this.outputTypes      = outputTypes;
     }
     
     public String getDesc()
@@ -54,6 +58,16 @@ public class ServiceDescriptor
     public boolean getParamsInReqBodyFlag()
     {
         return paramsInReqBody;
+    }
+
+    public List getOutputTypes()
+    {
+        if (outputTypes == null  ||  outputTypes.isEmpty()) {
+            return Settings.DEFAULT_TYPES;
+        }
+        else {
+            return outputTypes;
+        }
     }
 
     public void addParameter(String name, ParameterDef param) throws RestxDuplicateKeyException
@@ -88,4 +102,3 @@ public class ServiceDescriptor
         return positionalParams;
     }
 }
-

@@ -208,7 +208,26 @@ public abstract class BaseComponent
                 if (m.isAnnotationPresent(ParamsInReqBody.class)) {
                     pinreq = true;
                 }
-                ServiceDescriptor sd                  = new ServiceDescriptor(at.description(), pinreq);
+                // Looking for output type annotations
+                ArrayList<String> outputTypes = null;
+                if (m.isAnnotationPresent(OutputType.class)) {
+                    OutputType ot = m.getAnnotation(OutputType.class);
+                    outputTypes = new ArrayList<String>();
+                    outputTypes.add(ot.value());
+                }
+                if (m.isAnnotationPresent(OutputTypes.class)) {
+                    OutputTypes ots      = m.getAnnotation(OutputTypes.class);
+                    String[]    otsSpecs = ots.value();
+                    if (otsSpecs.length > 0) {
+                        if (outputTypes == null) {
+                            outputTypes = new ArrayList<String>();
+                        }
+                        for (String ts: otsSpecs) {
+                            outputTypes.add(ts);
+                        }
+                    }
+                }
+                ServiceDescriptor sd                  = new ServiceDescriptor(at.description(), pinreq, outputTypes);
                 Class<?>[]        types               = m.getParameterTypes();
                 Annotation[][]    allParamAnnotations = m.getParameterAnnotations();
                 int i = 0;

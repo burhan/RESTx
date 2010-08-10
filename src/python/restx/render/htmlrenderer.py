@@ -44,27 +44,30 @@ class HtmlRenderer(BaseRenderer):
         * no_table_headers (no writing of 'Key' and 'Value' above dictionaries)
         * no_list_indices (no writing of array indices)
         * no_border (no table and cell borders)
+        * breadcrumbs
+        * context_header
     
     """
     CONTENT_TYPE = "text/html; charset=UTF-8"
 
-    def __init__(self, renderer_args, breadcrumbs, context_header=None):
+    def __init__(self, renderer_args):
         """
         Initialize the renderer.
-        
+
+        Meaning of additional supported rendering args:
+
+        breadcrumbs:    The breadcrumbs for this request. Defined as a list
+                        of (name,uri) tuples, for navigation. Breadcrumbs are
+                        maintained by the browser class for this request.
+
+        context_header: List of additional headers or menus, which are to be displayed
+                        under some circumstances. Example: The 'create' menu
+                        item, which is shown when a component is viewed.
+
         @param renderer_args:  A dictionary of flags, which can influence the
                                output. The flags are explained in the class docstring.
         @type renderer_args:   dict
         
-        @param breadcrumbs:    The breadcrumbs for this request. Defined as a list
-                               of (name,uri) tuples, for navigation. Breadcrumbs are
-                               maintained by the browser class for this request.
-        @type breadcrumbs:     list
-
-        @param context_header: Additional headers or menus, which are to be displayed
-                               under some circumstances. Example: The 'create' menu
-                               item, which is shown when a component is viewed.
-        @type context_header:  list
         
         """
         super(HtmlRenderer, self).__init__(renderer_args)
@@ -72,13 +75,13 @@ class HtmlRenderer(BaseRenderer):
         self.table_headers    = False if self.renderer_args.get('no_table_headers') else True
         self.draw_indices     = False if self.renderer_args.get('no_list_indices') else True
         self.draw_borders, self.border_width = (False,0) if self.renderer_args.get('no_borders') else (True,1)
-        self.breadcrumbs      = breadcrumbs
-        self.context_header   = context_header
+        self.breadcrumbs      = self.renderer_args.get('breadcrumbs')
+        self.context_header   = self.renderer_args.get('context_header')
         
         self.header = settings.HTML_HEADER + \
                       '%s<br><hr>' % (self.__render_breadcrumbs(self.breadcrumbs))
-        if context_header:
-            self.header += ' &nbsp; '.join(['<a %s href="%s%s">%s</a><br>' % (options, settings.DOCUMENT_ROOT, uri, name) for (name, uri, options) in context_header ])
+        if self.context_header:
+            self.header += ' &nbsp; '.join(['<a %s href="%s%s">%s</a><br>' % (options, settings.DOCUMENT_ROOT, uri, name) for (name, uri, options) in self.context_header ])
             self.header += "<br>"
                       
                       

@@ -279,10 +279,12 @@ def test_40_twitter_code():
     services_def = {
         u'status': {
             u'desc': u'You can GET the status or POST a new status to it.',
-            u'uri': u'/code/TwitterComponent/status'
+            u'uri': u'/code/TwitterComponent/status',
+            u'output_types': [u'application/json', u'text/html', u'*/*' ]
         },
         u'home_timeline': {
             u'desc': u'You can GET the home timeline of the user.',
+            u'output_types': [u'application/json', u'text/html', u'*/*' ],
             u'params': {
                 u'count': {
                     u'desc': u'Number of results',
@@ -301,6 +303,7 @@ def test_40_twitter_code():
         },
         u'timeline': {
             u'desc': u'You can GET the timeline of the user.',
+            u'output_types': [u'application/json', u'text/html', u'*/*' ],
             u'params': {
                 u'count': {
                     u'desc': u'Number of results',
@@ -408,11 +411,13 @@ def test_55_examine_resource():
         "services": {
             "status": {
                 "uri": DOCROOT + "/resource/_test_foobar/status", 
-                "desc": "You can GET the status or POST a new status to it."
+                "desc": "You can GET the status or POST a new status to it.",
+                'output_types': [u'application/json', u'text/html', u'*/*' ],
             }, 
             "timeline": {
                 "uri": DOCROOT + "/resource/_test_foobar/timeline", 
                 "desc": "You can GET the timeline of the user.",
+                'output_types': [u'application/json', u'text/html', u'*/*' ],
                 'params': {
                     'count': {
                         'desc': 'Number of results',
@@ -431,6 +436,7 @@ def test_55_examine_resource():
             'home_timeline': {
                 "uri": DOCROOT + "/resource/_test_foobar/home_timeline", 
                 'desc': 'You can GET the home timeline of the user.',
+                'output_types': [u'application/json', u'text/html', u'*/*' ],
                 'params': {
                     'count': {
                         'desc': 'Number of results',
@@ -506,10 +512,12 @@ def test_62_examine_partial_resource():
         "services": {
             "status": {
                 "desc": "You can GET the status or POST a new status to it.", 
+                'output_types': [u'application/json', u'text/html', u'*/*' ],
                 "uri": "/code/TwitterComponent/status"
             }, 
             "home_timeline": {
                 "desc": "You can GET the home timeline of the user.", 
+                'output_types': [u'application/json', u'text/html', u'*/*' ],
                 "params": {
                     "count": {
                         "desc": "Number of results", 
@@ -528,6 +536,7 @@ def test_62_examine_partial_resource():
             }, 
             "timeline": {
                 "desc": "You can GET the timeline of the user.", 
+                'output_types': [u'application/json', u'text/html', u'*/*' ],
                 "params": {
                     "count": {
                         "desc": "Number of results", 

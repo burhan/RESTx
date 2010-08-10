@@ -202,7 +202,7 @@ def _accessComponentService(component, complete_resource_def, resource_name, ser
             paramSanityCheck(runtime_param_dict, runtime_param_def, "runtime parameter")
             fillDefaults(runtime_param_def, runtime_param_dict)
             convertTypes(runtime_param_def, runtime_param_dict)
-    
+
         service_method = getattr(component, service_name)
         
         # Get the parameters from the resource definition time

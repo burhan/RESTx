@@ -65,6 +65,29 @@ print r
 
 print "\n\n--------------------------------------------\n\n"
 
+
+
+component          = server.get_component("TwitterComponent")
+rt                 = component.get_resource_template()
+rt.params          = dict(account_name="BrendelConsult", account_password="foobar")
+rt.description     = "Some description"
+rt.suggested_name  = "SomeName"
+resource           = rt.create_resource()
+sys.exit(1)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 rt = component.get_resource_template()
 rt.params         = dict(db_connection_string="/home/jbrendel/Programming/MuleSoft/RESTx/test_db", id_column="ID", table_name="Person")
 rt.description    = "Some description"

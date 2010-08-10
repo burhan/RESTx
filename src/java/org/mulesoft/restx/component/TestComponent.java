@@ -39,6 +39,7 @@ public class TestComponent extends BaseComponent
     public String api_key;
     
     @Service(description = "This is the foobar service")
+    @OutputTypes({"application/json", "text/html"})
     @ParamsInReqBody
     public Result foobar(HttpMethod method, String input,
                          
