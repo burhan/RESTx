@@ -20,7 +20,8 @@
 
 package org.mulesoft.restx;
 
-import com.sun.net.httpserver.Headers;
+import java.util.Map;
+import java.util.List;
 import com.sun.net.httpserver.HttpExchange;
 
 public abstract class RestxHttpRequest
@@ -40,7 +41,7 @@ public abstract class RestxHttpRequest
     public abstract String  getRequestMethod();
     public abstract String  getRequestURI();
     public abstract String  getRequest();
-    public abstract Headers getRequestHeaders();   // We return a dict() for Python. Python doesn't care.
+    public abstract Map<String, List<String>> getRequestHeaders();   // We return a dict() for Python. Python doesn't care.
     public abstract String  getRequestQuery();
     public abstract String  getRequestBody();
     public abstract void    sendResponseHeaders();

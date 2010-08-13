@@ -106,21 +106,6 @@ class BaseBrowser(object):
         """
         self.request        = request
         self.headers        = request.getRequestHeaders()
-        """
-        accept_header       = self.headers.get("Accept")
-        if not accept_header:
-            accept_header = [ "*/*" ]
-        accept_header       = self.__accept_header_parsing(accept_header)
-        self.render_class   = None
-        for type_str in accept_header:
-            render_class = KNOWN_RENDERERS.get(type_str)
-            if render_class:
-                self.render_class = render_class
-                break
-        if not self.render_class:
-            raise RestxNotAcceptableException()
-        self.human_client   = False if accept_header[0].startswith("application/json") or settings.NEVER_HUMAN else True
-        """
         self.header         = ""
         self.footer         = ""
         self.renderer_args  = renderer_args

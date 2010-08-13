@@ -274,10 +274,18 @@ class JythonJavaHttpRequest(RestxHttpRequest):
         if self.__native_req:
             if not self.__request_headers:
                 self.__request_headers = self.__native_req.getRequestHeaders()
+            # Always change this to a Python dictionary, so that we can shield
+            # the users from the com.sun.net.* classes (one of which is used to
+            # represent headers).
+            # This transcribes the headers to a Python dictionary, but that is
+            # seen as a Map<?,?> in Java, which is fine with us.
+            return dict(self.__request_headers)
+            """
             if self._native_mode:
                 return self.__request_headers
             else:
                 return dict(self.__request_headers)
+            """
         else:
             return None
     
