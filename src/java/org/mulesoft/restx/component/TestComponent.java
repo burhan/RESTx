@@ -57,6 +57,9 @@ public class TestComponent extends BaseComponent
              
         System.out.println("Query parameter: " + query);
         System.out.println("Num parameter:   " + num);
+
+        System.out.println("My request headers: " + getRequestHeaders());
+        System.out.println("My request header type: " + getRequestHeaders().getClass().getName());
         
         HashMap res = new HashMap();
         res.put("foo", "This is a test");

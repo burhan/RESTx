@@ -25,6 +25,7 @@ import com.sun.net.httpserver.Headers;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.math.BigDecimal;
@@ -102,7 +103,7 @@ public abstract class BaseComponent
         return httpRequest.getRequestURI();
     }
     
-    public Headers getRequestHeaders()
+    public Map<String, List<String>> getRequestHeaders()
     {
         return httpRequest.getRequestHeaders();
     }

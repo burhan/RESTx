@@ -135,8 +135,6 @@ def __javaServiceMethodProxy(component, request, method, method_name, input, par
     Prepares parameters, converts exceptions and results.
     
     """
-    if request:
-        request.setNativeMode()
     # We remove the resource creation time parameters from the map and
     # assign them directly to the component as new attributes. After that,
     # the pruned parameter map can be passed as keyword arg dict to the
