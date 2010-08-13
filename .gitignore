@@ -15,3 +15,4 @@ jython/
 jython_installer.jar
 lib/json.jar
 restxctl
+restx.pid
