@@ -31,7 +31,6 @@ public abstract class RestxHttpRequest
      * By using a Java base class, we can use the HttpRequest
      * equally easily in Java as well as Python.
      */
-    public abstract void    setNativeMode();       // Subsequently returned dictionaries are in native (Java) form
     public abstract void    setNativeRequest(HttpExchange nativeRequest);
     public abstract void    setResponseCode(int code);
     public abstract void    setResponseBody(String body);

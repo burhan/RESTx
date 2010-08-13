@@ -69,9 +69,6 @@ class JythonJavaHttpRequest(RestxHttpRequest):
     __response_encoded         = False
     __preferred_content_types  = None
 
-    _native_mode               = False
-
-
     def preferredContentTypes(self):
         """
         Parses the accept header link and returns the most relevant header.
@@ -123,9 +120,6 @@ class JythonJavaHttpRequest(RestxHttpRequest):
         super(JythonJavaHttpRequest, self).__init__(*args, **kwargs)
         self.__response_headers = dict()
     
-    def setNativeMode(self):
-        self._native_mode = True
-
     def setNativeRequest(self, native_req):
         """
         Initialize request wrapper with the native request class.
@@ -280,12 +274,6 @@ class JythonJavaHttpRequest(RestxHttpRequest):
             # This transcribes the headers to a Python dictionary, but that is
             # seen as a Map<?,?> in Java, which is fine with us.
             return dict(self.__request_headers)
-            """
-            if self._native_mode:
-                return self.__request_headers
-            else:
-                return dict(self.__request_headers)
-            """
         else:
             return None
     
