@@ -26,9 +26,12 @@ import org.python.util.PythonInterpreter;
 import org.python.core.PyList;
 import org.python.core.PyObject;
 import org.python.core.PyString;
+import org.python.core.PyFunction;
 
 public class Settings
 {
+    private static PyFunction get_root_dir = null;
+
     /*
      * Eventually this will provide access to all config parameters.
      * In the meantime, it uses some Jython specifics to get access to
@@ -69,6 +72,7 @@ public class Settings
         interp = new PythonInterpreter();
         interp.exec("from restx.settings import *");
         interp.exec("from restx.render import DEFAULT_TYPES");
+        get_root_dir = (PyFunction)interp.get("get_root_dir", PyFunction.class);
     }
 
     /*
@@ -78,6 +82,11 @@ public class Settings
     public static String    PREFIX_CODE     = getStringFromPythonSettings("PREFIX_CODE");
     public static String    PREFIX_RESOURCE = getStringFromPythonSettings("PREFIX_RESOURCE");
     public static List      DEFAULT_TYPES   = getListFromPythonSettings("DEFAULT_TYPES");
+
+    public static String getRootDir()
+    {
+        return (String)(get_root_dir.__call__().__tojava__(String.class));
+    }
 }
 
 
