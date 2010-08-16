@@ -36,6 +36,7 @@ __MANIFEST_EXTENSION = ".cmfs"
 __KNOWN_CONFIG_TOKENS = {
     "ENABLED" : ( lambda val : val.lower() in [ 'yes', 'no' ],                             "ENABLED has to be either 'yes' or 'no'"),
     "cname"   : ( lambda val : "." not in val  and  "/" not in val  and  "\\" not in val,  "No special characters allowed in cname"),
+    "import"  : ( lambda val : "." not in val  and  "/" not in val  and  "\\" not in val,  "No special characters allowed in import class name"),
     "lang"    : ( lambda val : val in __KNOWN_LANGUAGES,                                   "lang must be one of the known languages: " + ', '.join(__KNOWN_LANGUAGES)),
     "module"  : ( lambda val : True,                                                       ""),
     "path"    : ( lambda val : True,                                                       ""),
@@ -105,27 +106,12 @@ def __get_class( kls ):
         m = getattr(m, comp)
     return m
 
-def __import_python(cname):
-    """
-    Imports a Python component
-
-    """
-    classname = "restx.components.%s.%s" % (cname, cname)
-    cls = __get_class(classname)
-    return cls
-
-def __import_java(cname):
-    """
-    Imports a Java component.
-
-    """
-    classname = "org.mulesoft.restx.component.%s" % cname
-    cls = __get_class(classname)
-    return cls
-
 def import_all():
     """
     Import all the components for which we find manifest files.
+
+    Components are returned in a list of tuples: For each component
+    we have the class object as well as the manifest dictionary.
 
     """
     global __IMPORT_COMPLETE
@@ -133,8 +119,10 @@ def import_all():
         configs = __read_components_configs()
         comp_classes = list()
         for conf in configs:
-            classname = conf['module']+"."+conf['cname']
-            comp_classes.append(__get_class(classname))
+            # The 'import' parameter is optional and is only used 
+            # if the cname is not the name of the class we are importing.
+            classname = conf['module']+"."+conf.get('import', conf['cname'])
+            comp_classes.append((__get_class(classname), conf))
 
         __IMPORT_COMPLETE = True
         return comp_classes

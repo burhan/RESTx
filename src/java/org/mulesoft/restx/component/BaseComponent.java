@@ -76,12 +76,20 @@ public abstract class BaseComponent
     // parameters - and also allows us to do the necessary type casting.
     private      HashMap<String, ArrayList<String>>   paramOrder;
     private      HashMap<String, ArrayList<Class<?>>> paramTypes;
+
+    protected    Map<String, String>                  instanceConf;
     
-    public BaseComponent()
+    protected BaseComponent()
     {
         this.resourceName     = null;
         this.httpRequest      = null;
         this.baseCapabilities = null;
+        this.instanceConf     = null;
+    }
+
+    public void setInstanceConf(Map<String, String> instanceConf)
+    {
+        this.instanceConf = instanceConf;
     }
     
     public void setBaseCapabilities(BaseComponentCapabilities baseCapabilities)
@@ -376,7 +384,7 @@ public abstract class BaseComponent
         return d;
     }
     
-    public HashMap<String, Object> getMetaData() throws RestxException
+    public HashMap<String, Object> getMetaData() throws RestxException, Exception
     {
         initialiseComponentDescriptor();
 

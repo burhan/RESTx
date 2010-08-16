@@ -103,6 +103,7 @@ class BaseComponent(object):
         self.__resource_name     = None
         self.__http_request      = None
         self.__base_capabilities = None
+        self._instance_conf      = None
 
         #
         # Fill in some default values in various places
@@ -114,6 +115,10 @@ class BaseComponent(object):
             if "output_types" not in sdef:
                 sdef["output_types"] = DEFAULT_TYPES
         
+    def setInstanceConf(self, instance_conf):
+        self._instance_conf = instance_conf;
+        self.NAME           = instance_conf['cname']
+
     def setBaseCapabilities(self, base_capabilities):
         self.__base_capabilities = base_capabilities
 
@@ -273,7 +278,10 @@ class BaseComponent(object):
         @rtype:   string
         
         """
-        return self.NAME
+        if self.NAME:
+            return self.NAME
+        else:
+            raise RestxException("Component instance config has not been set, yet.")
 
     def getDesc(self):
         """

@@ -27,7 +27,6 @@ import urllib
 
 # RESTx imports
 from restx.components.api import *
-from org.mulesoft.restx.clientapi import RestxServer
 
 class TwitterComponent(BaseComponent):
     NAME             = "TwitterComponent"

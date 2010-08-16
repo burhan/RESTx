@@ -31,9 +31,10 @@ import restx.settings as settings
 from org.mulesoft.restx.exception       import RestxException
 from org.mulesoft.restx.component.api   import Result
 
-from restx.components                   import get_code_map
+from restx.components                   import get_component_names, make_component
 
-from restx.resources                    import makeResourceFromClass, listResources, retrieveResourceFromStorage, getResourceUri, specializedOverwrite, deleteResourceFromStorage
+from restx.resources                    import makeResourceFromComponentObject, listResources, retrieveResourceFromStorage, getResourceUri,   \
+                                               specializedOverwrite, deleteResourceFromStorage
 from restx.core.basebrowser             import BaseBrowser
 from restx.languages                    import *
 
@@ -43,47 +44,35 @@ from org.mulesoft.restx.component.api   import HTTP;
 EXCLUDE_PREFIXES = [ "_" ]
 
 
-def getComponentClass(uri):
+def getComponentObjectFromPath(uri, resource_name = None):
     """
     Return the specified component class, based on a given URI.
     
-    @param uri:     The official URI for this code.
-    @type uri:      string
+    @param uri:             The official URI for this code.
+    @type uri:              string
+
+    @param resource_name:   Name of the resource for which the component was instantiated.
+    @type resource_name:    string
     
-    @return         Class of the specified component
-                    or None if no matching component class was found.
-    @rtype          A class derived from BaseComponent
+    @return                 Class of the specified component
+                            or None if no matching component class was found.
+    @rtype                  A class derived from BaseComponent
     
     """
-    path_elems = uri[len(settings.PREFIX_CODE):].split("/")[1:]
-    component_name  = path_elems[0]   # This should be the name of the code element
+    path_elems     = uri[len(settings.PREFIX_CODE):].split("/")[1:]
+    component_name = path_elems[0]   # This should be the name of the code element
     
     # Instantiate the component
-    return get_code_map().get(component_name)
-
-def getComponentInstance(uri, resource_name = None):
-    """
-    Return an instantiated component, the class of which was identified by a URI.
-
-    @param uri:           The official URI for this code.
-    @type uri:            string
-
-    @param resource_name: Name of the resource for which the component was instantiated.
-    @type resource_name:  string
     
-    @return               Instance of the specified component
-                          or None if no matching component class was found.
-    @rtype                Instance of a class derived from BaseComponent
-    
-    """
-    component_class = getComponentClass(uri)
-    if component_class:
-        component = component_class()
+    component = make_component(component_name)
+    if component:
+        # If this component needs to be instantiated for a resource
+        # then we are also applying the resource information to it.
         component.setResourceName(resource_name)
-        return component
-    else:
-        return None
-        
+    
+    return component
+
+
 class CodeBrowser(BaseBrowser):
     """
     Handles requests for code info.
@@ -135,9 +124,17 @@ class CodeBrowser(BaseBrowser):
             #
             if is_code:
                 # Data to be taken from the code
-                data = dict([ (name, { "uri" : Url(class_name().getCodeUri()), "desc" : class_name().getDesc() } ) \
-                                    for (name, class_name) in get_code_map().items() \
+                data = dict()
+                for name in get_component_names():
+                    if name[0] not in EXCLUDE_PREFIXES:
+                        # component_info is a tuple, which contains the component class and its manifest info
+                        component = make_component(name)
+                        data[name] = { "uri" : Url(component.getCodeUri()), "desc" : component.getDesc() }
+                """
+                data = dict([ (name, { "uri" : Url(component_class().getCodeUri()), "desc" : component_class().getDesc() } ) \
+                                    for (name, (component_class, component_config)) in get_code_map().items() \
                                         if name[0] not in EXCLUDE_PREFIXES ])
+                """
             else:
                 # We are looking for partial resources
                 data = listResources(partials=True)
@@ -158,10 +155,9 @@ class CodeBrowser(BaseBrowser):
                 component_path        = specialized_code["private"]["code_uri"]
             
             # Instantiate the component
-            component_class = getComponentClass(component_path)
-            if not component_class:
+            component = getComponentObjectFromPath(component_path)
+            if not component:
                 return Result.notFound("Unknown component")
-            component          = component_class()
             component_home_uri = component.getCodeUri()
 
             if is_code:
@@ -244,8 +240,8 @@ class CodeBrowser(BaseBrowser):
         #
         # Start by processing and sanity-checking the request.
         #
-        component_class = getComponentClass(component_path)
-        if not component_class:
+        component = getComponentObjectFromPath(component_path)
+        if not component:
             return Result.notFound("Unknown component")
         #component = component_class()
         body = self.request.getRequestBody()
@@ -253,7 +249,7 @@ class CodeBrowser(BaseBrowser):
             param_dict = json.loads(body)
         except Exception, e:
             raise RestxException("Malformed request body: " + str(e))
-        ret_msg = makeResourceFromClass(component_class, param_dict, specialized_code, specialized_code_name)
+        ret_msg = makeResourceFromComponentObject(component, param_dict, specialized_code, specialized_code_name)
         # This is returned back to the client, so we should take the URI
         # string and cast it to a Url() object. That way, the DOCUMENT_ROOT
         # can be applied as needed before returning this to the client.

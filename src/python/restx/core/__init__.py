@@ -26,4 +26,4 @@ Classes for the implementation of the request dispatcher.
 # Export classes on module level, so that users don't need
 # to specify the individual file names in their imports.
 from restx.core.requestdispatcher import RequestDispatcher
-from restx.core.codebrowser       import getComponentInstance
+from restx.core.codebrowser       import getComponentObjectFromPath
