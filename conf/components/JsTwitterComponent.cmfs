@@ -1,0 +1,10 @@
+ENABLED   = yes
+
+cname     = JavaScriptComponent
+
+lang      = javascript
+
+module    = org.mulesoft.restx.component.scripting
+
+path      = src/javascript/restx/components/TwitterComponent.js
+

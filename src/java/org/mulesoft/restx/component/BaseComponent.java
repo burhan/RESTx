@@ -20,26 +20,40 @@
 
 package org.mulesoft.restx.component;
 
-import com.sun.net.httpserver.Headers;
-
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.List;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.*;
-import java.math.BigDecimal;
+import java.util.Map;
 
 import org.json.JSONException;
-
-import org.mulesoft.restx.RestxHttpRequest;
 import org.mulesoft.restx.ResourceAccessorInterface;
+import org.mulesoft.restx.RestxHttpRequest;
 import org.mulesoft.restx.Settings;
-import org.mulesoft.restx.component.api.*;
+import org.mulesoft.restx.component.api.ComponentDescriptor;
+import org.mulesoft.restx.component.api.ComponentInfo;
+import org.mulesoft.restx.component.api.Default;
+import org.mulesoft.restx.component.api.FileStore;
+import org.mulesoft.restx.component.api.HTTP;
+import org.mulesoft.restx.component.api.HttpMethod;
+import org.mulesoft.restx.component.api.HttpResult;
+import org.mulesoft.restx.component.api.MakeResourceResult;
+import org.mulesoft.restx.component.api.OutputType;
+import org.mulesoft.restx.component.api.OutputTypes;
+import org.mulesoft.restx.component.api.Parameter;
+import org.mulesoft.restx.component.api.ParamsInReqBody;
+import org.mulesoft.restx.component.api.Service;
+import org.mulesoft.restx.component.api.ServiceDescriptor;
 import org.mulesoft.restx.exception.RestxException;
-import org.mulesoft.restx.parameter.*;
-import org.mulesoft.restx.util.Url;
+import org.mulesoft.restx.parameter.ParameterDef;
+import org.mulesoft.restx.parameter.ParameterDefBoolean;
+import org.mulesoft.restx.parameter.ParameterDefNumber;
+import org.mulesoft.restx.parameter.ParameterDefString;
 import org.mulesoft.restx.util.JsonProcessor;
+import org.mulesoft.restx.util.Url;
 
 
 public abstract class BaseComponent
@@ -78,7 +92,7 @@ public abstract class BaseComponent
     private ComponentDescriptor getComponentDescriptor() throws RestxException
     {
         if (componentDescriptor == null) {
-            annotationParser();
+            initialiseComponentDescriptor();
         }
         return componentDescriptor;
     }
@@ -154,18 +168,18 @@ public abstract class BaseComponent
         return pdef;
     }
         
-    public void annotationParser() throws RestxException
+    protected void initialiseComponentDescriptor() throws RestxException
     {
         if (annotationsHaveBeenParsed  ||  componentDescriptor != null) {
             return;
         }
-        Class<? extends BaseComponent> myclass = this.getClass();
+        final Class<? extends BaseComponent> myclass = this.getClass();
         
         /*
          * Examine the class annotations to get information about the
          * component.
          */
-        ComponentInfo ci = this.getClass().getAnnotation(ComponentInfo.class);
+        final ComponentInfo ci = this.getClass().getAnnotation(ComponentInfo.class);
         if (ci == null) {
             throw new RestxException("Component does not have a ComponentInfo annotation");
         }
@@ -175,21 +189,21 @@ public abstract class BaseComponent
          * Examine field annotations to identify resource creation
          * time parameters.
          */
-        for (Field f: myclass.getFields()) {
-            Parameter fa = f.getAnnotation(Parameter.class);
+        for (final Field f: myclass.getFields()) {
+            final Parameter fa = f.getAnnotation(Parameter.class);
             if (fa != null) {
-                String  paramName   = fa.name();
-                String  paramDesc   = fa.desc();
+                final String  paramName   = fa.name();
+                final String  paramDesc   = fa.desc();
                 String  defaultVal  = null;
                 boolean required    = true;
                 
                 // Check if we have a default value and set that one as well
-                Default fad = f.getAnnotation(Default.class);
+                final Default fad = f.getAnnotation(Default.class);
                 if (fad != null) {
                     defaultVal = fad.value();
                     required   = false;
                 }
-                Class<?> ftype = f.getType();
+                final Class<?> ftype = f.getType();
                 componentDescriptor.addParameter(paramName,
                                                  createParamDefType(ftype, paramDesc, required, defaultVal));
             }
@@ -201,10 +215,10 @@ public abstract class BaseComponent
          */
         paramOrder = new HashMap<String, ArrayList<String>>();
         paramTypes = new HashMap<String, ArrayList<Class<?>>>();
-        for (Method m: myclass.getMethods()) {
+        for (final Method m: myclass.getMethods()) {
             if (m.isAnnotationPresent(Service.class)) {
-                String            serviceName         = m.getName();
-                Service           at                  = m.getAnnotation(Service.class);
+                final String            serviceName         = m.getName();
+                final Service           at                  = m.getAnnotation(Service.class);
                 boolean           pinreq              = false;
                 if (m.isAnnotationPresent(ParamsInReqBody.class)) {
                     pinreq = true;
@@ -212,33 +226,33 @@ public abstract class BaseComponent
                 // Looking for output type annotations
                 ArrayList<String> outputTypes = null;
                 if (m.isAnnotationPresent(OutputType.class)) {
-                    OutputType ot = m.getAnnotation(OutputType.class);
+                    final OutputType ot = m.getAnnotation(OutputType.class);
                     outputTypes = new ArrayList<String>();
                     outputTypes.add(ot.value());
                 }
                 if (m.isAnnotationPresent(OutputTypes.class)) {
-                    OutputTypes ots      = m.getAnnotation(OutputTypes.class);
-                    String[]    otsSpecs = ots.value();
+                    final OutputTypes ots      = m.getAnnotation(OutputTypes.class);
+                    final String[]    otsSpecs = ots.value();
                     if (otsSpecs.length > 0) {
                         if (outputTypes == null) {
                             outputTypes = new ArrayList<String>();
                         }
-                        for (String ts: otsSpecs) {
+                        for (final String ts: otsSpecs) {
                             outputTypes.add(ts);
                         }
                     }
                 }
-                ServiceDescriptor sd                  = new ServiceDescriptor(at.description(), pinreq, outputTypes);
-                Class<?>[]        types               = m.getParameterTypes();
-                Annotation[][]    allParamAnnotations = m.getParameterAnnotations();
+                final ServiceDescriptor sd                  = new ServiceDescriptor(at.description(), pinreq, outputTypes);
+                final Class<?>[]        types               = m.getParameterTypes();
+                final Annotation[][]    allParamAnnotations = m.getParameterAnnotations();
                 int i = 0;
-                ArrayList<String> positionalParams = new ArrayList<String>();
-                for (Annotation[] pa : allParamAnnotations) {
+                final ArrayList<String> positionalParams = new ArrayList<String>();
+                for (final Annotation[] pa : allParamAnnotations) {
                     String  name       = null;
                     String  desc       = null;
                     boolean required   = true;
                     String  defaultVal = null;
-                    for (Annotation a: pa) {
+                    for (final Annotation a: pa) {
                         if (a.annotationType() == Parameter.class) {
                             name = ((Parameter)a).name();
                             desc = ((Parameter)a).desc();
@@ -273,7 +287,7 @@ public abstract class BaseComponent
     
     public HashMap<String, ArrayList<String>> getParameterOrder() throws RestxException
     {
-        annotationParser();
+        initialiseComponentDescriptor();
 
         // Returns the order in which parameters were defined
         return paramOrder;
@@ -281,7 +295,7 @@ public abstract class BaseComponent
     
     public HashMap<String, ArrayList<Class<?>>> getParameterTypes() throws RestxException
     {
-        annotationParser();
+        initialiseComponentDescriptor();
 
         // Returns the order in which parameters were defined
         return paramTypes;
@@ -338,7 +352,7 @@ public abstract class BaseComponent
         try {
             return JsonProcessor.loads(str);
         }
-        catch (JSONException e) {
+        catch (final JSONException e) {
             throw new RestxException("Could not de-serialize data: " + e.getMessage());
         }
     }
@@ -348,15 +362,15 @@ public abstract class BaseComponent
         try {
             return JsonProcessor.dumps(obj);
         }
-        catch (JSONException e) {
+        catch (final JSONException e) {
             throw new RestxException("Could not serialize data: " + e.getMessage());
         }
     }
     
     private HashMap<String, Object> changeParamsToPlainDict(Map<String, ParameterDef> paramDict)
     {
-        HashMap<String, Object> d = new HashMap<String, Object>();
-        for (String name: paramDict.keySet()) {
+        final HashMap<String, Object> d = new HashMap<String, Object>();
+        for (final String name: paramDict.keySet()) {
             d.put(name, paramDict.get(name).asDict());
         }
         return d;
@@ -364,9 +378,9 @@ public abstract class BaseComponent
     
     public HashMap<String, Object> getMetaData() throws RestxException
     {
-        annotationParser();
+        initialiseComponentDescriptor();
 
-        HashMap<String, Object> d = new HashMap<String, Object>();
+        final HashMap<String, Object> d = new HashMap<String, Object>();
         
         d.put("uri",      new Url(getCodeUri()));
         d.put("name",     getName());
@@ -375,7 +389,7 @@ public abstract class BaseComponent
         d.put("params",   changeParamsToPlainDict(componentDescriptor.getParamMap()));
         d.put("services", _getServices(null));
         
-        HashMap<String, ParameterDef> rp = new HashMap<String, ParameterDef>();
+        final HashMap<String, ParameterDef> rp = new HashMap<String, ParameterDef>();
         rp.put("suggested_name", new ParameterDefString("Can be used to suggest the resource name to the server",
                                                         true, ""));
         rp.put("desc",           new ParameterDefString("Specifies a description for this new resource",
@@ -391,7 +405,7 @@ public abstract class BaseComponent
     public HashMap<String, ParameterDef> getParams() throws RestxException
     {
         if (componentDescriptor == null) {
-            annotationParser();
+            initialiseComponentDescriptor();
         }
         return componentDescriptor.getParamMap();
     }
@@ -417,7 +431,7 @@ public abstract class BaseComponent
         try {
             name = getName();
         }
-        catch (Exception e) {
+        catch (final Exception e) {
             name = "";
         }
         return Settings.PREFIX_CODE + "/" + name;
@@ -434,7 +448,7 @@ public abstract class BaseComponent
      */
     public HashMap<String, Object> _getServices(String resourceBaseUri) throws RestxException
     {
-        annotationParser();
+        initialiseComponentDescriptor();
 
         // Get the base URI for all services. If no resource base URI
         // was defined (can happen when we just look at code meta data)
@@ -450,14 +464,14 @@ public abstract class BaseComponent
         // Create a map of service descriptions.
         if (componentDescriptor.getServicMap() != null  &&  !componentDescriptor.getServicMap().isEmpty()) {            
             services = componentDescriptor.getServicesAsPlainDict();
-            HashMap<String, Object> ret = new HashMap<String, Object>();
-            for (String name: services.keySet()) {
-                HashMap<String, Object> thisService = (HashMap<String, Object>)services.get(name);
+            final HashMap<String, Object> ret = new HashMap<String, Object>();
+            for (final String name: services.keySet()) {
+                final HashMap<String, Object> thisService = (HashMap<String, Object>)services.get(name);
                 thisService.put("uri", new Url(baseUri + "/" + name));
                 ret.put(name, thisService);
-                HashMap<String, Object> params = (HashMap<String, Object>)thisService.get("params");
+                final HashMap<String, Object> params = (HashMap<String, Object>)thisService.get("params");
                 if (params != null) {
-                    for (String pname: params.keySet()) {
+                    for (final String pname: params.keySet()) {
                         Object param = params.get(pname);
                         if (param instanceof ParameterDef) {
                             // Need the type check since we may have constructed the

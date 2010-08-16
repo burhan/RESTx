@@ -1,4 +1,4 @@
-name = "TwitterComponent"
+name = "JsTwitterComponent"
 
 parameters = {
   account_name     : { type: "string", desc: "Twitter account name" },
