@@ -29,8 +29,10 @@ import javax.script.Bindings;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
 import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
+import org.mulesoft.restx.Settings;
 import org.mulesoft.restx.component.BaseComponent;
 import org.mulesoft.restx.exception.RestxException;
 
@@ -39,14 +41,26 @@ public abstract class BaseScriptingComponent extends BaseComponent
     // TODO replace this with a RESTx-managed cache
     private final static ConcurrentMap<File, CompiledScript> CACHE = new ConcurrentHashMap<File, CompiledScript>();
 
-    private File scriptFile;
+    private final ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
 
-    public void setScriptFile(File scriptFile)
+    private File componentScriptFile;
+
+    protected File getComponentScriptFile()
     {
-        this.scriptFile = scriptFile;
+        if (componentScriptFile == null)
+        {
+            componentScriptFile = new File(Settings.getRootDir() + instanceConf.get("path"));
+        }
+
+        return componentScriptFile;
     }
 
-    protected Object evaluate(Bindings bindings) throws RestxException
+    protected Object evaluateComponent(Bindings bindings) throws RestxException
+    {
+        return evaluate(bindings, getComponentScriptFile());
+    }
+
+    protected Object evaluate(Bindings bindings, File scriptFile) throws RestxException
     {
         try
         {
@@ -57,7 +71,7 @@ public abstract class BaseScriptingComponent extends BaseComponent
                 return compiledScript.eval(bindings);
             }
 
-            final ScriptEngine engine = getEngine();
+            final ScriptEngine engine = getEngine(scriptEngineManager);
 
             if (engine instanceof Compilable)
             {
@@ -78,5 +92,5 @@ public abstract class BaseScriptingComponent extends BaseComponent
         }
     }
 
-    protected abstract ScriptEngine getEngine();
+    protected abstract ScriptEngine getEngine(ScriptEngineManager scriptEngineManager);
 }

@@ -19,6 +19,9 @@
 
 package org.mulesoft.restx.component.scripting;
 
+import java.io.File;
+import java.net.URISyntaxException;
+
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.SimpleBindings;
@@ -26,22 +29,30 @@ import javax.script.SimpleBindings;
 import org.mulesoft.restx.component.api.ComponentDescriptor;
 import org.mulesoft.restx.exception.RestxException;
 
-public class JavaScriptComponent extends BaseScriptingComponent
+public class JavaScriptComponentWrapper extends BaseScriptingComponent
 {
-    private final ScriptEngine javaScriptEngine = new ScriptEngineManager().getEngineByExtension("js");
-
     @Override
-    protected ScriptEngine getEngine()
+    protected ScriptEngine getEngine(ScriptEngineManager scriptEngineManager)
     {
-        return javaScriptEngine;
+        return scriptEngineManager.getEngineByName("javascript");
     }
 
     @Override
     protected void initialiseComponentDescriptor() throws RestxException
     {
         final SimpleBindings bindings = new SimpleBindings();
-        evaluate(bindings);
-        componentDescriptor = new ComponentDescriptor((String) bindings.get("name"),
-            (String) bindings.get("description"), (String) bindings.get("documentation"));
+
+        // load the component metadata into bindings
+        evaluateComponent(bindings);
+
+        try
+        {
+            componentDescriptor = (ComponentDescriptor) evaluate(bindings, new File(getClass().getResource(
+                "configuration_loader.js").toURI()));
+        }
+        catch (final URISyntaxException urise)
+        {
+            throw new RestxException(urise.getMessage());
+        }
     }
 }

@@ -19,7 +19,7 @@ services = {
       
       function getStatus() {
         // TODO HTTP GET on "http://api.twitter.com/1/users/show.json?screen_name=" + parameters.account_name.value
-        return "status of " + parameters.account_name.value;
+        return "status of " + parameters.account_name.value
       }
       
       function postStatus(input) {
@@ -28,9 +28,9 @@ services = {
       }
       
       switch(method) {
-        case HTTP.GET : return getStatus();
-        case HTTP.POST: return postStatus(input);
-        default       : throw "Unsupported method: " + method;
+        case HTTP.GET : return getStatus()
+        case HTTP.POST: return postStatus(input)
+        default       : throw "Unsupported method: " + method
       }
     }
   }
