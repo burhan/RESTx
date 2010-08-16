@@ -36,7 +36,6 @@ from org.mulesoft.restx.component.api   import HTTP, HttpMethod, Result
 from restx.logger                       import *
 from restx.render                       import DEFAULT_TYPES
 from restx.core.basebrowser             import BaseBrowser
-from restx.core.codebrowser             import getComponentInstance
 from restx.resources                    import paramSanityCheck, fillDefaults, listResources, \
                                                retrieveResourceFromStorage, getResourceUri, deleteResourceFromStorage
 from restx.resources.resource_runner    import _accessComponentService, _getResourceDetails

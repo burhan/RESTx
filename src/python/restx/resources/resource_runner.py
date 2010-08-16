@@ -26,7 +26,7 @@ import restx.settings as settings
 
 import restx.core.codebrowser  # Wanted to be much more selective here, but a circular
                              # import issue was most easily resolved like this.
-                             # We only need getComponentInstance() from this module.
+                             # We only need getComponentObjectFromPath() from this module.
 
 from org.mulesoft.restx.exception import *
 from org.mulesoft.restx.component.api import HTTP, Result
@@ -248,7 +248,7 @@ def _getResourceDetails(resource_name):
     # Instantiate the component to get the exposed sub-services. Their info
     # is added to the public information about the resource.
     code_uri  = complete_resource_def['private']['code_uri']
-    component = restx.core.codebrowser.getComponentInstance(code_uri, resource_name)
+    component = restx.core.codebrowser.getComponentObjectFromPath(code_uri, resource_name)
     services  = component._getServices(resource_home_uri)
     services  = languageStructToPython(component, services)
     public_resource_def['services'] = services

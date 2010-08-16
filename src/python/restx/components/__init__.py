@@ -27,14 +27,38 @@ Also defines a base class for all components.
 # Import all the components
 import restx_components_list
 
-_CODE_MAP         = None
-_KNOWN_COMPONENTS = None
+__CODE_MAP         = None
+__KNOWN_COMPONENTS = None
 
-def get_code_map():
-    global _CODE_MAP, _KNOWN_COMPONENTS
+def make_component(component_name):
+    """
+    Return a readily created component. The instance configuration
+    (the information from the manifest file) is sent to the component
+    as well.
+
+    Returns nothing if the component wasn't found.
+
+    """
+    try:
+        component_class, component_config = __CODE_MAP[component_name]
+        comp = component_class()
+        comp.setInstanceConf(component_config)
+        return comp
+    except KeyError, e:
+        return None
+
+def get_component_names():
+    """
+    Return a list of component names.
+
+    The values are class/config tuples, where 'config' is the content
+    of the manifest file.
+
+    """
+    global __CODE_MAP, __KNOWN_COMPONENTS
     new_component_list = restx_components_list.import_all()
     if new_component_list:
-        _KNOWN_COMPONENTS = new_component_list
-        _CODE_MAP         = dict([ (component_class().getName(), component_class) for component_class in _KNOWN_COMPONENTS ])
-    return _CODE_MAP
+        __KNOWN_COMPONENTS = new_component_list
+        __CODE_MAP         = dict([ (component_config['cname'], (component_class, component_config)) for component_class, component_config in __KNOWN_COMPONENTS ])
+    return __CODE_MAP.keys()
 

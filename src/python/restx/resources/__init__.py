@@ -345,7 +345,7 @@ def specializedOverwrite(component_meta_data, specialized_component_data):
     return component_meta_data
 
 
-def makeResourceFromClass(component_class, params, specialized=None, partial_resource_name=None):
+def makeResourceFromComponentObject(component, params, specialized=None, partial_resource_name=None):
     """
     Create a new resource representation from the
     specified component class and parameter dictionary
@@ -402,7 +402,6 @@ def makeResourceFromClass(component_class, params, specialized=None, partial_res
 
     """    
     # We get the meta data (parameter definition) from the component
-    component            = component_class()
     component_params_def = component.getMetaData()
     component_params_def = languageStructToPython(component, component_params_def)
     if specialized:
@@ -526,7 +525,7 @@ def makeResource(component_name, params, specialized=False):
     component class specified by its name and the parameter
     dictionary and store it on disk.
 
-    Finds the class and then calls makeResourceFromClass()
+    Finds the class and then calls makeResourceFromComponentObject()
 
     @param component_name:  Name of a class derived from BaseComponent.
     @type  component_name:  BaseComponent or derived.
@@ -556,12 +555,12 @@ def makeResource(component_name, params, specialized=False):
         if not specialized_code:
             raise RestxResourceNotFoundException("Cannot find specialized component resource '%s'" % component_name)
         component_path        = specialized_code["private"]["code_uri"]
-        component_class       = restx.core.codebrowser.getComponentClass(component_path)
+        component             = restx.core.codebrowser.getComponentObjectFromPath(component_path)
         specialized_code_name = component_name
     else:
-        component_class       = restx.components.get_code_map().get(component_name)
+        component             = restx.components.make_component(component_name)
         specialized_code      = None
         specialized_code_name = None
 
-    return makeResourceFromClass(component_class, params, specialized_code, specialized_code_name)
+    return makeResourceFromComponentObject(component, params, specialized_code, specialized_code_name)
 

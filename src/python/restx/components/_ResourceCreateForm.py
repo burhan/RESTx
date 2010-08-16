@@ -27,7 +27,6 @@ import urllib
 import restx.components
 import restx.settings as settings
 
-from   restx.resources              import makeResourceFromClass
 from   restx.platform_specifics     import STORAGE_OBJECT
 from   restx.components.api         import *
 from   org.mulesoft.restx.exception import *
@@ -132,14 +131,13 @@ The user submits the filled-out form and a new resource is created.
             component_name        = elems[len(elems)-1]
 
         # Take the parameter map from the component
-        cc = restx.components.get_code_map().get(component_name)
-        if not cc:
+        comp = restx.components.make_component(component_name)
+        if not comp:
             return Result.notFound("Cannot find component '%s'" % component_name)
         header = settings.HTML_HEADER
 
         # Assemble the form elements for the parameters
         params = dict()
-        comp = cc()
         params.update(comp.getParams())  # In case this is a Java component, we get a Python dict this way
 
         if specialized:
