@@ -19,9 +19,6 @@
 
 package org.mulesoft.restx.component.scripting;
 
-import java.io.File;
-import java.net.URISyntaxException;
-
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.SimpleBindings;
@@ -45,14 +42,7 @@ public class JavaScriptComponentWrapper extends BaseScriptingComponent
         // load the component metadata into bindings
         evaluateComponent(bindings);
 
-        try
-        {
-            componentDescriptor = (ComponentDescriptor) evaluate(bindings, new File(getClass().getResource(
-                "configuration_loader.js").toURI()));
-        }
-        catch (final URISyntaxException urise)
-        {
-            throw new RestxException(urise.getMessage());
-        }
+        // extract a component descriptor out of these bindings
+        componentDescriptor = (ComponentDescriptor) evaluateResource(bindings, "configuration_loader.js");
     }
 }

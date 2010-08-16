@@ -22,6 +22,7 @@ package org.mulesoft.restx.component.scripting;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.net.URISyntaxException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -60,7 +61,19 @@ public abstract class BaseScriptingComponent extends BaseComponent
         return evaluate(bindings, getComponentScriptFile());
     }
 
-    protected Object evaluate(Bindings bindings, File scriptFile) throws RestxException
+    protected Object evaluateResource(Bindings bindings, String resourceName) throws RestxException
+    {
+        try
+        {
+            return evaluate(bindings, new File(getClass().getResource(resourceName).toURI()));
+        }
+        catch (final URISyntaxException urise)
+        {
+            throw new RestxException(urise.getMessage());
+        }
+    }
+
+    private Object evaluate(Bindings bindings, File scriptFile) throws RestxException
     {
         try
         {

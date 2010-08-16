@@ -1,8 +1,8 @@
 name = "JsTwitterComponent"
 
 parameters = {
-  account_name     : { type: "string", desc: "Twitter account name" },
-  account_password : { type: "string", desc: "Password" }
+  account_name     : { type: "string", description: "Twitter account name", required: true },
+  account_password : { type: "password", description: "Password", required: true }
 }
 
 description = "Provides access to a Twitter account."
