@@ -237,7 +237,31 @@ public abstract class BaseComponent
                         }
                     }
                 }
-                ServiceDescriptor sd                  = new ServiceDescriptor(at.description(), pinreq, outputTypes);
+                // Looking for output type annotations
+                ArrayList<String> inputTypes = null;
+                if (m.isAnnotationPresent(InputType.class)) {
+                    InputType it = m.getAnnotation(InputType.class);
+                    inputTypes = new ArrayList<String>();
+                    String it_val = it.value();
+                    if (!it_val.equals(InputType.NO_INPUT)) {
+                        inputTypes.add(it_val);
+                    }
+                }
+                if (m.isAnnotationPresent(InputTypes.class)) {
+                    InputTypes its       = m.getAnnotation(InputTypes.class);
+                    String[]    itsSpecs = its.value();
+                    if (itsSpecs.length > 0) {
+                        if (inputTypes == null) {
+                            inputTypes = new ArrayList<String>();
+                        }
+                        for (String ts: itsSpecs) {
+                            if (!ts.equals(InputType.NO_INPUT)) {
+                                inputTypes.add(ts);
+                            }
+                        }
+                    }
+                }
+                ServiceDescriptor sd                  = new ServiceDescriptor(at.description(), pinreq, outputTypes, inputTypes);
                 Class<?>[]        types               = m.getParameterTypes();
                 Annotation[][]    allParamAnnotations = m.getParameterAnnotations();
                 int i = 0;

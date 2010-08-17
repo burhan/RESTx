@@ -111,7 +111,6 @@ public class ComponentDescriptor
             servicesDict.put(name, serviceDef);
             serviceDef.put("desc", service.getDesc());
             serviceDef.put("params", service.getParamMap());
-            serviceDef.put("output_types", service.getOutputTypes());
             if (service.getParamsInReqBodyFlag()) {
                 serviceDef.put("allow_params_in_body", true);
             }
@@ -121,6 +120,10 @@ public class ComponentDescriptor
             List outputTypes = service.getOutputTypes();
             if (outputTypes != null  &&  !outputTypes.isEmpty()) {
                 serviceDef.put("output_types", outputTypes);
+            }
+            List inputTypes = service.getInputTypes();
+            if (inputTypes != null  &&  !inputTypes.isEmpty()) {
+                serviceDef.put("input_types", inputTypes);
             }
         }
         

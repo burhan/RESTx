@@ -25,7 +25,6 @@ Base class for all content browser classes.
 # RESTx imports
 import restx.settings as settings
 
-from restx.render                     import KNOWN_RENDERERS
 from org.mulesoft.restx.exception     import RestxNotAcceptableException
 from org.mulesoft.restx.component.api import HTTP, Result
 

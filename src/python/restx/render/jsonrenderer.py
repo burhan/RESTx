@@ -128,3 +128,19 @@ class JsonRenderer(BaseRenderer):
 
         return out
 
+    def parse(self, data):
+        """
+        Take input in this renderer's format and produce an object.
+        
+        @param data:        An input containing the serialized representation of an
+                            object in this renderer's format.
+        @param data:        string
+        
+        @return:            Object that was de-serialized from this input.
+        @rtype:             object
+        
+        """
+        print "@@@@@@ PARSING JSON: ", data
+        obj = json.loads(data)
+        return obj
+ 

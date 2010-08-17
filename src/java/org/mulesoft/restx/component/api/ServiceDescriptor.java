@@ -40,14 +40,16 @@ public class ServiceDescriptor
     private HashMap<String, ParameterDef> params;
     private ArrayList<String>             positionalParams;
     private ArrayList<String>             outputTypes;
+    private ArrayList<String>             inputTypes;
 
-    public ServiceDescriptor(String desc, boolean paramsInReqBody, ArrayList<String> outputTypes)
+    public ServiceDescriptor(String desc, boolean paramsInReqBody, ArrayList<String> outputTypes, ArrayList<String> inputTypes)
     {
         this.desc             = desc;
         this.params           = new HashMap<String, ParameterDef>();
         this.positionalParams = new ArrayList<String>();
         this.paramsInReqBody  = paramsInReqBody;
         this.outputTypes      = outputTypes;
+        this.inputTypes       = inputTypes;
     }
     
     public String getDesc()
@@ -63,10 +65,20 @@ public class ServiceDescriptor
     public List getOutputTypes()
     {
         if (outputTypes == null  ||  outputTypes.isEmpty()) {
-            return Settings.DEFAULT_TYPES;
+            return Settings.DEFAULT_OUTPUT_TYPES;
         }
         else {
             return outputTypes;
+        }
+    }
+
+    public List getInputTypes()
+    {
+        if (inputTypes == null) {
+            return Settings.DEFAULT_INPUT_TYPES;
+        }
+        else {
+            return inputTypes;
         }
     }
 

@@ -24,7 +24,14 @@ class BaseRenderer(object):
     Base class from which all renderers should derive.
     
     """
-    def __init__(self, renderer_args):
+
+    # A child class can indicate with those two flags if it
+    # can provide render and parse services (some might only
+    # be capable of input or only of output...)
+    CAN_RENDER = True
+    CAN_PARSE  = True
+
+    def __init__(self, renderer_args=None):
         """
         The calling context can pass in some arguments
         to the renderer in form of a dictionary.
@@ -69,6 +76,19 @@ class BaseRenderer(object):
         else:
             return self.render(data, top_level)
         
+    def canRender(self):
+        """
+        Return 'True' if this renderer can render output.
+
+        """
+        return self.CAN_RENDER
+
+    def canParse(self):
+        """
+        Return 'True' if this renderer can parse input.
+
+        """
+        return self.CAN_PARSE
 
     def render(self, data, top_level=False):
         """
@@ -87,6 +107,21 @@ class BaseRenderer(object):
         
         @return:            Output buffer with completed representation.
         @rtype:             string
+        
+        """    
+        pass
+
+
+    def parse(self, data):
+        """
+        Take input in this renderer's format and produce an object.
+        
+        @param data:        An input containing the serialized representation of an
+                            object in this renderer's format.
+        @param data:        string
+        
+        @return:            Object that was de-serialized from this input.
+        @rtype:             object
         
         """    
         pass
