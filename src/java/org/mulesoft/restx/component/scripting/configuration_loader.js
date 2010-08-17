@@ -17,47 +17,61 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */ 
 
-// Supporting functions
+//Supporting functions
 function nz(value, defaultValue) {
-  return value == undefined ? defaultValue : value 
+    return value == undefined ? defaultValue : value 
 }
 
 function getParameterDef(type, description, required, defaultValue) {
-	switch(type) {
-		case TYPE.STRING  : return new org.mulesoft.restx.parameter.ParameterDefString(description, required, defaultValue)
-		case TYPE.PASSWORD: return new org.mulesoft.restx.parameter.ParameterDefPassword(description, required, defaultValue)
-		case TYPE.BOOLEAN : return new org.mulesoft.restx.parameter.ParameterDefBoolean(description, required, defaultValue)
-		case TYPE.NUMBER  : return new org.mulesoft.restx.parameter.ParameterDefNumber(description, required, defaultValue)
-		default           : throw "Unsupported parameter type: " + type
-	}
+    switch(type) {
+        case TYPE.STRING  : return new org.mulesoft.restx.parameter.ParameterDefString(description, required, defaultValue)
+        case TYPE.PASSWORD: return new org.mulesoft.restx.parameter.ParameterDefPassword(description, required, defaultValue)
+        case TYPE.BOOLEAN : return new org.mulesoft.restx.parameter.ParameterDefBoolean(description, required, defaultValue)
+        case TYPE.NUMBER  : return new org.mulesoft.restx.parameter.ParameterDefNumber(description, required, defaultValue)
+        default           : throw "Unsupported parameter type: " + type
+    }
 }
 
 function createServiceDescriptor(service) {
-	serviceDescriptor = new org.mulesoft.restx.component.api.ServiceDescriptor(service.description,
-																			   nz(service.parametersInBody, false),
-																			   nz(service.outputTypes, null),
-																			   nz(service.inputTypes, null))
+    serviceDescriptor = new org.mulesoft.restx.component.api.ServiceDescriptor(service.description,
+                                                                               nz(service.parametersInBody, false),
+                                                                               nz(service.outputTypes, null),
+                                                                               nz(service.inputTypes, null))
+    parameters = service.parameters
 
-	return serviceDescriptor
+    for (parameterName in parameters) {
+        parameter = parameters[parameterName]
+
+        serviceDescriptor.addParameter(parameterName,
+                                       getParameterDef(parameter.type,
+                                                       parameter.description,
+                                                       nz(parameter.required, false),
+                                                       nz(parameter.defaultValue, null)))
+    }
+
+    return serviceDescriptor
 }
 
-// Base configuration
+//Base configuration
 componentDescriptor = new org.mulesoft.restx.component.api.ComponentDescriptor(name, description, documentation)
 
-// Resource parameters
+//Resource parameters
 for (parameterName in parameters) {
-	parameter = parameters[parameterName]
-	                       
-	componentDescriptor.addParameter(parameterName,
-								     getParameterDef(parameter.type, parameter.description, parameter.required, parameter.defaultValue))
+    parameter = parameters[parameterName]
+                           
+    componentDescriptor.addParameter(parameterName,
+                                     getParameterDef(parameter.type,
+                                                     parameter.description,
+                                                     nz(parameter.required, false),
+                                                     nz(parameter.defaultValue, null)))
 }
 
-// Services
-for (var method in this) {
-	// Any local function with a description is considered to be a Service
-	if (typeof this[method] == 'function' && this.hasOwnProperty(method) && this[method].description != undefined) {
-		componentDescriptor.addService(method, createServiceDescriptor(this[method]));
-	}
+//Services
+for (var methodName in this) {
+    // Any local function with a description is considered to be a Service
+    if (typeof this[methodName] == 'function' && this.hasOwnProperty(methodName) && this[methodName].description != undefined) {
+        componentDescriptor.addService(methodName, createServiceDescriptor(this[methodName]));
+    }
 }
 
 componentDescriptor

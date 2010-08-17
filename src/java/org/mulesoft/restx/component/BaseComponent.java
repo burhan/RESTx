@@ -173,7 +173,7 @@ public abstract class BaseComponent
             pdef = new ParameterDefNumber(desc, required, new BigDecimal(defaultVal));
         }
         else if (paramType == Boolean.class) {
-            pdef = new ParameterDefBoolean(desc, required, new Boolean(defaultVal));
+            pdef = new ParameterDefBoolean(desc, required, Boolean.valueOf(defaultVal));
         }
         return pdef;
     }

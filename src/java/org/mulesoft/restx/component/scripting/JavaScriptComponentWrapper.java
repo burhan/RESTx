@@ -36,7 +36,7 @@ public class JavaScriptComponentWrapper extends BaseScriptingComponent
         return scriptEngineManager.getEngineByName("javascript");
     }
 
-    // TODO add support for: inputTypes ([]), outputTypes ([]),
+    // TODO add support for: inputTypes ([]), outputTypes ([]), positionalParams
     // positionalParams([string])
 
     @Override
