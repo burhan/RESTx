@@ -79,9 +79,18 @@ def _accessComponentService(component, complete_resource_def, resource_name, ser
     
     """
     try:
-        services = complete_resource_def['public']['services']
+        services            = complete_resource_def['public']['services']
+        proxy_dispatch_func = None    # Some objects are proxies for dynamic components, for example in case of JavaScript
         if not services  or  service_name not in services  or  not hasattr(component, service_name):
-            raise RestxException("Service '%s' is not exposed by this resource." % service_name)
+            # Some components are proxies to dynamically created components (for example when
+            # using JavaScript for components). These have a method called _serviceMethodCheck()
+            proxy_func_name = "_serviceMethodDispatch"
+            found           = False
+            if hasattr(component, proxy_func_name):
+                proxy_dispatch_func = getattr(component, proxy_func_name)
+                found               = True
+            if not found:
+                raise RestxException("Service '%s' is not exposed by this resource." % service_name)
         service_def = services[service_name]
 
         #
@@ -190,7 +199,14 @@ def _accessComponentService(component, complete_resource_def, resource_name, ser
             fillDefaults(runtime_param_def, runtime_param_dict)
             convertTypes(runtime_param_def, runtime_param_dict)
 
-        service_method = getattr(component, service_name)
+        if not proxy_dispatch_func:
+            service_method     = getattr(component, service_name)
+            is_proxy_component = False
+        else:
+            # Maybe this is a proxy object for a dynamic component (e.g. JavaScript)?
+            # In that case, we need to use the generic dispatcher method.
+            service_method     = proxy_dispatch_func
+            is_proxy_component = True
         
         # Get the parameters from the resource definition time
         params = complete_resource_def['private']['params']
@@ -203,7 +219,7 @@ def _accessComponentService(component, complete_resource_def, resource_name, ser
         component.setBaseCapabilities(BaseCapabilities(component))
         
         result = serviceMethodProxy(component, service_method, service_name, request,
-                                    input, params, method)
+                                    input, params, method, is_proxy_component=is_proxy_component)
         return result
 
     except RestxException, e:

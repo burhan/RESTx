@@ -128,7 +128,7 @@ def languageStructToPython(component, obj):
 #
 # Proxies for calling language specific component service methods
 #
-def __javaServiceMethodProxy(component, request, method, method_name, input, params, http_method):
+def __javaServiceMethodProxy(component, request, method, method_name, input, params, http_method, is_proxy_component):
     """
     Calls service methods in Java components.
     
@@ -180,7 +180,14 @@ def __javaServiceMethodProxy(component, request, method, method_name, input, par
         # Passing them to ResourceAccessor means that I don't have to import those
         # symbols in the resource_accessor module.        
         component.resourceAccessor = ResourceAccessor(__javaStructToPython, __pythonStructToJava)
-        res = method(http_method, String(input if input is not None else ""), *arglist)
+        input_str = String(input if input is not None else "")
+        if not is_proxy_component:
+            res = method(http_method, input_str, *arglist)
+        else:
+            proxy_arg_list = [ http_method, input_str ]
+            proxy_arg_list.extend(arglist)
+            res = method(method_name, proxy_arg_list)
+
     except RestxException, e:
         raise e
     except java.lang.Exception, e:
@@ -192,7 +199,7 @@ def __javaServiceMethodProxy(component, request, method, method_name, input, par
         res.setEntity(data)
     return res
 
-def __pythonServiceMethodProxy(component, request, method, method_name, input, params, http_method):
+def __pythonServiceMethodProxy(component, request, method, method_name, input, params, http_method, is_proxy_component):
     """
     Calls service methods in Python components.
     
@@ -219,7 +226,7 @@ __LANG_METHOD_PROXIES = {
 }
 
 
-def serviceMethodProxy(component, service_method, service_method_name, request, input, params, http_method):
+def serviceMethodProxy(component, service_method, service_method_name, request, input, params, http_method, is_proxy_component=False):
     """
     Call the service method of a component.
     
@@ -235,4 +242,4 @@ def serviceMethodProxy(component, service_method, service_method_name, request, 
     """
     func = __LANG_METHOD_PROXIES[component.LANGUAGE]
     component.setRequest(request)
-    return func(component, request, service_method, service_method_name, input, params, http_method)
+    return func(component, request, service_method, service_method_name, input, params, http_method, is_proxy_component)
