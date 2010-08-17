@@ -19,6 +19,7 @@
 
 package org.mulesoft.restx.component.scripting;
 
+import javax.script.Bindings;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.SimpleBindings;
@@ -42,8 +43,7 @@ public class JavaScriptComponentWrapper extends BaseScriptingComponent
     @Override
     protected void initialiseComponentDescriptor() throws RestxException
     {
-        final SimpleBindings bindings = new SimpleBindings();
-
+        final Bindings bindings = new SimpleBindings();
         bindings.put("HTTP", new HTTP());
         bindings.put("TYPE", new ParameterType());
 
@@ -52,5 +52,10 @@ public class JavaScriptComponentWrapper extends BaseScriptingComponent
 
         // extract a component descriptor out of these bindings
         componentDescriptor = (ComponentDescriptor) evaluateResource(bindings, "configuration_loader.js");
+    }
+
+    public Object serviceMethodDispatch(String methodName, Object[] args)
+    {
+        return true;
     }
 }
