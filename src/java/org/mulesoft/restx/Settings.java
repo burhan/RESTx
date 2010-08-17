@@ -71,17 +71,19 @@ public class Settings
     static {
         interp = new PythonInterpreter();
         interp.exec("from restx.settings import *");
-        interp.exec("from restx.render import DEFAULT_TYPES");
+        interp.exec("from restx.render import DEFAULT_OUTPUT_TYPES");
+        interp.exec("from restx.render import DEFAULT_INPUT_TYPES");
         get_root_dir = (PyFunction)interp.get("get_root_dir", PyFunction.class);
     }
 
     /*
      * Here finally we have the publicly exported symbols.
      */
-    public static String    DOCUMENT_ROOT   = getStringFromPythonSettings("DOCUMENT_ROOT");
-    public static String    PREFIX_CODE     = getStringFromPythonSettings("PREFIX_CODE");
-    public static String    PREFIX_RESOURCE = getStringFromPythonSettings("PREFIX_RESOURCE");
-    public static List      DEFAULT_TYPES   = getListFromPythonSettings("DEFAULT_TYPES");
+    public static String    DOCUMENT_ROOT        = getStringFromPythonSettings("DOCUMENT_ROOT");
+    public static String    PREFIX_CODE          = getStringFromPythonSettings("PREFIX_CODE");
+    public static String    PREFIX_RESOURCE      = getStringFromPythonSettings("PREFIX_RESOURCE");
+    public static List      DEFAULT_OUTPUT_TYPES = getListFromPythonSettings("DEFAULT_OUTPUT_TYPES");
+    public static List      DEFAULT_INPUT_TYPES  = getListFromPythonSettings("DEFAULT_INPUT_TYPES");
 
     public static String getRootDir()
     {

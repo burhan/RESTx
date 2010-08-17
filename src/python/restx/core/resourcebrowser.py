@@ -34,7 +34,7 @@ from org.mulesoft.restx.exception       import *
 from org.mulesoft.restx.component.api   import HTTP, HttpMethod, Result
 
 from restx.logger                       import *
-from restx.render                       import DEFAULT_TYPES
+from restx.render                       import DEFAULT_OUTPUT_TYPES
 from restx.core.basebrowser             import BaseBrowser
 from restx.resources                    import paramSanityCheck, fillDefaults, listResources, \
                                                retrieveResourceFromStorage, getResourceUri, deleteResourceFromStorage
@@ -201,7 +201,7 @@ class ResourceBrowser(BaseBrowser):
                 if not possible_output_types:
                     # If the service method didn't define any type(s) then we just
                     # indicate the ability to create any of the default types
-                    possible_output_types = DEFAULT_TYPES
+                    possible_output_types = DEFAULT_OUTPUT_TYPES
 
                 if type(possible_output_types) in [ str, unicode, java.lang.String ]:
                     # Always store the output types in a list, even if the service method just

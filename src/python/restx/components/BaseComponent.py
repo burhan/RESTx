@@ -32,12 +32,12 @@ import restx.settings as settings
 from restx.languages                       import __javaStructToPython
 from restx.core.parameter                  import *
 from restx.storageabstraction.file_storage import FileStorage
-from restx.render                          import DEFAULT_TYPES
+from restx.render                          import DEFAULT_OUTPUT_TYPES, DEFAULT_INPUT_TYPES
 
-from org.json                import JSONException
-from org.mulesoft.restx.util import Url, JsonProcessor
+from org.json                              import JSONException
+from org.mulesoft.restx.util               import Url, JsonProcessor
 
-ALLOWABLE_SERVICE_KEYS = [ "desc", "params", "positional_params", "allow_params_in_body", "output_types" ]
+ALLOWABLE_SERVICE_KEYS = [ "desc", "params", "positional_params", "allow_params_in_body", "output_types", "input_types" ]
 
 #
 # Utility method.
@@ -110,10 +110,21 @@ class BaseComponent(object):
         #
 
         # The output types of services, which don't specify their own output types
-        # should be set to the default types.
+        # should be set to the default types. Same with the input types.
         for sname, sdef in self.SERVICES.items():
             if "output_types" not in sdef:
-                sdef["output_types"] = DEFAULT_TYPES
+                sdef["output_types"] = DEFAULT_OUTPUT_TYPES
+            if "input_types" not in sdef:
+                sdef["input_types"] = DEFAULT_INPUT_TYPES
+            elif sdef['input_types'] is None  or  sdef['input_types'] == []:
+                # If None or an empty list was defined for input types
+                # then we remove them from the dictionary.
+                del sdef['input_types']
+            elif type(sdef['input_types']) in [ str, unicode ]:
+                # We can also specify the input type as a single value (not a list).
+                # In that case, we transcribe it into a single-element list, so that
+                # code using the API always can deal with it in the same way.
+                sdef['input_types'] = [ sdef['input_types'] ]
         
     def setInstanceConf(self, instance_conf):
         self._instance_conf = instance_conf;

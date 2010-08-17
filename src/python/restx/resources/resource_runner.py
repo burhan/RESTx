@@ -18,46 +18,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 
-import urllib
-
-import restxjson as json
-
 import restx.settings as settings
 
 import restx.core.codebrowser  # Wanted to be much more selective here, but a circular
-                             # import issue was most easily resolved like this.
-                             # We only need getComponentObjectFromPath() from this module.
+                               # import issue was most easily resolved like this.
+                               # We only need getComponentObjectFromPath() from this module.
 
-from org.mulesoft.restx.exception import *
-from org.mulesoft.restx.component.api import HTTP, Result
-from restx.resources  import paramSanityCheck, fillDefaults, convertTypes, \
-                             retrieveResourceFromStorage, getResourceUri
-
-from restx.languages import *
+from org.mulesoft.restx.exception       import *
+from org.mulesoft.restx.component.api   import HTTP, Result
+from restx.resources                    import paramSanityCheck, fillDefaults, convertTypes, \
+                                               retrieveResourceFromStorage, getResourceUri
+from restx.render                       import KNOWN_INPUT_RENDERERS
+from restx.languages                    import *
 
 from restx.components.base_capabilities import BaseCapabilities
-
-def __form_parse(input):
-    """
-    Assuming the input is in application/x-www-form-urlencoded format, return values as dict.
-
-    @param input:   An input string, containing the entire form data.
-    @type input:    string
-
-    @return:        Dictionary with the encoded values
-    @rtype:         dict
-
-    """
-    name_val_pairs = input.split("&")
-    d = dict()
-    for nvpair in name_val_pairs:
-        elems = nvpair.split("=")
-        if len(elems) == 1:
-            # No value? That's as if the value wasn't set at all
-            continue
-        name, value = elems
-        d[name.strip()] = urllib.unquote_plus(value.strip())
-    return d
 
 
 def _accessComponentService(component, complete_resource_def, resource_name, service_name,
@@ -159,34 +133,47 @@ def _accessComponentService(component, complete_resource_def, resource_name, ser
                         break
             
         runtime_param_def  = service_def.get('params')
+        input_types_def    = service_def.get('input_types')
+        if not input_types_def  or  (len(input_types_def) == 1  and  input_types_def[0] is None):
+            # Check if input types were defined as 'None', in which
+            # case no input is allowed at all.
+            if input:
+                raise RestxUnsupportedMediaTypeException()
 
         # A request header may tell us about the request body type.
         ct = None
         if request:
             req_headers = request.getRequestHeaders()
-            if req_headers:
-                ct = req_headers.get("Content-type")
-                if ct  and  "application/json" in ct:
-                    try:
-                        # Assume the body is JSON and get parameters from there
-                        input = json.loads(input.strip())
-                    except ValueError, e:
-                        # Probably couldn't parse JSON properly.
-                        pass
-
-                elif ct  and  "application/x-www-form-urlencoded" in ct:
-                    try:
-                        input = __form_parse(input.strip())
-                    except Exception, e:
-                        # Probably couln't parse form values correctly
-                        pass
-
+            if req_headers  and  input:
+                # The input is still a string. Let's see if the content type
+                # of the input is a format we know. In that case, we call the
+                # proper parsing method and create (an) object(s).
+                ct_array = req_headers.get("Content-type")
+                if ct_array:
+                    ct = ct_array[0]    # Only consider the first specified content type, there should only be one anyway
+                    input_renderer_class = KNOWN_INPUT_RENDERERS.get(ct)
+                    if input_renderer_class:
+                        parser = input_renderer_class()
+                        try:
+                            input  = parser.parse(input)
+                        except Exception, e:
+                            # Some format error? 
+                            raise RestxBadRequest("Bad request: Input content is malformed.")
+                    else:
+                        # Could not find proper render class. If we allowed any
+                        # input (content type "") then we are still good and pass
+                        # the input buffer as is. But if we didn't allow "" as
+                        # input type then it's an error if we don't get an exact
+                        # match of the content type against renderers.
+                        if "" not in input_types_def:
+                            raise RestxUnsupportedMediaTypeException()
+                            
         if runtime_param_def:
             # If the 'allow_params_in_body' flag is set for a service then we
             # allow runtime parameters to be passed in the request body PUT or POST.
             # So, if the URL command line parameters are not specified then we
             # should take the runtime parameters out of the body.
-            # Sanity checking and filling in of defaults for the runtime parameters
+            # Sanity checking and filling in of defaults for the runtime parameers
             if service_def.get('allow_params_in_body')  and  input:
                 base_params = input
                 if base_params:

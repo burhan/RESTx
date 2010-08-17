@@ -49,8 +49,9 @@ class HtmlRenderer(BaseRenderer):
     
     """
     CONTENT_TYPE = "text/html; charset=UTF-8"
+    CAN_PARSE    = False                            # We cannot parse HTML input
 
-    def __init__(self, renderer_args):
+    def __init__(self, renderer_args=None):
         """
         Initialize the renderer.
 
@@ -71,18 +72,19 @@ class HtmlRenderer(BaseRenderer):
         
         """
         super(HtmlRenderer, self).__init__(renderer_args)
-        self.draw_annotations = False if self.renderer_args.get('no_annotations') else True
-        self.table_headers    = False if self.renderer_args.get('no_table_headers') else True
-        self.draw_indices     = False if self.renderer_args.get('no_list_indices') else True
-        self.draw_borders, self.border_width = (False,0) if self.renderer_args.get('no_borders') else (True,1)
-        self.breadcrumbs      = self.renderer_args.get('breadcrumbs')
-        self.context_header   = self.renderer_args.get('context_header')
-        
-        self.header = settings.HTML_HEADER + \
-                      '%s<br><hr>' % (self.__render_breadcrumbs(self.breadcrumbs))
-        if self.context_header:
-            self.header += ' &nbsp; '.join(['<a %s href="%s%s">%s</a><br>' % (options, settings.DOCUMENT_ROOT, uri, name) for (name, uri, options) in self.context_header ])
-            self.header += "<br>"
+        if renderer_args:
+            self.draw_annotations = False if self.renderer_args.get('no_annotations') else True
+            self.table_headers    = False if self.renderer_args.get('no_table_headers') else True
+            self.draw_indices     = False if self.renderer_args.get('no_list_indices') else True
+            self.draw_borders, self.border_width = (False,0) if self.renderer_args.get('no_borders') else (True,1)
+            self.breadcrumbs      = self.renderer_args.get('breadcrumbs')
+            self.context_header   = self.renderer_args.get('context_header')
+            
+            self.header = settings.HTML_HEADER + \
+                          '%s<br><hr>' % (self.__render_breadcrumbs(self.breadcrumbs))
+            if self.context_header:
+                self.header += ' &nbsp; '.join(['<a %s href="%s%s">%s</a><br>' % (options, settings.DOCUMENT_ROOT, uri, name) for (name, uri, options) in self.context_header ])
+                self.header += "<br>"
                       
                       
     def __render_breadcrumbs(self, breadcrumbs):
@@ -101,14 +103,15 @@ class HtmlRenderer(BaseRenderer):
         
         """
         segments = []
-        for i, elem in enumerate(breadcrumbs):
-            name, uri = elem
-            if i < len(breadcrumbs)-1:
-                # All but the last element are rendered as clickable links
-                segments.append('<a href="%s%s">%s</a>' % (settings.DOCUMENT_ROOT, uri, name))
-            else:
-                segments.append(name)
-        return " > ".join(segments)            
+        if self.renderer_args:
+            for i, elem in enumerate(breadcrumbs):
+                name, uri = elem
+                if i < len(breadcrumbs)-1:
+                    # All but the last element are rendered as clickable links
+                    segments.append('<a href="%s%s">%s</a>' % (settings.DOCUMENT_ROOT, uri, name))
+                else:
+                    segments.append(name)
+            return " > ".join(segments)            
             
     def __dict_render(self, data):
         """

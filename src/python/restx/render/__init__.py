@@ -29,18 +29,23 @@ You can import these classes straight from module level:
 """
 # Export classes on module level, so that users don't need
 # to specify the individual file names in their imports.
-from restx.render.htmlrenderer   import HtmlRenderer
-from restx.render.jsonrenderer   import JsonRenderer
+from restx.render.htmlrenderer     import HtmlRenderer
+from restx.render.jsonrenderer     import JsonRenderer
+from restx.render.wwwformrenderer  import WwwFormRenderer
 
+# Add new renderers here...
 KNOWN_RENDERERS = {
-    ""                   : HtmlRenderer,
-    "*/*"                : HtmlRenderer,
-    "text/html"          : HtmlRenderer,
-    "application/json"   : JsonRenderer,
+    ""                                   : HtmlRenderer,
+    "*/*"                                : HtmlRenderer,
+    "text/html"                          : HtmlRenderer,
+    "application/json"                   : JsonRenderer,
+    "application/x-www-form-urlencoded"  : WwwFormRenderer,
 }
 
+DEFAULT_OUTPUT_TYPES          = [ "application/json", "text/html", "*/*" ]
+DEFAULT_INPUT_TYPES           = [ "application/json", "application/x-www-form-urlencoded" ]
 
-DEFAULT_TYPES = [ "application/json", "text/html", "*/*" ]
-
+KNOWN_INPUT_RENDERERS  = dict( [ (type_str, KNOWN_RENDERERS[type_str]) for type_str in KNOWN_RENDERERS.keys() if KNOWN_RENDERERS[type_str]().canParse() ] )
+KNOWN_OUTPUT_RENDERERS = dict( [ (type_str, KNOWN_RENDERERS[type_str]) for type_str in KNOWN_RENDERERS.keys() if KNOWN_RENDERERS[type_str]().canRender() ] )
 
 

@@ -30,7 +30,7 @@ from org.mulesoft.restx.exception             import *
 from org.mulesoft.restx.component.api         import HTTP, Result
 
 from restx.logger                 import *
-from restx.render                 import KNOWN_RENDERERS, DEFAULT_TYPES
+from restx.render                 import KNOWN_OUTPUT_RENDERERS, DEFAULT_OUTPUT_TYPES
 from restx.core.basebrowser       import BaseBrowser
 from restx.core.staticbrowser     import StaticBrowser
 from restx.core.metabrowser       import MetaBrowser
@@ -55,6 +55,7 @@ ALLOWED_EXCEPTIONS = [
     RestxResourceNotFoundException,
     RestxBadRequestException,
     RestxNotAcceptableException,
+    RestxUnsupportedMediaTypeException,
 ]
  
 class RequestDispatcher(object):
@@ -113,14 +114,14 @@ class RequestDispatcher(object):
                         # have a content-type set on this request already.
                         ctype = result.getNegotiatedContentType()
                         if ctype:
-                            renderer_class = KNOWN_RENDERERS.get(ctype)
+                            renderer_class = KNOWN_OUTPUT_RENDERERS.get(ctype)
                             if not renderer_class:
                                 raise RestxNotAcceptableException()
                         else:
                             # We don't have a negotiated content type yet?
                             # This happens for non-service accesses.
                             pref_content_types = request.preferredContentTypes()
-                            renderer_class     = KNOWN_RENDERERS[content_type_match(DEFAULT_TYPES, pref_content_types)]
+                            renderer_class     = KNOWN_OUTPUT_RENDERERS[content_type_match(DEFAULT_OUTPUT_TYPES, pref_content_types)]
 
                         content_type, data = browser_instance.renderOutput(result.getEntity(), renderer_class)
                         result.setEntity(data)

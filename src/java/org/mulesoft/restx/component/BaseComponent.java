@@ -40,6 +40,8 @@ import org.mulesoft.restx.component.api.FileStore;
 import org.mulesoft.restx.component.api.HTTP;
 import org.mulesoft.restx.component.api.HttpMethod;
 import org.mulesoft.restx.component.api.HttpResult;
+import org.mulesoft.restx.component.api.InputType;
+import org.mulesoft.restx.component.api.InputTypes;
 import org.mulesoft.restx.component.api.MakeResourceResult;
 import org.mulesoft.restx.component.api.OutputType;
 import org.mulesoft.restx.component.api.OutputTypes;
@@ -250,9 +252,35 @@ public abstract class BaseComponent
                         }
                     }
                 }
-                final ServiceDescriptor sd                  = new ServiceDescriptor(at.description(), pinreq, outputTypes);
-                final Class<?>[]        types               = m.getParameterTypes();
-                final Annotation[][]    allParamAnnotations = m.getParameterAnnotations();
+                
+                // Looking for output type annotations
+                ArrayList<String> inputTypes = null;
+                if (m.isAnnotationPresent(InputType.class)) {
+                    InputType it = m.getAnnotation(InputType.class);
+                    inputTypes = new ArrayList<String>();
+                    String it_val = it.value();
+                    if (!it_val.equals(InputType.NO_INPUT)) {
+                        inputTypes.add(it_val);
+                    }
+                }
+                if (m.isAnnotationPresent(InputTypes.class)) {
+                    InputTypes its       = m.getAnnotation(InputTypes.class);
+                    String[]    itsSpecs = its.value();
+                    if (itsSpecs.length > 0) {
+                        if (inputTypes == null) {
+                            inputTypes = new ArrayList<String>();
+                        }
+                        for (String ts: itsSpecs) {
+                            if (!ts.equals(InputType.NO_INPUT)) {
+                                inputTypes.add(ts);
+                            }
+                        }
+                    }
+                }
+                ServiceDescriptor sd                  = new ServiceDescriptor(at.description(), pinreq, outputTypes, inputTypes);
+                Class<?>[]        types               = m.getParameterTypes();
+                Annotation[][]    allParamAnnotations = m.getParameterAnnotations();
+                
                 int i = 0;
                 final ArrayList<String> positionalParams = new ArrayList<String>();
                 for (final Annotation[] pa : allParamAnnotations) {
