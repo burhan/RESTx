@@ -4,8 +4,8 @@
 name = "JsTwitterComponent"
 
 parameters = {
-  account_name     : { type: ParameterType.STRING, description: "Twitter account name", required: true },
-  account_password : { type: ParameterType.PASSWORD, description: "Password", required: true }
+  account_name     : { type: TYPE.STRING, description: "Twitter account name", required: true },
+  account_password : { type: TYPE.PASSWORD, description: "Password", required: true }
 }
 
 description = "Provides access to a Twitter account."
@@ -22,8 +22,8 @@ services = {
   timeline : {
     description : "You can GET the timeline of the user.",
     parameters  : {
-      count  : { type: ParameterType.NUMBER, description: "Number of results", required: false, defaultValue: 20},
-      filter : { type: ParameterType.BOOLEAN, description: "If set, only 'important' fields are returned", required: false, defaultValue: true}
+      count  : { type: TYPE.NUMBER, description: "Number of results", required: false, defaultValue: 20},
+      filter : { type: TYPE.BOOLEAN, description: "If set, only 'important' fields are returned", required: false, defaultValue: true}
     }
   }
 }

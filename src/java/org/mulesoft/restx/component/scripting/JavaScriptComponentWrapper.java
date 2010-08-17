@@ -42,7 +42,7 @@ public class JavaScriptComponentWrapper extends BaseScriptingComponent
         final SimpleBindings bindings = new SimpleBindings();
 
         bindings.put("HTTP", new HTTP());
-        bindings.put("ParameterType", new ParameterType());
+        bindings.put("TYPE", new ParameterType());
 
         // load the component metadata into bindings
         evaluateComponent(bindings);
