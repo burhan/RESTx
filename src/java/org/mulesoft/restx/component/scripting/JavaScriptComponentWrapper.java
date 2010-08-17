@@ -24,7 +24,9 @@ import javax.script.ScriptEngineManager;
 import javax.script.SimpleBindings;
 
 import org.mulesoft.restx.component.api.ComponentDescriptor;
+import org.mulesoft.restx.component.api.HTTP;
 import org.mulesoft.restx.exception.RestxException;
+import org.mulesoft.restx.parameter.ParameterType;
 
 public class JavaScriptComponentWrapper extends BaseScriptingComponent
 {
@@ -38,6 +40,9 @@ public class JavaScriptComponentWrapper extends BaseScriptingComponent
     protected void initialiseComponentDescriptor() throws RestxException
     {
         final SimpleBindings bindings = new SimpleBindings();
+
+        bindings.put("HTTP", new HTTP());
+        bindings.put("ParameterType", new ParameterType());
 
         // load the component metadata into bindings
         evaluateComponent(bindings);

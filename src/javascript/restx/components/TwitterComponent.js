@@ -1,8 +1,11 @@
+/*
+ * Component Declaration
+ */
 name = "JsTwitterComponent"
 
 parameters = {
-  account_name     : { type: "string", description: "Twitter account name", required: true },
-  account_password : { type: "password", description: "Password", required: true }
+  account_name     : { type: ParameterType.STRING, description: "Twitter account name", required: true },
+  account_password : { type: ParameterType.PASSWORD, description: "Password", required: true }
 }
 
 description = "Provides access to a Twitter account."
@@ -12,28 +15,45 @@ documentation = "The Twitter component is designed to provide access to a Twitte
               + "To create the resource, the Twitter account name and password need to be specified.\n"
 
 services = {
-  
   status : {
-    desc : "You can GET the status or POST a new status to it.",
-    impl : function(method, input) {
-      
-      function getStatus() {
-        // TODO HTTP GET on "http://api.twitter.com/1/users/show.json?screen_name=" + parameters.account_name.value
-        return "status of " + parameters.account_name.value
-      }
-      
-      function postStatus(input) {
-        // TODO HTTP POST "http://api.twitter.com/1/statuses/update.xml status=" + input
-        return "Status updated"
-      }
-      
-      switch(method) {
-        case HTTP.GET : return getStatus()
-        case HTTP.POST: return postStatus(input)
-        default       : throw "Unsupported method: " + method
-      }
+    description : "You can GET the status or POST a new status to it."
+  },
+  
+  timeline : {
+    description : "You can GET the timeline of the user.",
+    parameters  : {
+      count  : { type: ParameterType.NUMBER, description: "Number of results", required: false, defaultValue: 20},
+      filter : { type: ParameterType.BOOLEAN, description: "If set, only 'important' fields are returned", required: false, defaultValue: true}
     }
   }
+}
+
+/*
+ * Services Implementation
+ */
+function status(method, input) {
   
+  function getStatus() {
+    // TODO HTTP GET on "http://api.twitter.com/1/users/show.json?screen_name=" + parameters.account_name.value
+    return "status of " + parameters.account_name.value
+  }
+  
+  function postStatus(input) {
+    // TODO HTTP POST "http://api.twitter.com/1/statuses/update.xml status=" + input
+    return "Status updated"
+  }
+  
+  switch(method) {
+    case HTTP.GET : return getStatus()
+    case HTTP.POST: return postStatus(input)
+    default       : throw "Status unsupported method: " + method
+  }
+}
+
+function timeline(method, input, count, filter) {
+  if (method != HTTP.GET) throw "Timeline unsupported method: " + method
+
+  // TODO implement
+  return "fake timeline"
 }
 
