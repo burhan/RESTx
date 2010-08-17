@@ -18,6 +18,10 @@
  */ 
 
 // Supporting functions
+function nz(value, defaultValue) {
+  return value == undefined ? defaultValue : value 
+}
+
 function getParameterDef(type, description, required, defaultValue) {
 	switch(type) {
 		case TYPE.STRING  : return new org.mulesoft.restx.parameter.ParameterDefString(description, required, defaultValue)
@@ -28,19 +32,32 @@ function getParameterDef(type, description, required, defaultValue) {
 	}
 }
 
+function createServiceDescriptor(service) {
+	serviceDescriptor = new org.mulesoft.restx.component.api.ServiceDescriptor(service.description,
+																			   nz(service.parametersInBody, false),
+																			   nz(service.outputTypes, null),
+																			   nz(service.inputTypes, null))
+
+	return serviceDescriptor
+}
+
 // Base configuration
-_componentDescriptor = new org.mulesoft.restx.component.api.ComponentDescriptor(name, description, documentation)
+componentDescriptor = new org.mulesoft.restx.component.api.ComponentDescriptor(name, description, documentation)
 
 // Resource parameters
-// TODO
 for (parameterName in parameters) {
 	parameter = parameters[parameterName]
 	                       
-	_componentDescriptor.addParameter(parameterName,
-									  getParameterDef(parameter.type, parameter.description, parameter.required, parameter.defaultValue))
+	componentDescriptor.addParameter(parameterName,
+								     getParameterDef(parameter.type, parameter.description, parameter.required, parameter.defaultValue))
 }
 
 // Services
-// TODO
+for (var method in this) {
+	// Any local function with a description is considered to be a Service
+	if (typeof this[method] == 'function' && this.hasOwnProperty(method) && this[method].description != undefined) {
+		componentDescriptor.addService(method, createServiceDescriptor(this[method]));
+	}
+}
 
-_componentDescriptor
+componentDescriptor
