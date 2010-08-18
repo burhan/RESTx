@@ -105,5 +105,6 @@ public abstract class BaseScriptingComponent extends BaseComponent
         bindings.put("HTTP", new HTTP());
         bindings.put("TYPE", new ParameterType());
         bindings.put("RESULT", new Result(500, null));
+        bindings.put("RESTx", this);
     }
 }

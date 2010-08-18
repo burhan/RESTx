@@ -14,6 +14,8 @@ this.documentation = "The Twitter component is designed to provide access to a T
               + "It can be used to get as well as update status, or to view the timeline of a Twitter account.\n"
               + "To create the resource, the Twitter account name and password need to be specified.\n"
 
+// TODO add a profile image sercixe
+       
 /*
  * "Status" Service
  */
@@ -22,8 +24,10 @@ status.description = "You can GET the status or POST a new status to it."
 function status(method, input) {
   
   function getStatus() {
-    // TODO HTTP GET on "http://api.twitter.com/1/users/show.json?screen_name=" + parameters.account_name.value
-    return RESULT.ok("status of " + account_name)
+    result = RESTx.httpGet("http://api.twitter.com/1/users/show.json?screen_name=" + account_name)
+    
+    return result.status == HTTP.OK ? RESULT.ok(RESTx.fromJsonStr(result.data).get("status").get("text"))
+                                    : RESULT.internalServerError("Problem with Twitter: " + result.data)
   }
   
   function postStatus(input) {
