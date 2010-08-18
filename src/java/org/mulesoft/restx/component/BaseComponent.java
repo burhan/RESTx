@@ -15,8 +15,7 @@
  * 
  *  You should have received a copy of the GNU General Public License 
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
- */ 
-
+ */
 
 package org.mulesoft.restx.component;
 
@@ -57,81 +56,81 @@ import org.mulesoft.restx.parameter.ParameterDefString;
 import org.mulesoft.restx.util.JsonProcessor;
 import org.mulesoft.restx.util.Url;
 
-
 public abstract class BaseComponent
 {
-    public final String                               LANGUAGE = "JAVA";
-    public       ComponentDescriptor                  componentDescriptor = null;
-    public       ResourceAccessorInterface            resourceAccessor;
+    public final String LANGUAGE = "JAVA";
+    public ComponentDescriptor componentDescriptor = null;
+    public ResourceAccessorInterface resourceAccessor;
 
-    protected    HashMap<String, Object>              services;
+    protected HashMap<String, Object> services;
 
-    private      RestxHttpRequest                     httpRequest;
-    private      String                               resourceName;
-    private      BaseComponentCapabilities            baseCapabilities;
-    
-    private      boolean                              annotationsHaveBeenParsed = false;
+    private RestxHttpRequest httpRequest;
+    private String resourceName;
+    private BaseComponentCapabilities baseCapabilities;
+
+    private boolean annotationsHaveBeenParsed = false;
     // We use the following to record the order of parameters as well as their
     // Java types for each service when we are parsing the annotations. Later,
     // this helps our service-method calling proxy to arrange the parameters in
     // the right order - since Java does not allow the **fkwargs notation of named
     // parameters - and also allows us to do the necessary type casting.
-    protected      HashMap<String, ArrayList<String>>   paramOrder;
-    protected      HashMap<String, ArrayList<Class<?>>> paramTypes;
+    protected HashMap<String, ArrayList<String>> paramOrder;
+    protected HashMap<String, ArrayList<Class<?>>> paramTypes;
 
-    protected    Map<String, String>                  instanceConf;
-    
+    protected Map<String, String> instanceConf;
+
     protected BaseComponent()
     {
-        this.resourceName     = null;
-        this.httpRequest      = null;
+        this.resourceName = null;
+        this.httpRequest = null;
         this.baseCapabilities = null;
-        this.instanceConf     = null;
+        this.instanceConf = null;
     }
 
     public void setInstanceConf(Map<String, String> instanceConf)
     {
         this.instanceConf = instanceConf;
     }
-    
+
     public void setBaseCapabilities(BaseComponentCapabilities baseCapabilities)
     {
         this.baseCapabilities = baseCapabilities;
     }
-    
+
     private ComponentDescriptor getComponentDescriptor() throws RestxException
     {
-        if (componentDescriptor == null) {
+        if (componentDescriptor == null)
+        {
             initialiseComponentDescriptor();
         }
         return componentDescriptor;
     }
-    
+
     public void setResourceName(String resourceName)
     {
         this.resourceName = resourceName;
     }
-    
+
     public void setRequest(RestxHttpRequest request)
     {
         this.httpRequest = request;
     }
-    
+
     public String getDocs()
     {
         return this.componentDescriptor.getDocs();
     }
-    
+
     public String getRequestUri()
     {
         return httpRequest.getRequestURI();
     }
-    
+
     public Map<String, List<String>> getRequestHeaders()
     {
         return httpRequest.getRequestHeaders();
     }
-    
+
     public HttpResult accessResource(String uri)
     {
         return accessResource(uri, null, null, HTTP.GET);
@@ -142,177 +141,210 @@ public abstract class BaseComponent
         return accessResource(uri, input, null, HTTP.GET);
     }
 
-    public HttpResult accessResource(String uri, String input, Map<?,?> params)
+    public HttpResult accessResource(String uri, String input, Map<?, ?> params)
     {
         return accessResource(uri, input, params, HTTP.GET);
     }
-    
-    public HttpResult accessResource(String uri, String input, Map<?,?> params, HttpMethod method)
+
+    public HttpResult accessResource(String uri, String input, Map<?, ?> params, HttpMethod method)
     {
         return resourceAccessor.accessResourceProxy(uri, input, params, method);
     }
-    
-    public MakeResourceResult makeResource(String componentClassName, String suggestedResourceName,
-                                           String resourceDescription, boolean specialized, Map<?,?> resourceParameters) throws RestxException
+
+    public MakeResourceResult makeResource(String componentClassName,
+                                           String suggestedResourceName,
+                                           String resourceDescription,
+                                           boolean specialized,
+                                           Map<?, ?> resourceParameters) throws RestxException
     {
-        return resourceAccessor.makeResourceProxy(componentClassName, suggestedResourceName, resourceDescription, specialized, resourceParameters);
+        return resourceAccessor.makeResourceProxy(componentClassName, suggestedResourceName,
+            resourceDescription, specialized, resourceParameters);
     }
-    
-    private ParameterDef createParamDefType(Class<?> paramType, String desc,
-                                            boolean required, String defaultVal)
+
+    private ParameterDef createParamDefType(Class<?> paramType,
+                                            String desc,
+                                            boolean required,
+                                            String defaultVal)
     {
         ParameterDef pdef = null;
-        if (paramType == String.class) {
+        if (paramType == String.class)
+        {
             pdef = new ParameterDefString(desc, required, defaultVal);
         }
-        else if (paramType == Integer.class ||  paramType == BigDecimal.class  ||
-                 paramType == Double.class  ||  paramType == Float.class ||
-                 paramType == int.class     ||  paramType == float.class ||
-                 paramType == double.class)
+        else if (paramType == Integer.class || paramType == BigDecimal.class || paramType == Double.class
+                 || paramType == Float.class || paramType == int.class || paramType == float.class
+                 || paramType == double.class)
         {
             pdef = new ParameterDefNumber(desc, required, new BigDecimal(defaultVal));
         }
-        else if (paramType == Boolean.class) {
+        else if (paramType == Boolean.class)
+        {
             pdef = new ParameterDefBoolean(desc, required, Boolean.valueOf(defaultVal));
         }
         return pdef;
     }
-        
+
     protected void initialiseComponentDescriptor() throws RestxException
+
     {
-        if (annotationsHaveBeenParsed  ||  componentDescriptor != null) {
+        if (annotationsHaveBeenParsed || componentDescriptor != null)
+        {
             return;
         }
         final Class<? extends BaseComponent> myclass = this.getClass();
-        
         /*
-         * Examine the class annotations to get information about the
-         * component.
+         * Examine the class annotations to get information about the component.
          */
         final ComponentInfo ci = this.getClass().getAnnotation(ComponentInfo.class);
-        if (ci == null) {
+        if (ci == null)
+        {
             throw new RestxException("Component does not have a ComponentInfo annotation");
         }
         componentDescriptor = new ComponentDescriptor(ci.name(), ci.description(), ci.doc());
-        
+
         /*
-         * Examine field annotations to identify resource creation
-         * time parameters.
+         * Examine field annotations to identify resource creation time parameters.
          */
-        for (final Field f: myclass.getFields()) {
+        for (final Field f : myclass.getFields())
+        {
             final Parameter fa = f.getAnnotation(Parameter.class);
-            if (fa != null) {
-                final String  paramName   = fa.name();
-                final String  paramDesc   = fa.desc();
-                String  defaultVal  = null;
-                boolean required    = true;
-                
+            if (fa != null)
+            {
+                final String paramName = fa.name();
+                final String paramDesc = fa.desc();
+                String defaultVal = null;
+                boolean required = true;
+
                 // Check if we have a default value and set that one as well
                 final Default fad = f.getAnnotation(Default.class);
-                if (fad != null) {
+                if (fad != null)
+                {
                     defaultVal = fad.value();
-                    required   = false;
+                    required = false;
                 }
                 final Class<?> ftype = f.getType();
-                componentDescriptor.addParameter(paramName,
-                                                 createParamDefType(ftype, paramDesc, required, defaultVal));
+                componentDescriptor.addParameter(paramName, createParamDefType(ftype, paramDesc, required,
+                    defaultVal));
             }
         }
-        
+
         /*
-         * Examine the method annotations to identify service methods
-         * and their parameters.
+         * Examine the method annotations to identify service methods and their
+         * parameters.
          */
         paramOrder = new HashMap<String, ArrayList<String>>();
         paramTypes = new HashMap<String, ArrayList<Class<?>>>();
-        for (final Method m: myclass.getMethods()) {
-            if (m.isAnnotationPresent(Service.class)) {
-                final String            serviceName         = m.getName();
-                final Service           at                  = m.getAnnotation(Service.class);
-                boolean           pinreq              = false;
-                if (m.isAnnotationPresent(ParamsInReqBody.class)) {
+        for (final Method m : myclass.getMethods())
+        {
+            if (m.isAnnotationPresent(Service.class))
+            {
+                final String serviceName = m.getName();
+                final Service at = m.getAnnotation(Service.class);
+                boolean pinreq = false;
+                if (m.isAnnotationPresent(ParamsInReqBody.class))
+                {
                     pinreq = true;
                 }
                 // Looking for output type annotations
                 ArrayList<String> outputTypes = null;
-                if (m.isAnnotationPresent(OutputType.class)) {
+                if (m.isAnnotationPresent(OutputType.class))
+                {
                     final OutputType ot = m.getAnnotation(OutputType.class);
                     outputTypes = new ArrayList<String>();
                     outputTypes.add(ot.value());
                 }
-                if (m.isAnnotationPresent(OutputTypes.class)) {
-                    final OutputTypes ots      = m.getAnnotation(OutputTypes.class);
-                    final String[]    otsSpecs = ots.value();
-                    if (otsSpecs.length > 0) {
-                        if (outputTypes == null) {
+                if (m.isAnnotationPresent(OutputTypes.class))
+                {
+                    final OutputTypes ots = m.getAnnotation(OutputTypes.class);
+                    final String[] otsSpecs = ots.value();
+                    if (otsSpecs.length > 0)
+                    {
+                        if (outputTypes == null)
+                        {
                             outputTypes = new ArrayList<String>();
                         }
-                        for (final String ts: otsSpecs) {
+                        for (final String ts : otsSpecs)
+                        {
                             outputTypes.add(ts);
                         }
                     }
                 }
-                
+
                 // Looking for output type annotations
                 ArrayList<String> inputTypes = null;
-                if (m.isAnnotationPresent(InputType.class)) {
-                    InputType it = m.getAnnotation(InputType.class);
+                if (m.isAnnotationPresent(InputType.class))
+                {
+                    final InputType it = m.getAnnotation(InputType.class);
                     inputTypes = new ArrayList<String>();
-                    String it_val = it.value();
-                    if (!it_val.equals(InputType.NO_INPUT)) {
+                    final String it_val = it.value();
+                    if (!it_val.equals(InputType.NO_INPUT))
+                    {
                         inputTypes.add(it_val);
                     }
                 }
-                if (m.isAnnotationPresent(InputTypes.class)) {
-                    InputTypes its       = m.getAnnotation(InputTypes.class);
-                    String[]    itsSpecs = its.value();
-                    if (itsSpecs.length > 0) {
-                        if (inputTypes == null) {
+                if (m.isAnnotationPresent(InputTypes.class))
+                {
+                    final InputTypes its = m.getAnnotation(InputTypes.class);
+                    final String[] itsSpecs = its.value();
+                    if (itsSpecs.length > 0)
+                    {
+                        if (inputTypes == null)
+                        {
                             inputTypes = new ArrayList<String>();
                         }
-                        for (String ts: itsSpecs) {
-                            if (!ts.equals(InputType.NO_INPUT)) {
+                        for (final String ts : itsSpecs)
+                        {
+                            if (!ts.equals(InputType.NO_INPUT))
+                            {
                                 inputTypes.add(ts);
                             }
                         }
                     }
                 }
-                ServiceDescriptor sd                  = new ServiceDescriptor(at.description(), pinreq, outputTypes, inputTypes);
-                Class<?>[]        types               = m.getParameterTypes();
-                Annotation[][]    allParamAnnotations = m.getParameterAnnotations();
-                
+                final ServiceDescriptor sd = new ServiceDescriptor(at.description(), pinreq, outputTypes,
+                    inputTypes);
+                final Class<?>[] types = m.getParameterTypes();
+                final Annotation[][] allParamAnnotations = m.getParameterAnnotations();
                 int i = 0;
                 final ArrayList<String> positionalParams = new ArrayList<String>();
-                for (final Annotation[] pa : allParamAnnotations) {
-                    String  name       = null;
-                    String  desc       = null;
-                    boolean required   = true;
-                    String  defaultVal = null;
-                    for (final Annotation a: pa) {
-                        if (a.annotationType() == Parameter.class) {
-                            name = ((Parameter)a).name();
-                            desc = ((Parameter)a).desc();
-                            if (!paramOrder.containsKey(serviceName)) {
+                for (final Annotation[] pa : allParamAnnotations)
+                {
+                    String name = null;
+                    String desc = null;
+                    boolean required = true;
+                    String defaultVal = null;
+                    for (final Annotation a : pa)
+                    {
+                        if (a.annotationType() == Parameter.class)
+                        {
+                            name = ((Parameter) a).name();
+                            desc = ((Parameter) a).desc();
+                            if (!paramOrder.containsKey(serviceName))
+                            {
                                 paramOrder.put(serviceName, new ArrayList<String>());
                                 paramTypes.put(serviceName, new ArrayList<Class<?>>());
                             }
-                            if (((Parameter)a).positional()) {
+                            if (((Parameter) a).positional())
+                            {
                                 positionalParams.add(name);
                             }
                             paramOrder.get(serviceName).add(name);
                             paramTypes.get(serviceName).add(types[i]);
                         }
-                        else if (a.annotationType() == Default.class) {
-                            defaultVal = ((Default)a).value();
-                            required = false;                            
+                        else if (a.annotationType() == Default.class)
+                        {
+                            defaultVal = ((Default) a).value();
+                            required = false;
                         }
                     }
-                    if (name != null) {                     
+                    if (name != null)
+                    {
                         sd.addParameter(name, createParamDefType(types[i], desc, required, defaultVal));
                     }
                     ++i;
                 }
-                if (!positionalParams.isEmpty()) {
+                if (!positionalParams.isEmpty())
+                {
                     sd.setPositionalParameters(positionalParams);
                 }
                 componentDescriptor.addService(m.getName(), sd);
@@ -320,33 +352,33 @@ public abstract class BaseComponent
         }
         annotationsHaveBeenParsed = true;
     }
-    
-    public HashMap<String, ArrayList<String>> getParameterOrder() throws RestxException
+
+    public Map<String, ArrayList<String>> getParameterOrder() throws RestxException
     {
         initialiseComponentDescriptor();
 
         // Returns the order in which parameters were defined
         return paramOrder;
     }
-    
-    public HashMap<String, ArrayList<Class<?>>> getParameterTypes() throws RestxException
+
+    public Map<String, ArrayList<Class<?>>> getParameterTypes() throws RestxException
     {
         initialiseComponentDescriptor();
 
         // Returns the order in which parameters were defined
         return paramTypes;
     }
-    
+
     public String getMyResourceName()
     {
         return resourceName;
     }
-    
+
     public String getMyResourceUri()
     {
         return Settings.PREFIX_RESOURCE + "/" + getMyResourceName();
     }
-    
+
     public FileStore getFileStorage()
     {
         return baseCapabilities.getFileStorage();
@@ -356,27 +388,27 @@ public abstract class BaseComponent
     {
         return baseCapabilities.getFileStorage(namespace);
     }
-    
+
     public void httpSetCredentials(String accountName, String password)
     {
         baseCapabilities.httpSetCredentials(accountName, password);
     }
-    
+
     public HttpResult httpGet(String url)
     {
         return baseCapabilities.httpGet(url);
     }
-    
-    public HttpResult httpGet(String url, HashMap<String, String> headers)
+
+    public HttpResult httpGet(String url, Map<String, String> headers)
     {
         return baseCapabilities.httpGet(url, headers);
     }
-    
+
     public HttpResult httpPost(String url, String data)
     {
         return baseCapabilities.httpPost(url, data);
     }
-    
+
     public HttpResult httpPost(String url, String data, Map<String, String> headers)
     {
         return baseCapabilities.httpPost(url, data, headers);
@@ -385,150 +417,174 @@ public abstract class BaseComponent
     // JSON processing
     public Object fromJsonStr(String str) throws RestxException
     {
-        try {
+        try
+        {
             return JsonProcessor.loads(str);
         }
-        catch (final JSONException e) {
+        catch (final JSONException e)
+        {
             throw new RestxException("Could not de-serialize data: " + e.getMessage());
         }
     }
 
     public String toJsonStr(Object obj) throws RestxException
     {
-        try {
+        try
+        {
             return JsonProcessor.dumps(obj);
         }
-        catch (final JSONException e) {
+        catch (final JSONException e)
+        {
             throw new RestxException("Could not serialize data: " + e.getMessage());
         }
     }
-    
-    private HashMap<String, Object> changeParamsToPlainDict(Map<String, ParameterDef> paramDict)
+
+    private Map<String, Object> changeParamsToPlainDict(Map<String, ParameterDef> paramDict)
     {
         final HashMap<String, Object> d = new HashMap<String, Object>();
-        for (final String name: paramDict.keySet()) {
+        for (final String name : paramDict.keySet())
+        {
             d.put(name, paramDict.get(name).asDict());
         }
         return d;
     }
-    
-    public HashMap<String, Object> getMetaData() throws RestxException, Exception
+
+    public Map<String, Object> getMetaData() throws RestxException, Exception
     {
         initialiseComponentDescriptor();
 
         final HashMap<String, Object> d = new HashMap<String, Object>();
-        
-        d.put("uri",      new Url(getCodeUri()));
-        d.put("name",     getName());
-        d.put("desc",     getDesc());
-        d.put("doc",      getCodeUri() + "/doc");
-        d.put("params",   changeParamsToPlainDict(componentDescriptor.getParamMap()));
+
+        d.put("uri", new Url(getCodeUri()));
+        d.put("name", getName());
+        d.put("desc", getDesc());
+        d.put("doc", getCodeUri() + "/doc");
+        d.put("params", changeParamsToPlainDict(componentDescriptor.getParamMap()));
         d.put("services", _getServices(null));
-        
+
         final HashMap<String, ParameterDef> rp = new HashMap<String, ParameterDef>();
-        rp.put("suggested_name", new ParameterDefString("Can be used to suggest the resource name to the server",
-                                                        true, ""));
-        rp.put("desc",           new ParameterDefString("Specifies a description for this new resource",
-                                                        false, "A '" + getName() + "' resource")); 
-        rp.put("specialized",    new ParameterDefBoolean("Specifies if we want to create a specialized component resource (true) or a normal resource (false)",
-                                                        false, false)); 
+        rp.put("suggested_name", new ParameterDefString(
+            "Can be used to suggest the resource name to the server", true, ""));
+        rp.put("desc", new ParameterDefString("Specifies a description for this new resource", false,
+            "A '" + getName() + "' resource"));
+        rp.put(
+            "specialized",
+            new ParameterDefBoolean(
+                "Specifies if we want to create a specialized component resource (true) or a normal resource (false)",
+                false, false));
 
         d.put("resource_creation_params", changeParamsToPlainDict(rp));
-        
+
         return d;
     }
 
-    public HashMap<String, ParameterDef> getParams() throws RestxException
+    public Map<String, ParameterDef> getParams() throws RestxException
     {
-        if (componentDescriptor == null) {
+        if (componentDescriptor == null)
+        {
             initialiseComponentDescriptor();
         }
         return componentDescriptor.getParamMap();
     }
-    
+
     public String getName() throws RestxException
     {
         return getComponentDescriptor().getName();
     }
-    
+
     public String getDesc() throws RestxException
     {
         return getComponentDescriptor().getDesc();
     }
-    
+
     public String getDoc() throws RestxException
     {
         return getComponentDescriptor().getDocs();
     }
-    
+
     public String getCodeUri()
     {
         String name;
-        try {
+        try
+        {
             name = getName();
         }
-        catch (final Exception e) {
+        catch (final Exception e)
+        {
             name = "";
         }
         return Settings.PREFIX_CODE + "/" + name;
     }
-    
+
     /*
-     * Following are some methods that are used by the framework and that are not part
-     * of the official component-API.
+     * Following are some methods that are used by the framework and that are not
+     * part of the official component-API.
      */
-    
+
     /*
-     * Return a dictionary of all defined services. resourceBaseUri may be set to null,
-     * in which case all service URLs are relative to the code URL of the component.
+     * Return a dictionary of all defined services. resourceBaseUri may be set to
+     * null, in which case all service URLs are relative to the code URL of the
+     * component.
      */
-    public HashMap<String, Object> _getServices(String resourceBaseUri) throws RestxException
+
+    public Map<String, Object> _getServices(String resourceBaseUri) throws RestxException
     {
         initialiseComponentDescriptor();
 
         // Get the base URI for all services. If no resource base URI
         // was defined (can happen when we just look at code meta data)
         // then we use the code base URI instead.
-        String baseUri;        
-        if (resourceBaseUri == null) {
+        String baseUri;
+        if (resourceBaseUri == null)
+        {
             baseUri = getCodeUri();
         }
-        else {
+        else
+        {
             baseUri = resourceBaseUri;
         }
-        
+
         // Create a map of service descriptions.
-        if (componentDescriptor.getServicMap() != null  &&  !componentDescriptor.getServicMap().isEmpty()) {            
+        if (componentDescriptor.getServicMap() != null && !componentDescriptor.getServicMap().isEmpty())
+        {
             services = componentDescriptor.getServicesAsPlainDict();
             final HashMap<String, Object> ret = new HashMap<String, Object>();
-            for (final String name: services.keySet()) {
-                final HashMap<String, Object> thisService = (HashMap<String, Object>)services.get(name);
+            for (final String name : services.keySet())
+            {
+                @SuppressWarnings("unchecked")
+                final HashMap<String, Object> thisService = (HashMap<String, Object>) services.get(name);
+
                 thisService.put("uri", new Url(baseUri + "/" + name));
                 ret.put(name, thisService);
-                final HashMap<String, Object> params = (HashMap<String, Object>)thisService.get("params");
-                if (params != null) {
-                    for (final String pname: params.keySet()) {
+
+                @SuppressWarnings("unchecked")
+                final HashMap<String, Object> params = (HashMap<String, Object>) thisService.get("params");
+
+                if (params != null)
+                {
+                    for (final String pname : params.keySet())
+                    {
                         Object param = params.get(pname);
-                        if (param instanceof ParameterDef) {
+                        if (param instanceof ParameterDef)
+                        {
                             // Need the type check since we may have constructed the
                             // representation from storage, rather than in memory.
                             // If it's from storage then we don't have ParameterDefs
                             // in this dictionary here, so we don't need to convert
                             // anything.
-                            param = ((ParameterDef)param).asDict();
+                            param = ((ParameterDef) param).asDict();
                             params.put(pname, param);
                         }
                     }
                 }
             }
-            
+
             return ret;
         }
-        else {
+        else
+        {
             // No services defined? Nothing to return...
             return null;
         }
     }
- }
-
-
+}

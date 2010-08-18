@@ -15,8 +15,7 @@
  * 
  *  You should have received a copy of the GNU General Public License 
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
- */ 
-
+ */
 
 package org.mulesoft.restx.exception;
 
@@ -24,15 +23,15 @@ import org.mulesoft.restx.component.api.HTTP;
 
 public class RestxUnsupportedMediaTypeException extends RestxException
 {
+    private static final long serialVersionUID = 4801855076255316603L;
+
     public RestxUnsupportedMediaTypeException()
     {
         this("Unsupported media type");
     }
-    
+
     public RestxUnsupportedMediaTypeException(String message)
     {
         super(HTTP.UNSUPPORTED_MEDIA_TYPE, message);
     }
 }
-
-

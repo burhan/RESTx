@@ -15,8 +15,7 @@
  * 
  *  You should have received a copy of the GNU General Public License 
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
- */ 
-
+ */
 
 package org.mulesoft.restx.exception;
 
@@ -24,15 +23,15 @@ import org.mulesoft.restx.component.api.HTTP;
 
 public class RestxBadRequestException extends RestxException
 {
+    private static final long serialVersionUID = -8574916767185826008L;
+
     public RestxBadRequestException()
     {
         this("Bad request");
     }
-    
+
     public RestxBadRequestException(String message)
     {
         super(HTTP.BAD_REQUEST, message);
     }
 }
-
-

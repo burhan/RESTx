@@ -15,32 +15,33 @@
  * 
  *  You should have received a copy of the GNU General Public License 
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
- */ 
-
+ */
 
 package org.mulesoft.restx.component;
 
 import java.util.Map;
 
-import org.mulesoft.restx.exception.RestxException;
-import org.mulesoft.restx.util.JsonProcessor;
 import org.mulesoft.restx.component.api.FileStore;
 import org.mulesoft.restx.component.api.HttpResult;
 
 public abstract class BaseComponentCapabilities
 {
     // Storage
-    public abstract FileStore  getFileStorage(String namespace);
-    public          FileStore  getFileStorage()
+    public abstract FileStore getFileStorage(String namespace);
+
+    public FileStore getFileStorage()
     {
         return getFileStorage("");
     }
 
     // HTTP accesses
-    public abstract void       httpSetCredentials(String accountName, String password);
+    public abstract void httpSetCredentials(String accountName, String password);
+
     public abstract HttpResult httpGet(String url);
+
     public abstract HttpResult httpGet(String url, Map<String, String> headers);
+
     public abstract HttpResult httpPost(String url, String data);
+
     public abstract HttpResult httpPost(String url, String data, Map<String, String> headers);
 }
-

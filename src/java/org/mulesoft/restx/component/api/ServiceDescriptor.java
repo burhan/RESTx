@@ -15,8 +15,7 @@
  * 
  *  You should have received a copy of the GNU General Public License 
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
- */ 
-
+ */
 
 package org.mulesoft.restx.component.api;
 
@@ -34,82 +33,95 @@ public class ServiceDescriptor
     /*
      * Defines a single service for a resource.
      */
-    private String  desc;
-    private boolean paramsInReqBody;
-    
-    private HashMap<String, ParameterDef> params;
-    private ArrayList<String>             positionalParams;
-    private ArrayList<String>             outputTypes;
-    private ArrayList<String>             inputTypes;
+    private final String desc;
+    private final boolean paramsInReqBody;
 
-    public ServiceDescriptor(String desc, boolean paramsInReqBody, ArrayList<String> outputTypes, ArrayList<String> inputTypes)
+    private final HashMap<String, ParameterDef> params;
+    private final List<String> positionalParams;
+    private final List<String> outputTypes;
+    private final List<String> inputTypes;
+
+    public ServiceDescriptor(String desc,
+                             boolean paramsInReqBody,
+                             List<String> outputTypes,
+                             List<String> inputTypes)
     {
-        this.desc             = desc;
-        this.params           = new HashMap<String, ParameterDef>();
+        this.desc = desc;
+        this.params = new HashMap<String, ParameterDef>();
         this.positionalParams = new ArrayList<String>();
-        this.paramsInReqBody  = paramsInReqBody;
-        this.outputTypes      = outputTypes;
-        this.inputTypes       = inputTypes;
+        this.paramsInReqBody = paramsInReqBody;
+        this.outputTypes = outputTypes;
+        this.inputTypes = inputTypes;
     }
-    
+
     public String getDesc()
     {
         return desc;
     }
-    
+
     public boolean getParamsInReqBodyFlag()
     {
         return paramsInReqBody;
     }
 
-    public List getOutputTypes()
+    public List<?> getOutputTypes()
     {
-        if (outputTypes == null  ||  outputTypes.isEmpty()) {
+        if (outputTypes == null || outputTypes.isEmpty())
+        {
             return Settings.DEFAULT_OUTPUT_TYPES;
         }
-        else {
+        else
+        {
             return outputTypes;
         }
     }
 
-    public List getInputTypes()
+    public List<?> getInputTypes()
     {
-        if (inputTypes == null) {
+        if (inputTypes == null)
+        {
             return Settings.DEFAULT_INPUT_TYPES;
         }
-        else {
+        else
+        {
             return inputTypes;
         }
     }
 
     public void addParameter(String name, ParameterDef param) throws RestxDuplicateKeyException
     {
-        if (params.containsKey(name)) {
+        if (params.containsKey(name))
+        {
             throw new RestxDuplicateKeyException("Parameter '" + name + "' already exists.");
         }
-        
+
         params.put(name, param);
     }
-    
+
     public HashMap<String, ParameterDef> getParamMap()
     {
         return params;
     }
-    
-    public void setPositionalParameters(ArrayList<String> positionals) throws RestxMalformedServiceDescriptorException
+
+    public void setPositionalParameters(ArrayList<String> positionals)
+        throws RestxMalformedServiceDescriptorException
     {
-        for (String name : positionals) {
-            if (!params.containsKey(name)) {
-                throw new RestxMalformedServiceDescriptorException("Parameter '" + name + "' from positionals does not exist");
+        for (final String name : positionals)
+        {
+            if (!params.containsKey(name))
+            {
+                throw new RestxMalformedServiceDescriptorException("Parameter '" + name
+                                                                   + "' from positionals does not exist");
             }
         }
-        
-        for (String elem: positionals) {
+
+        for (final String elem : positionals)
+        {
             positionalParams.add(elem);
         }
     }
-    
-    public ArrayList<String> getPositionalParams()
+
+    public List<String> getPositionalParams()
     {
         return positionalParams;
     }
