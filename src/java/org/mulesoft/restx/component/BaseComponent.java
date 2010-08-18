@@ -74,8 +74,8 @@ public abstract class BaseComponent
     // this helps our service-method calling proxy to arrange the parameters in
     // the right order - since Java does not allow the **fkwargs notation of named
     // parameters - and also allows us to do the necessary type casting.
-    private HashMap<String, ArrayList<String>> paramOrder;
-    private HashMap<String, ArrayList<Class<?>>> paramTypes;
+    private Map<String, ArrayList<String>> paramOrder;
+    private Map<String, ArrayList<Class<?>>> paramTypes;
 
     protected Map<String, String> instanceConf;
 
