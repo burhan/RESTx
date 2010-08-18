@@ -19,6 +19,9 @@
 
 package org.mulesoft.restx.component.scripting;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.script.Bindings;
@@ -45,9 +48,15 @@ public class JavaScriptComponentWrapper extends BaseScriptingComponent
 
     // TODO support: inputTypes ([]), outputTypes ([]) positionalParams([string])
 
+    @SuppressWarnings("unchecked")
     @Override
     protected void initialiseComponentDescriptor() throws RestxException
     {
+        if (componentDescriptor != null)
+        {
+            return;
+        }
+
         final Bindings bindings = new SimpleBindings();
         addCommonBindings(bindings);
 
@@ -55,18 +64,27 @@ public class JavaScriptComponentWrapper extends BaseScriptingComponent
         evaluateComponent(bindings);
 
         // extract a component descriptor out of these bindings
-        componentDescriptor = (ComponentDescriptor) evaluateResource(bindings, "configuration_loader.js");
+        evaluateResource(bindings, "configuration_loader.js");
+
+        componentDescriptor = (ComponentDescriptor) bindings.get("componentDescriptor");
+        paramOrder = (HashMap<String, ArrayList<String>>) bindings.get("paramOrder");
+        paramTypes = (HashMap<String, ArrayList<Class<?>>>) bindings.get("paramTypes");
     }
 
     public void _setResourceParams(Map<String, Object> resourceParams)
     {
+        // FIXME remove
+        System.out.println("_setResourceParams: " + resourceParams);
         this.resourceParams = resourceParams;
     }
 
-    protected Object _serviceMethodDispatch(String methodName, Object[] args) throws RestxException
+    public Object _serviceMethodDispatch(String methodName, Object[] args) throws RestxException
     {
         try
         {
+            // FIXME remove
+            System.out.println("_serviceMethodDispatch:" + methodName + " - " + Arrays.toString(args));
+
             final ScriptEngine engine = getCompiledScript().getEngine();
 
             final Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
@@ -76,7 +94,11 @@ public class JavaScriptComponentWrapper extends BaseScriptingComponent
             // must evaluate before calling a function directly
             evaluateComponent(bindings);
 
-            return ((Invocable) engine).invokeFunction(methodName, HTTP.GET, args);
+            final Object result = ((Invocable) engine).invokeFunction(methodName, HTTP.GET, args);
+
+            // FIXME remove
+            System.out.println("_serviceMethodDispatch->" + result);
+            return result;
         }
         catch (final ScriptException se)
         {

@@ -32,28 +32,34 @@ function getParameterDef(type, description, required, defaultValue) {
     }
 }
 
-function createServiceDescriptor(service) {
+function getServiceMeta(service) {
     serviceDescriptor = new org.mulesoft.restx.component.api.ServiceDescriptor(service.description,
                                                                                nz(service.parametersInBody, false),
                                                                                nz(service.outputTypes, null),
                                                                                nz(service.inputTypes, null))
     parameters = service.parameters
-
+    parameterNames = new java.util.ArrayList()
+    parameterTypes = new java.util.ArrayList()
+    
     for (parameterName in parameters) {
         parameter = parameters[parameterName]
+        parameterNames.add(parameterName)
+        
+        parameterDef = getParameterDef(parameter.type,
+                                       parameter.description,
+                                       nz(parameter.required, false),
+                                       nz(parameter.defaultValue, null))
+        
+        parameterTypes.add(parameterDef)
 
-        serviceDescriptor.addParameter(parameterName,
-                                       getParameterDef(parameter.type,
-                                                       parameter.description,
-                                                       nz(parameter.required, false),
-                                                       nz(parameter.defaultValue, null)))
+        serviceDescriptor.addParameter(parameterName, parameterDef)
     }
 
-    return serviceDescriptor
+    return {descriptor: serviceDescriptor, parameterNames: parameterNames, parameterTypes: parameterTypes}
 }
 
 //Base configuration
-componentDescriptor = new org.mulesoft.restx.component.api.ComponentDescriptor(name, description, documentation)
+this.componentDescriptor = new org.mulesoft.restx.component.api.ComponentDescriptor(name, description, documentation)
 
 //Resource parameters
 for (parameterName in parameters) {
@@ -67,11 +73,15 @@ for (parameterName in parameters) {
 }
 
 //Services
-for (var methodName in this) {
+this.paramOrder = new java.util.HashMap()
+this.paramTypes = new java.util.HashMap()
+
+for (var functionName in this) {
     // Any local function with a description is considered to be a Service
-    if (typeof this[methodName] == 'function' && this.hasOwnProperty(methodName) && this[methodName].description != undefined) {
-        componentDescriptor.addService(methodName, createServiceDescriptor(this[methodName]));
+    if (typeof this[functionName] == 'function' && this.hasOwnProperty(functionName) && this[functionName].description != undefined) {
+        serviceMeta = getServiceMeta(this[functionName])
+        componentDescriptor.addService(functionName, serviceMeta.descriptor)
+        paramOrder.put(functionName, serviceMeta.parameterNames)
+        paramTypes.put(functionName, serviceMeta.parameterTypes)
     }
 }
-
-componentDescriptor
