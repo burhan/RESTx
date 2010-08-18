@@ -29,13 +29,95 @@ from java.lang            import Class
 
 class DatabaseAccess(BaseComponent):
     NAME             = "DatabaseAccess"
-    DESCRIPTION      = "Accesses to an SQL database"
-    DOCUMENTATION    = "Service methods and capabilities to access a SQL database"
+    DOCUMENTATION    = """
+Accesses to an SQL database.
+
+
+This component provides access to a database via JDBC. Therefore, the proper
+JDBC driver should be in the classpath (for example by placing it into the
+RESTx lib/ directory. The class name of the driver needs to be specified during
+resource creation time.
+
+
+CURRENT LIMITATIONS:
+
+
+ * This component only allows for queries on a single table.
+
+ * The table has to have an auto-incrementing, numeric unique ID column. The
+ name of this column needs to be specified during resource creation time.
+
+ * Currently does not use bound variables and only does a very superficial
+ way of checking for injection. This will be updated soon! In the meantime,
+ since parameters are provided in-house during resource creation (done by a
+ trusted resource) and not via the request URI when accessing elements, this
+ is slightly less critical. However, we will get around to change that.
+
+
+USAGE NOTES:
+
+
+Instead of specifying a single query string, the columns, table and where
+clause(s) are specified as separate parameters. This makes it easier to create
+specialized components (partial resources), where some of these things are pre-
+defined already. For example, IT may create a specialized component with a
+pre-determined value for the table and one where clause. Other users can then
+create their own resources, but are limited to that table and to the selection
+that results from that first where clause.
+
+
+For example:
+
+
+Imagine a 'customer' table. IT may create a specialized component, which fixes
+the 'table' parameter and one of the 'where' clauses, so that only customers
+within a particular state are returned. By leaving the tables unset (leaving
+them at '*'), the resulting query may look like this:
+
+
+    SELECT * FROM customer WHERE state='CA';
+
+
+Based on this specialized component, others may then create additional
+resources. The table name and that one where clause for the state cannot be
+changed anymore, but they are free to specify particular columns and a further
+where clause. For example, for columns they may specify 'name' and 'phone' and
+for an additional where clause they may enter 'total_order_value > 1000000'.
+
+
+The complete query then looks like this:
+
+
+    SELECT name, phone FROM customer WHERE state='CA' and total_order_value > 1000000;
+
+
+Additional parameters:
+
+
+id_column :        The name of the column which holds the unique ID (key) of the table
+                   entries. This is used as handle when referring to individual rows
+                   for GET or PUT methods.
+
+
+allow_updates :    If set to 'yes' then we are allowing the creation of new entries via
+                   POST and update of existing entries via PUT.
+
+
+name_value_pairs : If set then we return each table row as a dictionary with the column
+                   name as key. This is easy to read and process, but can increase the
+                   volume of the returned data. If it's set to 'No' then we return the
+                   individual elements of each row just as a plain list.
+
+"""
+
+
+
+    DESCRIPTION    = "Service methods and capabilities to access a SQL database"
 
     PARAM_DEFINITION = {
                            "jdbc_driver_class"    : ParameterDef(PARAM_STRING,  "The classname of the driver (for example: com.mysql.jdbc.Driver)", required=True),
                            "db_connection_string" : ParameterDef(PARAM_STRING,  "The database connection string", required=True),
-                           "table_name"           : ParameterDef(PARAM_STRING,  "Name of the DB table", required=True),
+                           "table_name"           : ParameterDef(PARAM_STRING,  "Name of the DB table.", required=True),
                            "columns"              : ParameterDef(PARAM_STRING,  "Comma separated list of DB columns for the result, or '*' for all", required=False, default="*"),
                            "id_column"            : ParameterDef(PARAM_STRING,  "Name of the column that holds the unique ID", required=True),
                            "where1"               : ParameterDef(PARAM_STRING,  "Optional WHERE clause (SQL syntax)", required=False, default=""),
@@ -47,7 +129,7 @@ class DatabaseAccess(BaseComponent):
     # A dictionary with information about each exposed service method (sub-resource).
     SERVICES         = {
                            "entries" : {
-                               "desc" : "The stored entries. You can POST a new entry, PUT an update or GET an existing one. For PUT and GET the ID of the entry needs to be specified as the 'id' parameter.",
+                               "desc" : "The stored entries. You can POST a new entry, PUT an update, GET or DELETE an existing one. For PUT, GET and DELETE the ID of the entry needs to be specified as the 'id' parameter.",
                                "params" : {
                                    "id"  : ParameterDef(PARAM_NUMBER, "The ID of the entry, needed for PUT and (optionally) GET", required=False, default=-1),
                                },
@@ -143,21 +225,16 @@ class DatabaseAccess(BaseComponent):
         return Result.ok(data)
 
     def __post_entry(self, connection, obj, colnames):
-        # The new ID we will use to store this object
-        stmt    = connection.createStatement()
-        cmd_str = str("SELECT COUNT(*) FROM %s" % (self.table_name))
-        res     = stmt.executeQuery(cmd_str)
-        res.next()
-        new_id  = res.getInt(1) + 1
-        stmt.close()
-
-        obj[self.id_column] = new_id
-
-        colstr    = self.id_column + ', ' + ', '.join(colnames)
-        valstr    = str(new_id) + ', ' + ', '.join([(str(obj[k]) if type(obj[k]) in [int, long, float] else "'%s'" % obj[k]) for k in colnames ])
+        colstr    = ', '.join(colnames)
+        valstr    = ', '.join([(str(obj[k]) if type(obj[k]) in [int, long, float] else "'%s'" % obj[k]) for k in colnames ])
         stmt      = connection.createStatement()
         cmd_str   = str("INSERT INTO %s (%s) VALUES (%s)" % (self.table_name, colstr, valstr))
-        res       = stmt.executeUpdate(cmd_str)
+        res       = stmt.executeUpdate(cmd_str, Statement.RETURN_GENERATED_KEYS)
+        if res == 0:
+            return Result.internalServerError("Cannot create new entry.")
+        generated_keys = stmt.getGeneratedKeys()
+        generated_keys.next()
+        new_id = generated_keys.getLong(1)
         stmt.close()
         return Result.created(str(Url("%s/%d" % (self.getMyResourceUri(), new_id))))
 
@@ -180,9 +257,32 @@ class DatabaseAccess(BaseComponent):
         stmt    = connection.createStatement()
         res = stmt.executeUpdate(cmd_str)
         stmt.close()
-        return Result.ok("Update successful")
+        if res > 0:
+            return Result.ok("Updated %d columns" % res)
+        else:
+            return Result.notFound("Could not find entry '%d' for update." % id)
+
+    def __delete_entry(self, connection, id):
+        # Check that this element exists in the database
+        # The new ID we will use to store this object
+        stmt    = connection.createStatement()
+        cmd_str = str("DELETE FROM %s WHERE %s=%d" % (self.table_name, self.id_column, id))
+        res     = stmt.executeUpdate(cmd_str)
+        stmt.close()
+        if res > 0:
+            return Result.ok("Deleted %d columns" % res)
+        else:
+            return Result.notFound("Could not find entry '%d' for deletion." % id)
      
     def entries(self, method, input, id):
+        """
+        Represents the 'entries' resource of this database table.
+
+        This is used to GET one or more entries, to POST (create) a
+        new entry or to update an existing entry.
+
+        """
+
         connection, table_columns = self.__get_connection()
 
         if self.columns  and  self.columns != "*":
@@ -203,12 +303,6 @@ class DatabaseAccess(BaseComponent):
                 # Creating a new entry or updating an existing one
                 #
                 obj = input
-                """
-                try:
-                    obj = self.fromJson(input)
-                except:
-                    return Result.badRequest("Format error: Input is not in proper JSON format")
-                """
                 if type(obj) is not dict:
                     return Result.badRequest("Format error: Excpected JSON dictionary as input")
 
@@ -248,6 +342,14 @@ class DatabaseAccess(BaseComponent):
                     return self.__post_entry(connection, obj, cols)
                 else:
                     return self.__put_entry(connection, obj, cols, id)
+
+            elif method == HttpMethod.DELETE:
+                #
+                # Deleting an existing entry
+                #
+                if id < 1:
+                    return Result.badRequest("Need to specify a valid entry ID for delete.")
+                return self.__delete_entry(connection, id)
 
         else:
             return Result.unauthorized("You don't have permission to modify this resource")

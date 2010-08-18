@@ -167,7 +167,7 @@ def _accessComponentService(component, complete_resource_def, resource_name, ser
                             input  = parser.parse(input)
                         except Exception, e:
                             # Some format error? 
-                            raise RestxBadRequest("Bad request: Input content is malformed.")
+                            raise RestxBadRequestException("Bad request: Input content is malformed.")
                     else:
                         # Could not find proper render class. If we allowed any
                         # input (content type "") then we are still good and pass
