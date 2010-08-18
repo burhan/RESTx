@@ -39,8 +39,9 @@ public class TestComponent extends BaseComponent
     public String api_key;
     
     @Service(description = "This is the foobar service")
-    @InputType(InputType.NO_INPUT)
+    //@InputType(InputType.NO_INPUT)
     //@InputType(InputType.ANY_INPUT)
+    @InputTypes({"application/json", "application/x-www-form-urlencoded"})
     @OutputTypes({"application/json", "text/html"})
     @ParamsInReqBody
     public Result foobar(HttpMethod method, Object input,
@@ -54,7 +55,9 @@ public class TestComponent extends BaseComponent
                          BigDecimal num)
     {
         System.out.println("----------------------------------------------------------");
-        System.out.println("### input:   " + input.getClass() + " === " + input);
+        if (input != null) {
+            System.out.println("### input:   " + input.getClass() + " === " + input);
+        }
         System.out.println("### method:  " + method.getClass() + " === " + method);
              
         System.out.println("Query parameter: " + query);
