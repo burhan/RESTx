@@ -192,11 +192,12 @@ def __javaServiceMethodProxy(component, request, method, method_name, input, par
         # Passing them to ResourceAccessor means that I don't have to import those
         # symbols in the resource_accessor module.        
         component.resourceAccessor = ResourceAccessor(__javaStructToPython, __pythonStructToJava)
-        input_str = String(input if input is not None else "")
+        if type(input) in [ str, unicode ]:
+            input = String(input if input is not None else "")
         if not is_proxy_component:
-            res = method(http_method, input_str, *arglist)
+            res = method(http_method, input, *arglist)
         else:
-            proxy_arg_list = [ http_method, input_str ]
+            proxy_arg_list = [ http_method, input ]
             proxy_arg_list.extend(arglist)
             res = method(method_name, proxy_arg_list)
 
