@@ -31,9 +31,14 @@ function status(method, input) {
   }
   
   function postStatus(input) {
-    // TODO HTTP POST "http://api.twitter.com/1/statuses/update.xml status=" + input
-    return RESULT.ok("Status updated")
+    RESTx.httpSetCredentials(account_name, account_password)
+    result = RESTx.httpPost("http://api.twitter.com/1/statuses/update.xml", "status="+ input)
+    
+    return result.status == HTTP.OK ? RESULT.ok("Status updated")
+                                    : RESULT.internalServerError("Problem with Twitter: " + result.data)
   }
+  
+  println(method + " " + input)
   
   switch(method) {
     case HTTP.GET : return getStatus()
