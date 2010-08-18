@@ -20,7 +20,6 @@
 package org.mulesoft.restx.component.scripting;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -73,8 +72,6 @@ public class JavaScriptComponentWrapper extends BaseScriptingComponent
 
     public void _setResourceParams(Map<String, Object> resourceParams)
     {
-        // FIXME remove
-        System.out.println("_setResourceParams: " + resourceParams);
         this.resourceParams = resourceParams;
     }
 
@@ -82,9 +79,6 @@ public class JavaScriptComponentWrapper extends BaseScriptingComponent
     {
         try
         {
-            // FIXME remove
-            System.out.println("_serviceMethodDispatch:" + methodName + " - " + Arrays.toString(args));
-
             final ScriptEngine engine = getCompiledScript().getEngine();
 
             final Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
@@ -94,11 +88,7 @@ public class JavaScriptComponentWrapper extends BaseScriptingComponent
             // must evaluate before calling a function directly
             evaluateComponent(bindings);
 
-            final Object result = ((Invocable) engine).invokeFunction(methodName, HTTP.GET, args);
-
-            // FIXME remove
-            System.out.println("_serviceMethodDispatch->" + result);
-            return result;
+            return ((Invocable) engine).invokeFunction(methodName, HTTP.GET, args);
         }
         catch (final ScriptException se)
         {
