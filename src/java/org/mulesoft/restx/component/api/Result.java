@@ -43,12 +43,13 @@ public class Result
         this.negotiatedType = null;
     }
     
-    public void addHeader(String name, String value)
+    public Result addHeader(String name, String value)
     {
         if (headers == null) {
             headers = new HashMap<String, String>();
         }
         headers.put(name, value);
+        return this;
     }
     
     public static Result ok()
