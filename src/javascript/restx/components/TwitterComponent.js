@@ -23,12 +23,12 @@ function status(method, input) {
   
   function getStatus() {
     // TODO HTTP GET on "http://api.twitter.com/1/users/show.json?screen_name=" + parameters.account_name.value
-    return "status of " + account_name
+    return RESULT.ok("status of " + account_name)
   }
   
   function postStatus(input) {
     // TODO HTTP POST "http://api.twitter.com/1/statuses/update.xml status=" + input
-    return "Status updated"
+    return RESULT.ok("Status updated")
   }
   
   switch(method) {
@@ -51,6 +51,6 @@ function timeline(method, input, count, filter) {
   if (method != HTTP.GET) throw "Timeline unsupported method: " + method
 
   // TODO implement
-  return "fake timeline"
+  return RESULT.ok("fake timeline")
 }
 
