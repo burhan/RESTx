@@ -81,7 +81,7 @@ def _accessComponentService(component, complete_resource_def, resource_name, ser
     try:
         services            = complete_resource_def['public']['services']
         proxy_dispatch_func = None    # Some objects are proxies for dynamic components, for example in case of JavaScript
-        if not services  or  service_name not in services:
+        if not services  or  service_name not in services  or  not hasattr(component, service_name):
             # Some components are proxies to dynamically created components (for example when
             # using JavaScript for components). These have a method called _serviceMethodCheck()
             proxy_func_name = "_serviceMethodDispatch"
