@@ -35,7 +35,9 @@ import javax.script.ScriptException;
 
 import org.mulesoft.restx.Settings;
 import org.mulesoft.restx.component.BaseComponent;
+import org.mulesoft.restx.component.api.HTTP;
 import org.mulesoft.restx.exception.RestxException;
+import org.mulesoft.restx.parameter.ParameterType;
 
 public abstract class BaseScriptingComponent extends BaseComponent
 {
@@ -77,7 +79,7 @@ public abstract class BaseScriptingComponent extends BaseComponent
     {
         try
         {
-            CompiledScript compiledScript = CACHE.get(scriptFile);
+            final CompiledScript compiledScript = getCompiledScript(scriptFile);
 
             if (compiledScript != null)
             {
@@ -85,14 +87,6 @@ public abstract class BaseScriptingComponent extends BaseComponent
             }
 
             final ScriptEngine engine = getEngine(scriptEngineManager);
-
-            if (engine instanceof Compilable)
-            {
-                compiledScript = ((Compilable) engine).compile(new FileReader(scriptFile));
-                CACHE.put(scriptFile, compiledScript);
-                return compiledScript.eval(bindings);
-            }
-
             return engine.eval(new FileReader(scriptFile), bindings);
         }
         catch (final FileNotFoundException fnfe)
@@ -105,5 +99,48 @@ public abstract class BaseScriptingComponent extends BaseComponent
         }
     }
 
+    protected CompiledScript getCompiledScript() throws RestxException
+    {
+        return getCompiledScript(getComponentScriptFile());
+    }
+
+    protected CompiledScript getCompiledScript(File scriptFile) throws RestxException
+    {
+        try
+        {
+            CompiledScript compiledScript = CACHE.get(scriptFile);
+
+            if (compiledScript != null)
+            {
+                return compiledScript;
+            }
+
+            final ScriptEngine engine = getEngine(scriptEngineManager);
+
+            if (engine instanceof Compilable)
+            {
+                compiledScript = ((Compilable) engine).compile(new FileReader(scriptFile));
+                CACHE.put(scriptFile, compiledScript);
+                return compiledScript;
+            }
+
+            return null;
+        }
+        catch (final FileNotFoundException fnfe)
+        {
+            throw new RestxException(fnfe.getMessage());
+        }
+        catch (final ScriptException se)
+        {
+            throw new RestxException(se.getMessage());
+        }
+    }
+
     protected abstract ScriptEngine getEngine(ScriptEngineManager scriptEngineManager);
+
+    protected void addCommonBindings(final Bindings bindings)
+    {
+        bindings.put("HTTP", new HTTP());
+        bindings.put("TYPE", new ParameterType());
+    }
 }

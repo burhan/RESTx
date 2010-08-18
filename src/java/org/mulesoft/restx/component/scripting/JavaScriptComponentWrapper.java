@@ -19,33 +19,37 @@
 
 package org.mulesoft.restx.component.scripting;
 
+import java.util.Map;
+
 import javax.script.Bindings;
+import javax.script.Invocable;
+import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 import javax.script.SimpleBindings;
 
 import org.mulesoft.restx.component.api.ComponentDescriptor;
 import org.mulesoft.restx.component.api.HTTP;
 import org.mulesoft.restx.exception.RestxException;
-import org.mulesoft.restx.parameter.ParameterType;
 
 public class JavaScriptComponentWrapper extends BaseScriptingComponent
 {
+    private Map<String, Object> resourceParams;
+
     @Override
     protected ScriptEngine getEngine(ScriptEngineManager scriptEngineManager)
     {
         return scriptEngineManager.getEngineByName("javascript");
     }
 
-    // TODO add support for: inputTypes ([]), outputTypes ([]), positionalParams
-    // positionalParams([string])
+    // TODO support: inputTypes ([]), outputTypes ([]) positionalParams([string])
 
     @Override
     protected void initialiseComponentDescriptor() throws RestxException
     {
         final Bindings bindings = new SimpleBindings();
-        bindings.put("HTTP", new HTTP());
-        bindings.put("TYPE", new ParameterType());
+        addCommonBindings(bindings);
 
         // load the component metadata into bindings
         evaluateComponent(bindings);
@@ -54,8 +58,33 @@ public class JavaScriptComponentWrapper extends BaseScriptingComponent
         componentDescriptor = (ComponentDescriptor) evaluateResource(bindings, "configuration_loader.js");
     }
 
-    public Object serviceMethodDispatch(String methodName, Object[] args)
+    public void _setResourceParams(Map<String, Object> resourceParams)
     {
-        return true;
+        this.resourceParams = resourceParams;
+    }
+
+    protected Object _serviceMethodDispatch(String methodName, Object[] args) throws RestxException
+    {
+        try
+        {
+            final ScriptEngine engine = getCompiledScript().getEngine();
+
+            final Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
+            addCommonBindings(bindings);
+            bindings.putAll(resourceParams);
+
+            // must evaluate before calling a function directly
+            evaluateComponent(bindings);
+
+            return ((Invocable) engine).invokeFunction(methodName, HTTP.GET, args);
+        }
+        catch (final ScriptException se)
+        {
+            throw new RestxException(se.getMessage());
+        }
+        catch (final NoSuchMethodException nsme)
+        {
+            throw new RestxException(nsme.getMessage());
+        }
     }
 }
