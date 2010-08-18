@@ -23,12 +23,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.net.URISyntaxException;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import javax.script.Bindings;
-import javax.script.Compilable;
-import javax.script.CompiledScript;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
@@ -42,12 +38,11 @@ import org.mulesoft.restx.parameter.ParameterType;
 
 public abstract class BaseScriptingComponent extends BaseComponent
 {
-    // TODO replace this with a RESTx-managed cache
-    private final static ConcurrentMap<File, CompiledScript> CACHE = new ConcurrentHashMap<File, CompiledScript>();
-
     private final ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
 
     private File componentScriptFile;
+
+    private ScriptEngine scriptEngine;
 
     protected File getComponentScriptFile()
     {
@@ -80,14 +75,7 @@ public abstract class BaseScriptingComponent extends BaseComponent
     {
         try
         {
-            final CompiledScript compiledScript = getCompiledScript(scriptFile);
-
-            if (compiledScript != null)
-            {
-                return compiledScript.eval(bindings);
-            }
-
-            final ScriptEngine engine = getEngine(scriptEngineManager);
+            final ScriptEngine engine = getScriptEngine();
             return engine.eval(new FileReader(scriptFile), bindings);
         }
         catch (final FileNotFoundException fnfe)
@@ -100,44 +88,17 @@ public abstract class BaseScriptingComponent extends BaseComponent
         }
     }
 
-    protected CompiledScript getCompiledScript() throws RestxException
+    protected ScriptEngine getScriptEngine()
     {
-        return getCompiledScript(getComponentScriptFile());
+        if (scriptEngine == null)
+        {
+            scriptEngine = newScriptEngine(scriptEngineManager);
+        }
+
+        return scriptEngine;
     }
 
-    protected CompiledScript getCompiledScript(File scriptFile) throws RestxException
-    {
-        try
-        {
-            CompiledScript compiledScript = CACHE.get(scriptFile);
-
-            if (compiledScript != null)
-            {
-                return compiledScript;
-            }
-
-            final ScriptEngine engine = getEngine(scriptEngineManager);
-
-            if (engine instanceof Compilable)
-            {
-                compiledScript = ((Compilable) engine).compile(new FileReader(scriptFile));
-                CACHE.put(scriptFile, compiledScript);
-                return compiledScript;
-            }
-
-            return null;
-        }
-        catch (final FileNotFoundException fnfe)
-        {
-            throw new RestxException(fnfe.getMessage());
-        }
-        catch (final ScriptException se)
-        {
-            throw new RestxException(se.getMessage());
-        }
-    }
-
-    protected abstract ScriptEngine getEngine(ScriptEngineManager scriptEngineManager);
+    protected abstract ScriptEngine newScriptEngine(ScriptEngineManager scriptEngineManager);
 
     protected void addCommonBindings(final Bindings bindings)
     {

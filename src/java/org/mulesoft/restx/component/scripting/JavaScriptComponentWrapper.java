@@ -40,7 +40,7 @@ public class JavaScriptComponentWrapper extends BaseScriptingComponent
     private Map<String, Object> resourceParams;
 
     @Override
-    protected ScriptEngine getEngine(ScriptEngineManager scriptEngineManager)
+    protected ScriptEngine newScriptEngine(ScriptEngineManager scriptEngineManager)
     {
         return scriptEngineManager.getEngineByName("javascript");
     }
@@ -79,15 +79,15 @@ public class JavaScriptComponentWrapper extends BaseScriptingComponent
     {
         try
         {
-            final ScriptEngine engine = getCompiledScript().getEngine();
-
+            final ScriptEngine engine = getScriptEngine();
             final Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
             addCommonBindings(bindings);
-            bindings.putAll(resourceParams);
 
-            // must evaluate before calling a function directly
+            // must evaluate first before calling a function directly
             evaluateComponent(bindings);
 
+            // bind the resource parameters before calling the function
+            bindings.putAll(resourceParams);
             return ((Invocable) engine).invokeFunction(methodName, HTTP.GET, args);
         }
         catch (final ScriptException se)
