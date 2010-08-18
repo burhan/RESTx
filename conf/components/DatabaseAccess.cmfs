@@ -1,4 +1,4 @@
-ENABLED   = no
+ENABLED   = yes
 cname   = DatabaseAccess
 lang    = python
 module  = restx.components.DatabaseAccess

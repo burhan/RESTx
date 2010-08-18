@@ -19,14 +19,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 """
-A database access component for SnakeSQL
+A database access component, using JDBC
 
 """
 # Imports all aspects of the API
 from restx.components.api import *
-import os
-
-import SnakeSQL
+from java.sql             import *
+from java.lang            import Class
 
 class DatabaseAccess(BaseComponent):
     NAME             = "DatabaseAccess"
@@ -34,6 +33,7 @@ class DatabaseAccess(BaseComponent):
     DOCUMENTATION    = "Service methods and capabilities to access a SQL database"
 
     PARAM_DEFINITION = {
+                           "jdbc_driver_class"    : ParameterDef(PARAM_STRING,  "The classname of the driver (for example: com.mysql.jdbc.Driver)", required=True),
                            "db_connection_string" : ParameterDef(PARAM_STRING,  "The database connection string", required=True),
                            "table_name"           : ParameterDef(PARAM_STRING,  "Name of the DB table", required=True),
                            "columns"              : ParameterDef(PARAM_STRING,  "Comma separated list of DB columns for the result, or '*' for all", required=False, default="*"),
@@ -49,31 +49,47 @@ class DatabaseAccess(BaseComponent):
                            "entries" : {
                                "desc" : "The stored entries. You can POST a new entry, PUT an update or GET an existing one. For PUT and GET the ID of the entry needs to be specified as the 'id' parameter.",
                                "params" : {
-                                   "id"  : ParameterDef(PARAM_NUMBER, "The ID of the entry, needed for PUT and GET", required=False, default=-1),
+                                   "id"  : ParameterDef(PARAM_NUMBER, "The ID of the entry, needed for PUT and (optionally) GET", required=False, default=-1),
                                },
                                "positional_params": [ "id" ],
+                               "output_types" : [ "application/json", "text/html" ],
+                               "input_types" : [ "application/json", "application/x-www-form-urlencoded" ],
                            }
                        }
 
     CONNECTION_CACHE = dict()
 
-    cursor = None
-
     def __get_connection(self):
-        if self.db_connection_string in self.CONNECTION_CACHE:
-            connection = self.CONNECTION_CACHE[self.db_connection_string]
+        if self.db_connection_string in DatabaseAccess.CONNECTION_CACHE:
+            connection, table_columns = DatabaseAccess.CONNECTION_CACHE[self.db_connection_string]
         else:
-            connection = SnakeSQL.connect(database=self.db_connection_string)
-            self.CONNECTION_CACHE[self.db_connection_string] = connection
-        cursor = connection.cursor()
-        return connection, cursor
+            # Establish the connection
+            Class.forName(self.jdbc_driver_class)
+            connection = DriverManager.getConnection(self.db_connection_string)
+
+            # Get the column names
+            meta = connection.getMetaData()
+            res  = meta.getColumns(None, None, self.table_name, None);
+            table_columns = []
+            while (res.next()):
+                table_columns.append(res.getString("COLUMN_NAME"))
+
+            res.close()
+
+            # Store the connection and column info in the cache
+            DatabaseAccess.CONNECTION_CACHE[self.db_connection_string] = (connection, table_columns)
+
+        return connection, table_columns
 
     def __column_sanity_check(self, columns):
         elems = columns.split(",")
+        cols = []
         for e in elems:
             e = e.strip()
             if " " in e  or  "(" in e  or  ")" in e  or  ";" in e:
                 raise RestxException("Malformed columns")
+            cols.append(e)
+        return cols
 
     def __get_where_str(self, id=None):
         if self.where2 != "-" and (self.where1 == "-"  or  not self.where1):
@@ -95,22 +111,26 @@ class DatabaseAccess(BaseComponent):
         return where_str
 
 
-    def __get_entry(self, connection, cursor, id):
+    def __get_entry(self, connection, table_columns, resource_columns, id):
         #
         # Getting data
         #
-        where_str = self.__get_where_str(id)
-        cmd_str = str("SELECT %s FROM %s%s" % (self.columns, self.table_name, where_str))
-        results = cursor.execute(cmd_str)
-        if self.name_value_pairs:
-            if self.columns.strip() != "*":
-                colnames = [ cname.strip() for cname in self.columns.split(",")]
+        # 'resource_columns' is a list of the column names, which are defined as comma-separated
+        # string in self.columns
+        #
+        where_str   = self.__get_where_str(id)
+        stmt        = connection.createStatement()
+        cmd_str     = str("SELECT %s FROM %s%s" % (self.columns, self.table_name, where_str))
+        results     = stmt.executeQuery(cmd_str)
+        data        = []
+        while (results.next()):
+            col_results = [ results.getObject(resource_columns.index(col_name)+1) for col_name in resource_columns ]
+            if self.name_value_pairs:
+                row_data = dict(zip(resource_columns, col_results))
             else:
-                # Need to get the column names myself, necessary because it was just '*'
-                colnames = cursor.columns(self.table_name)
-            data = [ dict(zip(colnames, row)) for row in results ]
-        else:
-            data = [ row for row in results ]
+                row_data = col_results
+            data.append(row_data)
+
         if id and id > -1:
             # Only one result
             if len(data) == 0:
@@ -119,50 +139,62 @@ class DatabaseAccess(BaseComponent):
                 return Result.internalServerError("Data inconsistency")
             else:
                 data = data[0]
+
         return Result.ok(data)
 
-
-    def __post_entry(self, connection, cursor, obj, colnames):
+    def __post_entry(self, connection, obj, colnames):
         # The new ID we will use to store this object
-        new_id = len(cursor.execute(str("SELECT %s FROM %s" % (self.id_column, self.table_name)))) + 1
+        stmt    = connection.createStatement()
+        cmd_str = str("SELECT COUNT(*) FROM %s" % (self.table_name))
+        res     = stmt.executeQuery(cmd_str)
+        res.next()
+        new_id  = res.getInt(1) + 1
+        stmt.close()
+
         obj[self.id_column] = new_id
 
-        colnames.insert(0, self.id_column)
-
-        colstr  = ', '.join(colnames)
-        valstr  = ', '.join([(str(obj[k]) if type(obj[k]) in [int, long, float] else "'%s'" % obj[k]) for k in colnames ])
-        cmd_str = "INSERT INTO %s (%s) VALUES (%s)" % (self.table_name, colstr, valstr)
-        cursor.execute(str(cmd_str))
-        connection.commit()
+        colstr    = self.id_column + ', ' + ', '.join(colnames)
+        valstr    = str(new_id) + ', ' + ', '.join([(str(obj[k]) if type(obj[k]) in [int, long, float] else "'%s'" % obj[k]) for k in colnames ])
+        stmt      = connection.createStatement()
+        cmd_str   = str("INSERT INTO %s (%s) VALUES (%s)" % (self.table_name, colstr, valstr))
+        res       = stmt.executeUpdate(cmd_str)
+        stmt.close()
         return Result.created(str(Url("%s/%d" % (self.getMyResourceUri(), new_id))))
 
-
-    def __put_entry(self, connection, cursor, obj, colnames, id):
+    def __put_entry(self, connection, obj, colnames, id):
         # Check that this element exists in the database
-        res = cursor.execute(str("SELECT %s FROM %s WHERE %s=%d" % (self.id_column, self.table_name, self.id_column, id)))
-        if len(res) > 1:
+        # The new ID we will use to store this object
+        stmt    = connection.createStatement()
+        cmd_str = str("SELECT count(*) FROM %s WHERE %s=%d" % (self.table_name, self.id_column, id))
+        res     = stmt.executeQuery(cmd_str)
+        res.next()
+        num     = res.getInt(1)
+        stmt.close()
+        if num > 1:
             return Result.internalServerError("Data inconsistency")
-        elif len(res) == 0:
+        elif num == 0:
             return Result.notFound("Entry with id '%d' cannot be found" % id)
+
         colsets = ', '.join([ ("%s=%s" % (k, (str(obj[k]) if type(obj[k]) in [int, long, float] else "'%s'" % obj[k]))) for k in colnames ])
-        cmd_str = "UPDATE %s SET %s WHERE %s=%d" % (self.table_name, colsets, self.id_column, id)
-        cursor.execute(str(cmd_str))
-        connection.commit()
+        cmd_str = str("UPDATE %s SET %s WHERE %s=%d" % (self.table_name, colsets, self.id_column, id))
+        stmt    = connection.createStatement()
+        res = stmt.executeUpdate(cmd_str)
+        stmt.close()
         return Result.ok("Update successful")
      
-
-
     def entries(self, method, input, id):
-        if self.columns  and  self.columns != "*":
-            self.__column_sanity_check(self.columns)
+        connection, table_columns = self.__get_connection()
 
-        connection, cursor = self.__get_connection()
+        if self.columns  and  self.columns != "*":
+            resource_columns = self.__column_sanity_check(self.columns)
+        else:
+            resource_columns = table_columns
 
         if method == HttpMethod.GET:
             #
             # Getting data
             #
-            return self.__get_entry(connection, cursor, id)
+            return self.__get_entry(connection, table_columns, resource_columns, id)
 
         elif self.allow_updates:
 
@@ -170,10 +202,13 @@ class DatabaseAccess(BaseComponent):
                 #
                 # Creating a new entry or updating an existing one
                 #
+                obj = input
+                """
                 try:
                     obj = self.fromJson(input)
                 except:
                     return Result.badRequest("Format error: Input is not in proper JSON format")
+                """
                 if type(obj) is not dict:
                     return Result.badRequest("Format error: Excpected JSON dictionary as input")
 
@@ -181,16 +216,19 @@ class DatabaseAccess(BaseComponent):
                     # Creating a new one?
                     if id > 0:
                         return Result.badRequest("Cannot specify ID when creating a new entry (ID is determined by server)")
-                    else:
-                        # We set the ID ourselves, just quietly remove it
-                        if self.id_column in obj:
-                            del obj[self.id_column]
+
+                # We set the ID ourselves, just quietly remove it if it was specified through the request
+                if self.id_column in obj:
+                    del obj[self.id_column]
+
+                # Check whether we actually passed some information in, or if it's all empty
+                if not obj:
+                    return Result.badRequest("Format error: No information in request")
 
                 # Getting the column names for the table and making sure that we are
                 # only referring to existing columns
-                colnames = cursor.columns(self.table_name)
                 for name in obj.keys():
-                    if name not in colnames:
+                    if name not in table_columns:
                         return Result.badRequest("Unknown column '%s' in input" % name)
 
                 # Some sanity checking on those
@@ -204,12 +242,12 @@ class DatabaseAccess(BaseComponent):
 
                 # Get the properly ordered list of columns that we have actually specified.
                 # This allows us to ommit optional values.
-                cols = [ name for name in colnames if name in obj ]
+                cols = [ name for name in table_columns if name in obj ]
 
                 if method == HttpMethod.POST:
-                    return self.__post_entry(connection, cursor, obj, cols)
+                    return self.__post_entry(connection, obj, cols)
                 else:
-                    return self.__put_entry(connection, cursor, obj, cols, id)
+                    return self.__put_entry(connection, obj, cols, id)
 
         else:
             return Result.unauthorized("You don't have permission to modify this resource")
