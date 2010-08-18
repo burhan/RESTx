@@ -40,6 +40,7 @@ function getServiceMeta(service) {
     parameters = service.parameters
     parameterNames = new java.util.ArrayList()
     parameterTypes = new java.util.ArrayList()
+    positionalParameters = new java.util.ArrayList()
     
     for (parameterName in parameters) {
         parameter = parameters[parameterName]
@@ -53,6 +54,14 @@ function getServiceMeta(service) {
         parameterTypes.add(parameterDef.getJavaType())
 
         serviceDescriptor.addParameter(parameterName, parameterDef)
+        
+        if (nz(parameter.positional, false)) {
+            positionalParameters.add(parameterName)
+        }
+    }
+    
+    if (!positionalParameters.isEmpty()) {
+        serviceDescriptor.setPositionalParameters(positionalParameters);
     }
 
     return {descriptor: serviceDescriptor, parameterNames: parameterNames, parameterTypes: parameterTypes}
