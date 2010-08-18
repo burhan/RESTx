@@ -139,6 +139,8 @@ def __javaServiceMethodProxy(component, request, method, method_name, input, par
     # assign them directly to the component as new attributes. After that,
     # the pruned parameter map can be passed as keyword arg dict to the
     # service method.
+    if is_proxy_component:
+        proxy_component_param_map = dict()
     for name in component.componentDescriptor.getParamMap().keySet():
         if name in params:
             if type(component.componentDescriptor.getParamMap().get(name)) is ParameterDefNumber:
@@ -146,11 +148,21 @@ def __javaServiceMethodProxy(component, request, method, method_name, input, par
                 # BigDecimal. We can't just assign a float (or other numeric value)
                 # to a BigDecimal variable. Instead, we need to create a new
                 # instance of that type explicitly.
-                setattr(component, name, BigDecimal(params[name]))
+                if is_proxy_component:
+                    proxy_component_param_map[name] = BigDecimal(params[name])
+                else:
+                    setattr(component, name, BigDecimal(params[name]))
             else:
-                setattr(component, name, params[name])
+                if is_proxy_component:
+                    proxy_component_param_map[name] = params[name]
+                else:
+                    setattr(component, name, params[name])
                 
             del params[name]
+
+    if is_proxy_component:
+        proxy_param_func = getattr(component, "_setResourceParams")
+        proxy_param_func(proxy_component_param_map)
     try:
         param_order = component.getParameterOrder()[method_name]
         param_types = component.getParameterTypes()[method_name]
