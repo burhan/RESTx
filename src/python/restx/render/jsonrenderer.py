@@ -140,7 +140,6 @@ class JsonRenderer(BaseRenderer):
         @rtype:             object
         
         """
-        print "@@@@@@ PARSING JSON: ", data
         obj = json.loads(data)
         return obj
  
