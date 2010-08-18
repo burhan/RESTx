@@ -32,6 +32,7 @@ import javax.script.ScriptException;
 import org.mulesoft.restx.Settings;
 import org.mulesoft.restx.component.BaseComponent;
 import org.mulesoft.restx.component.api.HTTP;
+import org.mulesoft.restx.component.api.InputType;
 import org.mulesoft.restx.component.api.Result;
 import org.mulesoft.restx.exception.RestxException;
 import org.mulesoft.restx.parameter.ParameterType;
@@ -105,6 +106,8 @@ public abstract class BaseScriptingComponent extends BaseComponent
         bindings.put("HTTP", new HTTP());
         bindings.put("TYPE", new ParameterType());
         bindings.put("RESULT", new Result(500, null));
+        bindings.put("ANY_INPUT", InputType.ANY_INPUT);
+        bindings.put("NO_INPUT", InputType.NO_INPUT);
         bindings.put("RESTx", this);
     }
 }

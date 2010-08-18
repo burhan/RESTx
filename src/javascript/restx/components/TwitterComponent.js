@@ -20,7 +20,8 @@ this.documentation = "The Twitter component is designed to provide access to a T
  * "Status" Service
  */
 status.description = "You can GET the status or POST a new status to it."
-	
+status.inputTypes = ["text/plain"]
+
 function status(method, input) {
   
   function getStatus() {

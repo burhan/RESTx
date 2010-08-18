@@ -44,8 +44,6 @@ public class JavaScriptComponentWrapper extends BaseScriptingComponent
         return scriptEngineManager.getEngineByName("javascript");
     }
 
-    // TODO support: inputTypes ([]), outputTypes ([])
-
     @SuppressWarnings("unchecked")
     @Override
     protected void initialiseComponentDescriptor() throws RestxException

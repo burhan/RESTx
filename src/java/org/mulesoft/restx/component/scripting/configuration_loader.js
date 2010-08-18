@@ -22,6 +22,10 @@ function nz(value, defaultValue) {
     return value == undefined ? defaultValue : value 
 }
 
+function toList(array) {
+    return array == undefined ? null : java.util.Arrays.asList(array)
+}
+
 function getParameterDef(type, description, required, defaultValue) {
     switch(type) {
         case TYPE.STRING  : return new org.mulesoft.restx.parameter.ParameterDefString(description, required, defaultValue)
@@ -35,8 +39,8 @@ function getParameterDef(type, description, required, defaultValue) {
 function getServiceMeta(service) {
     serviceDescriptor = new org.mulesoft.restx.component.api.ServiceDescriptor(service.description,
                                                                                nz(service.parametersInBody, false),
-                                                                               nz(service.outputTypes, null),
-                                                                               nz(service.inputTypes, null))
+                                                                               toList(service.outputTypes),
+                                                                               toList(service.inputTypes))
     parameters = service.parameters
     parameterNames = new java.util.ArrayList()
     parameterTypes = new java.util.ArrayList()
