@@ -196,7 +196,10 @@ class ResourceBrowser(BaseBrowser):
 
                 # Get the supported output content types for this service method
                 requested_content_types = self.request.preferredContentTypes()
-                service_def             = complete_resource_def['public']['services'][service_name]
+                try:
+                    service_def             = complete_resource_def['public']['services'][service_name]
+                except KeyError, e:
+                    raise RestxResourceNotFoundException("Cannot find '%s'." % service_name)
                 possible_output_types   = service_def.get('output_types')
                 if not possible_output_types:
                     # If the service method didn't define any type(s) then we just
