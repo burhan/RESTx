@@ -15,8 +15,7 @@
  * 
  *  You should have received a copy of the GNU General Public License 
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
- */ 
-
+ */
 
 package org.mulesoft.restx.exception;
 
@@ -24,15 +23,15 @@ import org.mulesoft.restx.component.api.HTTP;
 
 public class RestxNotAcceptableException extends RestxException
 {
+    private static final long serialVersionUID = -5108769632815336303L;
+
     public RestxNotAcceptableException()
     {
         this("Requested content type not acceptable");
     }
-    
+
     public RestxNotAcceptableException(String message)
     {
         super(HTTP.NOT_ACCEPTABLE, message);
     }
 }
-
-

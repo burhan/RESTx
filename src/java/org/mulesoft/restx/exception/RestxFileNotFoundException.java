@@ -15,8 +15,7 @@
  * 
  *  You should have received a copy of the GNU General Public License 
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
- */ 
-
+ */
 
 package org.mulesoft.restx.exception;
 
@@ -24,15 +23,15 @@ import org.mulesoft.restx.component.api.HTTP;
 
 public class RestxFileNotFoundException extends RestxException
 {
+    private static final long serialVersionUID = 5994893182722964026L;
+
     public RestxFileNotFoundException()
     {
         this("File not found");
     }
-    
+
     public RestxFileNotFoundException(String message)
     {
         super(HTTP.NOT_FOUND, message);
     }
 }
-
-

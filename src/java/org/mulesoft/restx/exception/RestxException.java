@@ -15,8 +15,7 @@
  * 
  *  You should have received a copy of the GNU General Public License 
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
- */ 
-
+ */
 
 package org.mulesoft.restx.exception;
 
@@ -24,19 +23,18 @@ import org.mulesoft.restx.component.api.HTTP;
 
 public class RestxException extends Exception
 {
-    public int    code;
+    private static final long serialVersionUID = -1000863517824936083L;
+    public int code;
     public String msg;
-    
+
     public RestxException(String message)
     {
         this(HTTP.INTERNAL_SERVER_ERROR, message);
     }
-    
+
     public RestxException(int code, String message)
     {
         this.code = code;
-        this.msg  = message;
+        this.msg = message;
     }
 }
-
-

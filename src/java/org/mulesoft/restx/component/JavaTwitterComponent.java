@@ -15,63 +15,63 @@
  * 
  *  You should have received a copy of the GNU General Public License 
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
- */ 
-
+ */
 
 package org.mulesoft.restx.component;
 
-import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.ArrayList;
+import org.mulesoft.restx.component.api.ComponentInfo;
+import org.mulesoft.restx.component.api.HTTP;
+import org.mulesoft.restx.component.api.HttpMethod;
+import org.mulesoft.restx.component.api.HttpResult;
+import org.mulesoft.restx.component.api.Parameter;
+import org.mulesoft.restx.component.api.Result;
+import org.mulesoft.restx.component.api.Service;
 
-import org.mulesoft.restx.component.api.*;
-
-
-@ComponentInfo(name        = "JavaTwitterComponent",
-               description = "This is a Java implementation of a Twitter component",
-               doc         = "The Twitter component is designed to provide access to a Twitter account." +
-                             "It can be used to get status as well as update status.")
+@ComponentInfo(name = "JavaTwitterComponent", description = "This is a Java implementation of a Twitter component", doc = "The Twitter component is designed to provide access to a Twitter account."
+                                                                                                                          + "It can be used to get status as well as update status.")
 public class JavaTwitterComponent extends BaseComponent
-{    
-    @Parameter(name="account_name", desc="Twitter account name")
+{
+    @Parameter(name = "account_name", desc = "Twitter account name")
     public String account_name = null;
-    
-    @Parameter(name="account_password", desc="Password")
+
+    @Parameter(name = "account_password", desc = "Password")
     public String account_password = null;
 
     private String getStatus()
     {
-        HttpResult res = httpGet("http://api.twitter.com/1/users/show.json?screen_name=" + account_name);
-        if (res.status == HTTP.OK) {
+        final HttpResult res = httpGet("http://api.twitter.com/1/users/show.json?screen_name=" + account_name);
+        if (res.status == HTTP.OK)
+        {
             return (String) res.data;
         }
-        else {
+        else
+        {
             return "Problem with Twitter: " + res.data;
         }
     }
-    
+
     private String postStatus(String data)
     {
         httpSetCredentials(account_name, account_password);
-        HttpResult res = httpPost("http://api.twitter.com/1/statuses/update.xml", "status=" + data);
+        final HttpResult res = httpPost("http://api.twitter.com/1/statuses/update.xml", "status=" + data);
         return (String) res.data;
     }
-    
+
     @Service(description = "You can GET the status or POST a new status to it.")
     public Result status(HttpMethod method, String input)
     {
-        int    status = HTTP.OK;
+        final int status = HTTP.OK;
         String data;
-        if (method == HTTP.GET) {
+        if (method == HTTP.GET)
+        {
             data = getStatus();
         }
-        else {
+        else
+        {
             data = postStatus(input);
         }
         data = "Blah: " + input;
         return new Result(status, data);
-        
+
     }
 }
-
-

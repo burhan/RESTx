@@ -15,26 +15,24 @@
  * 
  *  You should have received a copy of the GNU General Public License 
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
- */ 
-
+ */
 
 package org.mulesoft.restx.clientapi;
 
 /**
- * The base class for all exceptions that are thrown by
- * the RESTx client API.
+ * The base class for all exceptions that are thrown by the RESTx client API.
  */
 public class RestxClientException extends Exception
 {
+    private static final long serialVersionUID = 2669850758888935614L;
+
     /**
      * Construct a new exception.
      * 
-     * @param message   The human readable message for this exception.
+     * @param message The human readable message for this exception.
      */
     public RestxClientException(String message)
     {
         super(message);
     }
 }
-
-
