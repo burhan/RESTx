@@ -15,25 +15,24 @@
  * 
  *  You should have received a copy of the GNU General Public License 
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
- */ 
-
+ */
 
 package org.mulesoft.restx.parameter;
 
 public class ParameterDefBoolean extends ParameterDef
 {
-    private boolean defaultVal;
-    
+    private final boolean defaultVal;
+
     public ParameterDefBoolean(String desc)
     {
         this(desc, true, false);
     }
-        
+
     public ParameterDefBoolean(String desc, boolean defaultVal)
     {
         this(desc, false, defaultVal);
     }
-    
+
     public ParameterDefBoolean(String desc, boolean required, boolean defaultVal)
     {
         super("boolean", desc, required);
@@ -47,11 +46,19 @@ public class ParameterDefBoolean extends ParameterDef
     }
 
     @Override
-    public String html_type(String name)   // strange naming? This is called from Python code as well
+    public String html_type(String name) // strange naming? This is called from
+                                         // Python code as well
     {
-        String ret = "<label for=" + name + "_yes><input type=radio id="+name+"_yes name="+name+" value=yes />yes</label><br>";
-        return ret + "<label for=" + name + "_no><input type=radio id="+name+"_no name="+name+" value=no />no</label><br>";
+        final String ret = "<label for=" + name + "_yes><input type=radio id=" + name + "_yes name=" + name
+                           + " value=yes />yes</label><br>";
+
+        return ret + "<label for=" + name + "_no><input type=radio id=" + name + "_no name=" + name
+               + " value=no />no</label><br>";
+    }
+
+    @Override
+    public Class<?> getJavaType()
+    {
+        return Boolean.class;
     }
 }
-
-

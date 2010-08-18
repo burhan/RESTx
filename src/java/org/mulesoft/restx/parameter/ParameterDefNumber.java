@@ -87,4 +87,10 @@ public class ParameterDefNumber extends ParameterDef
 
         return null;
     }
+
+    @Override
+    public Class<?> getJavaType()
+    {
+        return BigDecimal.class;
+    }
 }

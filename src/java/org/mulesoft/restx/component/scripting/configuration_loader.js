@@ -50,7 +50,7 @@ function getServiceMeta(service) {
                                        nz(parameter.required, false),
                                        nz(parameter.defaultValue, null))
         
-        parameterTypes.add(parameterDef)
+        parameterTypes.add(parameterDef.getJavaType())
 
         serviceDescriptor.addParameter(parameterName, parameterDef)
     }
