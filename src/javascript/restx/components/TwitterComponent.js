@@ -38,8 +38,6 @@ function status(method, input) {
                                     : RESULT.internalServerError("Problem with Twitter: " + result.data)
   }
   
-  println(method + " " + input)
-  
   switch(method) {
     case HTTP.GET : return getStatus()
     case HTTP.POST: return postStatus(input)

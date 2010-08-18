@@ -32,7 +32,6 @@ import javax.script.ScriptException;
 import javax.script.SimpleBindings;
 
 import org.mulesoft.restx.component.api.ComponentDescriptor;
-import org.mulesoft.restx.component.api.HTTP;
 import org.mulesoft.restx.exception.RestxException;
 
 public class JavaScriptComponentWrapper extends BaseScriptingComponent
@@ -88,7 +87,7 @@ public class JavaScriptComponentWrapper extends BaseScriptingComponent
 
             // bind the resource parameters before calling the function
             bindings.putAll(resourceParams);
-            return ((Invocable) engine).invokeFunction(methodName, HTTP.GET, args);
+            return ((Invocable) engine).invokeFunction(methodName, args);
         }
         catch (final ScriptException se)
         {
