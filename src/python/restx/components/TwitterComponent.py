@@ -144,8 +144,10 @@ To create the resource, the Twitter account name and password need to be specifi
         # Get my parameters
         if method == HTTP.GET:
             return Result.ok(self.__get_status(self.account_name))
-        else:
+        elif method == HTTP.POST:
             return Result.ok(self.__post_status(self.account_name, self.account_password, input))
+        else:
+            return Result.methodNotAllowed("Only supporting GET and POST for this resource")
 
     def timeline(self, method, input, count, filter):
         """

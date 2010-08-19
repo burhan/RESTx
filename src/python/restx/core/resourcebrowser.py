@@ -60,6 +60,11 @@ def content_type_match(possible_types, accepted_types):
     @rtype:                     string
 
     """
+    if not accepted_types  or  accepted_types[0] == "*/*":
+        # If no specific content type was defined with 'Accept' then
+        # we will just assume the first one of our specified output types.
+        return possible_types[0]
+
     for atype in accepted_types:
         if atype in possible_types:
             return atype
@@ -67,15 +72,20 @@ def content_type_match(possible_types, accepted_types):
     raise RestxNotAcceptableException()
 
 
-def get_request_query_dict(request):
+def get_request_query_dict(request, only_params_list=None):
         """
         Return a dictionary of the parsed query arguments.
         
-        @param request:    The request object.
-        @type request:     RestxHttpRequest
+        @param request:           The request object.
+        @type  request:           RestxHttpRequest
+
+        @param only_params_list:  Optional list of parameter names. When specified
+                                  then we will ignore all parameters that are not
+                                  in this list.
+        @type  only_params_list:  list
         
-        @return:  Dictionary with query arguments.
-        @rtype:   dict
+        @return:                  Dictionary with query arguments.
+        @rtype:                   dict
         
         """
         query_string = request.getRequestQuery()
@@ -83,6 +93,8 @@ def get_request_query_dict(request):
             # Parse the query string apart and put values into a dictionary
             runtime_param_dict = dict([elem.split("=") if "=" in elem else (elem, None) \
                                                        for elem in query_string.split("&")])
+            if only_params_list:
+                runtime_param_dict = dict([ (key, value) for (key, value) in runtime_param_dict.items() if key in only_params_list ])
         else:
             runtime_param_dict = dict()
         return runtime_param_dict
@@ -189,10 +201,7 @@ class ResourceBrowser(BaseBrowser):
                 # and call this service function.
                 #
                 
-                # This service has some possible runtime parameters defined.
-                runtime_param_dict = get_request_query_dict(self.request)
-
-                service_name      = path_elems[1]
+                service_name       = path_elems[1]
 
                 # Get the supported output content types for this service method
                 requested_content_types = self.request.preferredContentTypes()
@@ -200,6 +209,18 @@ class ResourceBrowser(BaseBrowser):
                     service_def             = complete_resource_def['public']['services'][service_name]
                 except KeyError, e:
                     raise RestxResourceNotFoundException("Cannot find '%s'." % service_name)
+
+                # This service has some possible runtime parameters defined.
+                # We pass this service definition's parameter list in, since that
+                # means we are filtering out all those parameters that we are
+                # not expecting.
+                service_params = service_def.get('params')
+                if service_params:
+                    only_params = service_params.keys()
+                else:
+                    only_params = None
+                runtime_param_dict = get_request_query_dict(self.request, only_params)
+
                 possible_output_types   = service_def.get('output_types')
                 if not possible_output_types:
                     # If the service method didn't define any type(s) then we just
@@ -221,7 +242,10 @@ class ResourceBrowser(BaseBrowser):
                                                           resource_name, service_name, positional_params,
                                                           runtime_param_dict, input, self.request,
                                                           http_method)
-                    result.setNegotiatedContentType(matched_type)
+                    if result == None  or  type(result) is not Result:
+                        result = Result.noContent()
+                    else:
+                        result.setNegotiatedContentType(matched_type)
                 except RestxException, e:
                     result = Result(e.code, e.msg)
                 except Exception, e:
