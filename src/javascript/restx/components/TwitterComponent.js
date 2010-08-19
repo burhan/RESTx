@@ -11,10 +11,10 @@ this.parameters = {
 this.description = "Provides access to a Twitter account."
 
 this.documentation = "The Twitter component is designed to provide access to a Twitter account.\n"
-              + "It can be used to get as well as update status, or to view the timeline of a Twitter account.\n"
-              + "To create the resource, the Twitter account name and password need to be specified.\n"
+                   + "It can be used to get as well as update status, or to view the timeline of a Twitter account.\n"
+                   + "To create the resource, the Twitter account name and password need to be specified.\n"
 
-// TODO add a profile image sercixe
+// TODO add a profile image service: profile_image_url
        
 /*
  * "Status" Service

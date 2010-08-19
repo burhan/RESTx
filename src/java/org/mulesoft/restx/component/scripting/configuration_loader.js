@@ -23,7 +23,8 @@ function nz(value, defaultValue) {
 }
 
 function toList(array) {
-    return array == undefined ? null : java.util.Arrays.asList(array)
+    // TODO remove this when RESTx can handle Lists directly
+    return array == undefined ? null : new java.util.ArrayList(java.util.Arrays.asList(array))
 }
 
 function getParameterDef(type, description, required, defaultValue) {
