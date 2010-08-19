@@ -58,12 +58,12 @@ def __javaStructToPython(hm):
     start to export them as strings.
     
     """
-    if type(hm) is Map:
+    if type(hm) is HashMap:
         d2 = dict()
         for key in hm.keySet():
             val = hm.get(key)
             d2[key] = __javaStructToPython(val)
-    elif type(hm) is List:
+    elif type(hm) is ArrayList:
         d2 = list()
         for val in hm:
             d2.append(__javaStructToPython(val))
