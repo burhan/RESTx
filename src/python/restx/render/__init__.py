@@ -32,12 +32,14 @@ You can import these classes straight from module level:
 from restx.render.htmlrenderer     import HtmlRenderer
 from restx.render.jsonrenderer     import JsonRenderer
 from restx.render.wwwformrenderer  import WwwFormRenderer
+from restx.render.textrenderer     import TextRenderer
 
 # Add new renderers here...
 KNOWN_RENDERERS = {
     ""                                   : HtmlRenderer,
     "*/*"                                : HtmlRenderer,
     "text/html"                          : HtmlRenderer,
+    "text/plain"                         : TextRenderer,
     "application/json"                   : JsonRenderer,
     "application/x-www-form-urlencoded"  : WwwFormRenderer,
 }

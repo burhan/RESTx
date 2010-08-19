@@ -86,6 +86,11 @@ public class Result
         return new Result(HTTP.UNAUTHORIZED, message);
     }
 
+    public static Result methodNotAllowed(String message)
+    {
+        return new Result(HTTP.METHOD_NOT_ALLOWED, message);
+    }
+
     public static Result noContent()
     {
         return new Result(HTTP.NO_CONTENT, null);
