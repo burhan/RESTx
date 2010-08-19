@@ -15,8 +15,7 @@
  * 
  *  You should have received a copy of the GNU General Public License 
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
- */ 
-
+ */
 
 package org.mulesoft.restx.exception;
 
@@ -24,15 +23,15 @@ import org.mulesoft.restx.component.api.HTTP;
 
 public class RestxMandatoryParameterMissingException extends RestxException
 {
+    private static final long serialVersionUID = -4416078320919224064L;
+
     public RestxMandatoryParameterMissingException()
     {
         this("Mandatory parameter missing");
     }
-    
+
     public RestxMandatoryParameterMissingException(String message)
     {
         super(HTTP.BAD_REQUEST, message);
     }
 }
-
-

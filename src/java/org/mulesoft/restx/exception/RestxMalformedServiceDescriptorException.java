@@ -15,8 +15,7 @@
  * 
  *  You should have received a copy of the GNU General Public License 
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
- */ 
-
+ */
 
 package org.mulesoft.restx.exception;
 
@@ -24,15 +23,15 @@ import org.mulesoft.restx.component.api.HTTP;
 
 public class RestxMalformedServiceDescriptorException extends RestxException
 {
+    private static final long serialVersionUID = -7834826748057741650L;
+
     public RestxMalformedServiceDescriptorException()
     {
         this("Malformed service descriptor");
     }
-    
+
     public RestxMalformedServiceDescriptorException(String message)
     {
         super(HTTP.INTERNAL_SERVER_ERROR, message);
     }
 }
-
-

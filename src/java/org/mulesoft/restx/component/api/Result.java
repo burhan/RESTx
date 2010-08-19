@@ -15,12 +15,9 @@
  * 
  *  You should have received a copy of the GNU General Public License 
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
- */ 
-
+ */
 
 package org.mulesoft.restx.component.api;
-
-import org.mulesoft.restx.exception.*;
 
 import java.util.HashMap;
 
@@ -29,61 +26,61 @@ import java.util.HashMap;
  */
 public class Result
 {
-    private int                     code;
-    private Object                  data;
+    private int code;
+    private Object data;
     private HashMap<String, String> headers;
-    private String                  negotiatedType;
+    private String negotiatedType;
 
-    
     public Result(int code, Object data)
     {
-        this.code           = code;
-        this.data           = data;
-        this.headers        = null;
+        this.code = code;
+        this.data = data;
+        this.headers = null;
         this.negotiatedType = null;
     }
-    
+
     public Result addHeader(String name, String value)
     {
-        if (headers == null) {
+        if (headers == null)
+        {
             headers = new HashMap<String, String>();
         }
         headers.put(name, value);
         return this;
     }
-    
+
     public static Result ok()
     {
         return new Result(HTTP.OK, null);
     }
-    
+
     public static Result ok(Object data)
     {
         return new Result(HTTP.OK, data);
     }
-    
+
     public static Result created(String uri)
     {
         return created(uri, null);
     }
-    
+
     public static Result created(String uri, Object obj)
     {
-        Result res = new Result(HTTP.CREATED, obj);
+        final Result res = new Result(HTTP.CREATED, obj);
         res.addHeader("Location", uri);
         return res;
     }
-    
+
     public static Result notFound(String message)
     {
         return new Result(HTTP.NOT_FOUND, message);
     }
-    
+
     public static Result badRequest(String message)
     {
         return new Result(HTTP.BAD_REQUEST, message);
     }
-    
+
     public static Result unauthorized(String message)
     {
         return new Result(HTTP.UNAUTHORIZED, message);
@@ -98,24 +95,24 @@ public class Result
     {
         return new Result(HTTP.NO_CONTENT, null);
     }
-    
+
     public static Result temporaryRedirect(String uri)
     {
-        Result res = new Result(HTTP.TEMPORARY_REDIRECT, null);
+        final Result res = new Result(HTTP.TEMPORARY_REDIRECT, null);
         res.addHeader("Location", uri);
         return res;
     }
-    
+
     public static Result internalServerError(String message)
     {
         return new Result(HTTP.INTERNAL_SERVER_ERROR, message);
     }
-    
+
     public int getStatus()
     {
         return code;
     }
-    
+
     public void setStatus(int code)
     {
         this.code = code;
@@ -130,22 +127,19 @@ public class Result
     {
         return negotiatedType;
     }
-    
+
     public Object getEntity()
     {
         return data;
     }
-    
+
     public void setEntity(Object data)
     {
         this.data = data;
     }
-    
+
     public HashMap<String, String> getHeaders()
     {
         return headers;
     }
 }
-
-
-

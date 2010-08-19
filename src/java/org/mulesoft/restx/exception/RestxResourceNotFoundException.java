@@ -15,22 +15,21 @@
  * 
  *  You should have received a copy of the GNU General Public License 
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
- */ 
-
+ */
 
 package org.mulesoft.restx.exception;
 
 public class RestxResourceNotFoundException extends RestxFileNotFoundException
 {
+    private static final long serialVersionUID = 1571872425379147865L;
+
     public RestxResourceNotFoundException()
     {
         this("Resource not found");
     }
-    
+
     public RestxResourceNotFoundException(String message)
     {
         super(message);
     }
 }
-
-
