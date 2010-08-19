@@ -45,12 +45,12 @@ if PLATFORM == PLATFORM_JYTHON:
     import java.lang.Exception
     from java.lang import String, Integer, Float
     from java.math import BigDecimal
-    from java.util import HashMap, ArrayList
+    from java.util import HashMap, ArrayList, Map, List
 
 
 def __javaStructToPython(hm):
     """
-    Convert a Java HashMap and ArrayList based structure to a Python dictionary or list.
+    Convert a Java Map and List based structure to a Python dictionary or list.
     
     Sadly, this is not done automatically. So, we recursively
     iterate over everything. Even the Java numeric types are
@@ -58,12 +58,12 @@ def __javaStructToPython(hm):
     start to export them as strings.
     
     """
-    if type(hm) is HashMap:
+    if hasattr(hm, "class")  and  Map in hm.class.interfaces:
         d2 = dict()
         for key in hm.keySet():
             val = hm.get(key)
             d2[key] = __javaStructToPython(val)
-    elif type(hm) is ArrayList:
+    elif hasattr(hm, "class")  and  List in hm.class.interfaces:
         d2 = list()
         for val in hm:
             d2.append(__javaStructToPython(val))
