@@ -42,7 +42,7 @@ public class TestComponent extends BaseComponent
     //@InputType(InputType.NO_INPUT)
     //@InputType(InputType.ANY_INPUT)
     @InputTypes({"application/json", "application/x-www-form-urlencoded"})
-    @OutputTypes({"application/json", "text/html"})
+    @OutputTypes({"application/json", "text/html", "text/plain" })
     @ParamsInReqBody
     public Result foobar(HttpMethod method, Object input,
                          
