@@ -17,14 +17,21 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */ 
 
-//Supporting functions
-function nz(value, defaultValue) {
+// Undefined zapper
+function uz(value, defaultValue) {
     return value == undefined ? defaultValue : value 
 }
 
-function toList(array) {
-    // TODO remove this when RESTx can handle Lists directly
+// Array to List
+function atol(array) {
+    // TODO remove 'new java.util.ArrayList' when RESTx can handle Lists directly
     return array == undefined ? null : new java.util.ArrayList(java.util.Arrays.asList(array))
+}
+
+// Value to List
+function vtol(value) {
+    // TODO remove 'new java.util.ArrayList' when RESTx can handle Lists directly
+    return value == undefined ? null : new java.util.ArrayList(java.util.Collections.singletonList(value))
 }
 
 function getParameterDef(type, description, required, defaultValue) {
@@ -39,9 +46,9 @@ function getParameterDef(type, description, required, defaultValue) {
 
 function getServiceMeta(service) {
     serviceDescriptor = new org.mulesoft.restx.component.api.ServiceDescriptor(service.description,
-                                                                               nz(service.parametersInBody, false),
-                                                                               toList(service.outputTypes),
-                                                                               toList(service.inputTypes))
+                                                                               uz(service.parametersInBody, false),
+                                                                               uz(atol(service.outputTypes), vtol(service.outputType)),
+                                                                               uz(atol(service.inputTypes), vtol(service.inputType)))
     parameters = service.parameters
     parameterNames = new java.util.ArrayList()
     parameterTypes = new java.util.ArrayList()
@@ -53,14 +60,14 @@ function getServiceMeta(service) {
         
         parameterDef = getParameterDef(parameter.type,
                                        parameter.description,
-                                       nz(parameter.required, false),
-                                       nz(parameter.defaultValue, null))
+                                       uz(parameter.required, false),
+                                       uz(parameter.defaultValue, null))
         
         parameterTypes.add(parameterDef.getJavaType())
 
         serviceDescriptor.addParameter(parameterName, parameterDef)
         
-        if (nz(parameter.positional, false)) {
+        if (uz(parameter.positional, false)) {
             positionalParameters.add(parameterName)
         }
     }
@@ -82,8 +89,8 @@ for (parameterName in parameters) {
     componentDescriptor.addParameter(parameterName,
                                      getParameterDef(parameter.type,
                                                      parameter.description,
-                                                     nz(parameter.required, false),
-                                                     nz(parameter.defaultValue, null)))
+                                                     uz(parameter.required, false),
+                                                     uz(parameter.defaultValue, null)))
 }
 
 //Services

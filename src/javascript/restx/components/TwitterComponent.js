@@ -57,7 +57,7 @@ function status(method, input) {
     RESTx.httpSetCredentials(accountName, accountPassword)
     result = RESTx.httpPost("http://api.twitter.com/1/statuses/update.json", "status="+ input)
     
-    return response(function() { return RESULT.ok("Status updated") })
+    return response(function() { return "Status updated" })
   }
   
   switch(method) {
@@ -78,14 +78,46 @@ timeline.parameters  = {
 }
 
 function timeline(method, input, count, filter) {
+  
+  function filterResults(jsonResults) {
+    filteredResults = new java.util.ArrayList()
+    
+    for (i=0; i<jsonResults.size(); i++) {
+      jsonResult = jsonResults.get(i)
+      id = jsonResult.get("id")
+      user = jsonResult.get("user")
+      screenName = user.get("screen_name")
+      
+      filteredUser = new java.util.HashMap()
+      filteredUser.put("screen_name", screenName)
+      filteredUser.put("name", user.get("name"))
+      filteredUser.put("followers", user.get("followers_count"))
+      
+      filteredMessage = new java.util.HashMap()
+      filteredMessage.put("id", id)
+      filteredMessage.put("date", jsonResult.get("created_at"))
+      filteredMessage.put("text", jsonResult.get("text"))
+      filteredMessage.put("reply", "http://twitter.com/?status=@"+screenName+"&in_reply_to_status_id="+id+"&in_reply_to="+screenName)
+      
+      filteredResult = new java.util.HashMap()
+      filteredResult.put("user", filteredUser)
+      filteredResult.put("message", filteredMessage)
+      
+      filteredResults.add(filteredResult)
+    }
+    
+    return filteredResults
+  }
+  
   if (method != HTTP.GET) return RESULT.methodNotAllowed(method)
 
   RESTx.httpSetCredentials(accountName, accountPassword)
   result = RESTx.httpGet("http://api.twitter.com/1/statuses/user_timeline.json?count=" + count)
 
-  // TODO implement filter
-  
-  return response(function() { return RESTx.fromJsonStr(result.data) })
+  return response(function() {
+                    jsonResults = RESTx.fromJsonStr(result.data)
+                    return filter ? filterResults(jsonResults) : jsonResults
+                  })
 }
 
 /*
