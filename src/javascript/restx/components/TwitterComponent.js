@@ -17,25 +17,26 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */ 
 
+ 
 /*
  * A sample component that interacts with Twitter, written in Javascript.
  */
- 
+
 /*
  * Component Meta Information
  */
 this.name = "JsTwitterComponent"
 
-this.parameters = {
-  account_name     : { type: TYPE.STRING, description: "Twitter account name", required: true },
-  account_password : { type: TYPE.PASSWORD, description: "Password", required: true }
-}
-
 this.description = "Provides access to a Twitter account."
 
 this.documentation = "The Twitter component is designed to provide access to a Twitter account.\n"
                    + "It can be used to get as well as update status, or to view the timeline of a Twitter account.\n"
-                   + "To create the resource, the Twitter account name and password need to be specified.\n"
+                   + "To create the resource, the Twitter account name and password need to be specified."
+
+this.parameters = {
+  accountName     : { type: TYPE.STRING, description: "Twitter account name", required: true },
+  accountPassword : { type: TYPE.PASSWORD, description: "Password", required: true }
+}
 
 /*
  * "Status" Service
@@ -47,14 +48,14 @@ status.outputTypes = ["text/plain"]
 function status(method, input) {
   
   function getStatus() {
-    result = RESTx.httpGet("http://api.twitter.com/1/users/show.json?screen_name=" + account_name)
+    result = RESTx.httpGet("http://api.twitter.com/1/users/show.json?screen_name=" + accountName)
     
     return result.status == HTTP.OK ? RESULT.ok(RESTx.fromJsonStr(result.data).get("status").get("text"))
                                     : RESULT.internalServerError("Problem with Twitter: " + result.data)
   }
   
   function postStatus(input) {
-    RESTx.httpSetCredentials(account_name, account_password)
+    RESTx.httpSetCredentials(accountName, accountPassword)
     result = RESTx.httpPost("http://api.twitter.com/1/statuses/update.json", "status="+ input)
     
     return result.status == HTTP.OK ? RESULT.ok("Status updated")
@@ -64,7 +65,7 @@ function status(method, input) {
   switch(method) {
     case HTTP.GET : return getStatus()
     case HTTP.POST: return postStatus(input)
-    default       : throw "Status unsupported method: " + method
+    default       : return RESULT.methodNotAllowed(method)
   }
 }
 
@@ -78,7 +79,7 @@ timeline.parameters = {
 }
 
 function timeline(method, input, count, filter) {
-  if (method != HTTP.GET) throw "Timeline unsupported method: " + method
+  if (method != HTTP.GET) return RESULT.methodNotAllowed(method)
 
   // TODO implement
   return RESULT.ok("fake timeline - count= " + count + " - filter=" + filter)

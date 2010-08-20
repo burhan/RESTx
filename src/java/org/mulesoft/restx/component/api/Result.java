@@ -91,6 +91,11 @@ public class Result
         return new Result(HTTP.METHOD_NOT_ALLOWED, message);
     }
 
+    public static Result methodNotAllowed(HttpMethod httpMethod)
+    {
+        return methodNotAllowed("Method Not Allowed: " + httpMethod);
+    }
+
     public static Result noContent()
     {
         return new Result(HTTP.NO_CONTENT, null);
