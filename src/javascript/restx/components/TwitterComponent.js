@@ -14,13 +14,12 @@ this.documentation = "The Twitter component is designed to provide access to a T
                    + "It can be used to get as well as update status, or to view the timeline of a Twitter account.\n"
                    + "To create the resource, the Twitter account name and password need to be specified.\n"
 
-// TODO add a profile image service: profile_image_url
-       
 /*
  * "Status" Service
  */
 status.description = "You can GET the status or POST a new status to it."
 status.inputTypes = ["text/plain"]
+status.outputTypes = ["text/plain"]
 
 function status(method, input) {
   
