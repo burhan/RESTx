@@ -39,10 +39,10 @@ this.parameters = {
 }
 
 /*
- * "Status" Service
+ * User status Service
  */
 status.description = "You can GET the status or POST a new status to it."
-status.inputTypes = ["text/plain"]
+status.inputTypes  = ["text/plain"]
 status.outputTypes = ["text/plain"]
 
 function status(method, input) {
@@ -50,16 +50,14 @@ function status(method, input) {
   function getStatus() {
     result = RESTx.httpGet("http://api.twitter.com/1/users/show.json?screen_name=" + accountName)
     
-    return result.status == HTTP.OK ? RESULT.ok(RESTx.fromJsonStr(result.data).get("status").get("text"))
-                                    : RESULT.internalServerError("Problem with Twitter: " + result.data)
+    return response(function() { return RESTx.fromJsonStr(result.data).get("status").get("text") })
   }
   
   function postStatus(input) {
     RESTx.httpSetCredentials(accountName, accountPassword)
     result = RESTx.httpPost("http://api.twitter.com/1/statuses/update.json", "status="+ input)
     
-    return result.status == HTTP.OK ? RESULT.ok("Status updated")
-                                    : RESULT.internalServerError("Problem with Twitter: " + result.data)
+    return response(function() { return RESULT.ok("Status updated") })
   }
   
   switch(method) {
@@ -70,18 +68,30 @@ function status(method, input) {
 }
 
 /*
- * "Timeline" Service
+ * User timeline Service
  */
 timeline.description = "You can GET the timeline of the user."
-timeline.parameters = {
-  count  : { type: TYPE.NUMBER, description: "Number of results", required: false, defaultValue: 20},
-  filter : { type: TYPE.BOOLEAN, description: "If set, only 'important' fields are returned", required: false, defaultValue: true}
+timeline.inputType   = NO_INPUT
+timeline.parameters  = {
+  count  : { type: TYPE.NUMBER, description: "Number of results", defaultValue: 20},
+  filter : { type: TYPE.BOOLEAN, description: "If set, only 'important' fields are returned", defaultValue: true}
 }
 
 function timeline(method, input, count, filter) {
   if (method != HTTP.GET) return RESULT.methodNotAllowed(method)
 
-  // TODO implement
-  return RESULT.ok("fake timeline - count= " + count + " - filter=" + filter)
+  RESTx.httpSetCredentials(accountName, accountPassword)
+  result = RESTx.httpGet("http://api.twitter.com/1/statuses/user_timeline.json?count=" + count)
+
+  // TODO implement filter
+  
+  return response(function() { return RESTx.fromJsonStr(result.data) })
 }
 
+/*
+ * Supporting functions
+ */
+function response(successFunction) {
+  return result.status == HTTP.OK ? RESULT.ok(successFunction())
+                                  : RESULT.internalServerError("Problem with Twitter: " + result.status + " " + result.data)
+}
