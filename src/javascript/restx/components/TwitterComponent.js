@@ -1,3 +1,26 @@
+/*      
+ *  RESTx: Sane, simple and effective data publishing and integration. 
+ *  
+ *  Copyright (C) 2010   MuleSoft Inc.    http://www.mulesoft.com 
+ *  
+ *  This program is free software: you can redistribute it and/or modify 
+ *  it under the terms of the GNU General Public License as published by 
+ *  the Free Software Foundation, either version 3 of the License, or 
+ *  (at your option) any later version. 
+ * 
+ *  This program is distributed in the hope that it will be useful, 
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ *  GNU General Public License for more details. 
+ * 
+ *  You should have received a copy of the GNU General Public License 
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ */ 
+
+/*
+ * A sample component that interacts with Twitter, written in Javascript.
+ */
+ 
 /*
  * Component Meta Information
  */
@@ -32,7 +55,7 @@ function status(method, input) {
   
   function postStatus(input) {
     RESTx.httpSetCredentials(account_name, account_password)
-    result = RESTx.httpPost("http://api.twitter.com/1/statuses/update.xml", "status="+ input)
+    result = RESTx.httpPost("http://api.twitter.com/1/statuses/update.json", "status="+ input)
     
     return result.status == HTTP.OK ? RESULT.ok("Status updated")
                                     : RESULT.internalServerError("Problem with Twitter: " + result.data)
@@ -58,6 +81,6 @@ function timeline(method, input, count, filter) {
   if (method != HTTP.GET) throw "Timeline unsupported method: " + method
 
   // TODO implement
-  return RESULT.ok("fake timeline")
+  return RESULT.ok("fake timeline - count= " + count + " - filter=" + filter)
 }
 
