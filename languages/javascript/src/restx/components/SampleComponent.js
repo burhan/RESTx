@@ -46,8 +46,6 @@ this.parameters = {
 someService.description = "This is the XYZ subresource service"
 someService.inputTypes  = ["application/json"]        // Optional: Specify supported input content types. Use inputType for a single value.
 someService.outputTypes = ["text/plain", "text/html"] // Optional: Specify supported output content types. Use outputType for a single value.
-                                                      // NO_INPUT and ANY_INPUT are special values.
-                                                      // ANY_INPUT is the default for both inputTypes and outputTypes.
 
 // Optional: Specify query string parameters
 someService.parameters = {

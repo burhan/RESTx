@@ -71,7 +71,7 @@ function status(method, input) {
  * User timeline Service
  */
 timeline.description = "You can GET the timeline of the user."
-timeline.inputType   = NO_INPUT
+timeline.inputTypes  = []
 timeline.parameters  = {
   count  : { type: TYPE.NUMBER, description: "Number of results", defaultValue: 20},
   filter : { type: TYPE.BOOLEAN, description: "If set, only 'important' fields are returned", defaultValue: true}
