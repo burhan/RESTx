@@ -207,7 +207,7 @@ def __javaServiceMethodProxy(component, request, method, method_name, input, par
         print "Exception in component: ", e.printStackTrace()
         raise RestxException(str(e))
     data = res.getEntity()
-    if type(data) in [ HashMap, ArrayList ]:
+    if hasattr(data, "class")  and  ( Map in data.class.interfaces  or  List in data.class.interfaces ):
         data = __javaStructToPython(data)
         res.setEntity(data)
     return res
