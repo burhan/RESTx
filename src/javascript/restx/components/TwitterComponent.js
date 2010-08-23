@@ -42,8 +42,8 @@ this.parameters = {
  * User status Service
  */
 status.description = "You can GET the status or POST a new status to it."
-status.inputTypes  = ["text/plain"]
-status.outputTypes = ["text/plain"]
+status.inputType   = "text/plain"
+status.outputType  = "text/plain"
 
 function status(method, input) {
   
