@@ -24,14 +24,12 @@ function uz(value, defaultValue) {
 
 // Array to List
 function atol(array) {
-    // TODO remove 'new java.util.ArrayList' when RESTx can handle Lists directly
-    return array == undefined ? null : new java.util.ArrayList(java.util.Arrays.asList(array))
+    return array == undefined ? null : java.util.Arrays.asList(array)
 }
 
 // Value to List
 function vtol(value) {
-    // TODO remove 'new java.util.ArrayList' when RESTx can handle Lists directly
-    return value == undefined ? null : new java.util.ArrayList(java.util.Collections.singletonList(value))
+    return value == undefined ? null : java.util.Collections.singletonList(value)
 }
 
 function getParameterDef(type, description, required, defaultValue) {

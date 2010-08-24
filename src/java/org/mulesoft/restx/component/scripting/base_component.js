@@ -31,13 +31,13 @@ function _isPureObject(obj) {
 
 function _jsDatastructuresToJava(datastructure) {
     if (datastructure instanceof Array) {
-        list = new java.util.ArrayList()
+        var list = new java.util.ArrayList()
         for (i in datastructure) {
             list.add(_jsDatastructuresToJava(datastructure[i]))
         }
         return list
     } else if (_isPureObject(datastructure)) {
-        map = new java.util.HashMap()
+        var map = new java.util.HashMap()
         for (k in datastructure) {
             map.put(k, _jsDatastructuresToJava(datastructure[k]))
         }
