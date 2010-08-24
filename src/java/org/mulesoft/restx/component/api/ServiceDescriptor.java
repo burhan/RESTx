@@ -72,7 +72,7 @@ public class ServiceDescriptor
         }
         else
         {
-            return new ArrayList<String>(outputTypes);
+            return outputTypes;
         }
     }
 
@@ -84,7 +84,7 @@ public class ServiceDescriptor
         }
         else
         {
-            return new ArrayList<String>(inputTypes);
+            return inputTypes;
         }
     }
 
