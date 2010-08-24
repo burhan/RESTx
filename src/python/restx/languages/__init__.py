@@ -58,12 +58,12 @@ def __javaStructToPython(hm):
     start to export them as strings.
     
     """
-    if hasattr(hm, "class")  and  Map in hm.class.interfaces:
+    if isinstance(hm, Map):
         d2 = dict()
         for key in hm.keySet():
             val = hm.get(key)
             d2[key] = __javaStructToPython(val)
-    elif hasattr(hm, "class")  and  List in hm.class.interfaces:
+    elif isinstance(hm, List):
         d2 = list()
         for val in hm:
             d2.append(__javaStructToPython(val))
@@ -207,7 +207,7 @@ def __javaServiceMethodProxy(component, request, method, method_name, input, par
         print "Exception in component: ", e.printStackTrace()
         raise RestxException(str(e))
     data = res.getEntity()
-    if hasattr(data, "class")  and  ( Map in data.class.interfaces  or  List in data.class.interfaces ):
+    if isinstance(data, Map)  or  isinstance(data, List):
         data = __javaStructToPython(data)
         res.setEntity(data)
     return res
