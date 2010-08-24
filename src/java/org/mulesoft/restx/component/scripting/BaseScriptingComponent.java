@@ -20,9 +20,10 @@
 package org.mulesoft.restx.component.scripting;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.net.URISyntaxException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 import javax.script.Bindings;
 import javax.script.ScriptEngine;
@@ -40,47 +41,41 @@ public abstract class BaseScriptingComponent extends BaseComponent
 {
     private final ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
 
-    private File componentScriptFile;
-
     private ScriptEngine scriptEngine;
 
-    protected File getComponentScriptFile()
+    private File getComponentScriptFile()
     {
-        if (componentScriptFile == null)
-        {
-            componentScriptFile = new File(Settings.getRootDir() + instanceConf.get("path"));
-        }
-
-        return componentScriptFile;
+        return new File(Settings.getRootDir() + instanceConf.get("path"));
     }
 
     protected Object evaluateComponent(Bindings bindings) throws RestxException
     {
-        return evaluate(bindings, getComponentScriptFile());
-    }
-
-    protected Object evaluateResource(Bindings bindings, String resourceName) throws RestxException
-    {
         try
         {
-            return evaluate(bindings, new File(getClass().getResource(resourceName).toURI()));
-        }
-        catch (final URISyntaxException urise)
-        {
-            throw new RestxException(urise.getMessage());
-        }
-    }
-
-    private Object evaluate(Bindings bindings, File scriptFile) throws RestxException
-    {
-        try
-        {
-            final ScriptEngine engine = getScriptEngine();
-            return engine.eval(new FileReader(scriptFile), bindings);
+            return evaluate(bindings, getComponentCodeInputStream());
         }
         catch (final FileNotFoundException fnfe)
         {
             throw new RestxException(fnfe.getMessage());
+        }
+    }
+
+    protected InputStream getComponentCodeInputStream() throws FileNotFoundException
+    {
+        return new FileInputStream(getComponentScriptFile());
+    }
+
+    protected Object evaluateResource(Bindings bindings, String resourceName) throws RestxException
+    {
+        return evaluate(bindings, getClass().getResourceAsStream(resourceName));
+    }
+
+    private Object evaluate(Bindings bindings, InputStream inputStream) throws RestxException
+    {
+        try
+        {
+            final ScriptEngine engine = getScriptEngine();
+            return engine.eval(new InputStreamReader(inputStream), bindings);
         }
         catch (final ScriptException se)
         {

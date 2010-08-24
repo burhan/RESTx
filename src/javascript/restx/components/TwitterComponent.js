@@ -80,30 +80,26 @@ timeline.parameters  = {
 function timeline(method, input, count, filter) {
   
   function filterResults(jsonResults) {
-    filteredResults = new java.util.ArrayList()
+    filteredResults = []
     
     for (i=0; i<jsonResults.size(); i++) {
       jsonResult = jsonResults.get(i)
       id = jsonResult.get("id")
+
       user = jsonResult.get("user")
       screenName = user.get("screen_name")
       
-      filteredUser = new java.util.HashMap()
-      filteredUser.put("screen_name", screenName)
-      filteredUser.put("name", user.get("name"))
-      filteredUser.put("followers", user.get("followers_count"))
+      filteredResult = {
+	user   : {screen_name: screenName,
+		  name: user.get("name"),
+		  followers: user.get("followers_count")},
+	message: {id: id,
+		  date: jsonResult.get("created_at"),
+		  text: jsonResult.get("text"),
+		  reply: "http://twitter.com/?status=@"+screenName+"&in_reply_to_status_id="+id+"&in_reply_to="+screenName}
+	}
       
-      filteredMessage = new java.util.HashMap()
-      filteredMessage.put("id", id)
-      filteredMessage.put("date", jsonResult.get("created_at"))
-      filteredMessage.put("text", jsonResult.get("text"))
-      filteredMessage.put("reply", "http://twitter.com/?status=@"+screenName+"&in_reply_to_status_id="+id+"&in_reply_to="+screenName)
-      
-      filteredResult = new java.util.HashMap()
-      filteredResult.put("user", filteredUser)
-      filteredResult.put("message", filteredMessage)
-      
-      filteredResults.add(filteredResult)
+      filteredResults[filteredResults.length] = filteredResult
     }
     
     return filteredResults

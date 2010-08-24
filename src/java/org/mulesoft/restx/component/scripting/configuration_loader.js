@@ -97,7 +97,7 @@ for (parameterName in parameters) {
 this.paramOrder = new java.util.HashMap()
 this.paramTypes = new java.util.HashMap()
 
-for (var functionName in this) {
+for (functionName in this) {
     // Any local function with a description is considered to be a Service
     if (typeof this[functionName] == 'function' && this.hasOwnProperty(functionName) && this[functionName].description != undefined) {
         serviceMeta = getServiceMeta(this[functionName])

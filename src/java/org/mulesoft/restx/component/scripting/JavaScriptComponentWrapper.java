@@ -19,6 +19,9 @@
 
 package org.mulesoft.restx.component.scripting;
 
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.SequenceInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,6 +45,14 @@ public class JavaScriptComponentWrapper extends BaseScriptingComponent
     protected ScriptEngine newScriptEngine(ScriptEngineManager scriptEngineManager)
     {
         return scriptEngineManager.getEngineByName("javascript");
+    }
+
+    @Override
+    protected InputStream getComponentCodeInputStream() throws FileNotFoundException
+    {
+        // for JS, we wire in a base_component with helper functions
+        return new SequenceInputStream(getClass().getResourceAsStream("base_component.js"),
+            super.getComponentCodeInputStream());
     }
 
     @SuppressWarnings("unchecked")
@@ -85,7 +96,13 @@ public class JavaScriptComponentWrapper extends BaseScriptingComponent
 
             // bind the resource parameters before calling the function
             bindings.putAll(resourceParams);
-            return ((Invocable) engine).invokeFunction(methodName, args);
+            final Invocable invocable = (Invocable) engine;
+            final Object jsResult = invocable.invokeFunction(methodName, args);
+
+            // post process the result to transform native JS objects into Java data
+            // structures
+            final Object result = invocable.invokeFunction("_postProcessResult", jsResult);
+            return result;
         }
         catch (final ScriptException se)
         {
