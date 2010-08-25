@@ -24,7 +24,6 @@ import java.io.InputStream;
 import java.io.SequenceInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 
 import javax.script.Bindings;
 import javax.script.Invocable;
@@ -37,10 +36,12 @@ import javax.script.SimpleBindings;
 import org.mulesoft.restx.component.api.ComponentDescriptor;
 import org.mulesoft.restx.exception.RestxException;
 
+/**
+ * Handler for JavaScript components that acts as a wrapper around the script and
+ * connects it to the RESTx host infrastructure.
+ */
 public class JavaScriptComponentWrapper extends BaseScriptingComponent
 {
-    private Map<String, Object> resourceParams;
-
     @Override
     protected ScriptEngine newScriptEngine(ScriptEngineManager scriptEngineManager)
     {
@@ -50,20 +51,15 @@ public class JavaScriptComponentWrapper extends BaseScriptingComponent
     @Override
     protected InputStream getComponentCodeInputStream() throws FileNotFoundException
     {
-        // for JS, we wire in a base_component with helper functions
+        // for JS, we wire-in a base_component with helper functions
         return new SequenceInputStream(getClass().getResourceAsStream("base_component.js"),
             super.getComponentCodeInputStream());
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    protected void initialiseComponentDescriptor() throws RestxException
+    protected ComponentDescriptor getComponentDescriptor() throws RestxException
     {
-        if (componentDescriptor != null)
-        {
-            return;
-        }
-
         final Bindings bindings = new SimpleBindings();
         addCommonBindings(bindings);
 
@@ -71,23 +67,20 @@ public class JavaScriptComponentWrapper extends BaseScriptingComponent
         evaluateComponent(bindings);
 
         // extract a component descriptor out of these bindings
-        evaluateResource(bindings, "configuration_loader.js");
+        evaluateEmbeddedScript(bindings, "configuration_loader.js");
 
-        componentDescriptor = (ComponentDescriptor) bindings.get("componentDescriptor");
         paramOrder = (HashMap<String, ArrayList<String>>) bindings.get("paramOrder");
         paramTypes = (HashMap<String, ArrayList<Class<?>>>) bindings.get("paramTypes");
+
+        return (ComponentDescriptor) bindings.get("componentDescriptor");
     }
 
-    public void _setResourceParams(Map<String, Object> resourceParams)
-    {
-        this.resourceParams = resourceParams;
-    }
-
+    @Override
     public Object _serviceMethodDispatch(String methodName, Object[] args) throws RestxException
     {
         try
         {
-            final ScriptEngine engine = getScriptEngine();
+            final ScriptEngine engine = getOrCreateScriptEngine();
             final Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
             addCommonBindings(bindings);
 
