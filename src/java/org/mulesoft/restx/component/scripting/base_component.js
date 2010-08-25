@@ -48,10 +48,6 @@ function _jsDatastructuresToJava(datastructure) {
 }
 
 function _postProcessResult(result) {
-    if (!(result instanceof org.mulesoft.restx.component.api.Result)) {
-        return _jsDatastructuresToJava(result)
-    }
-    
     result.setEntity(_jsDatastructuresToJava(result.getEntity()))
     return result
 }
