@@ -1,5 +1,5 @@
-
 This is RESTx.
+==============
 
 The fastest way to create RESTful resourcs.
 
@@ -7,17 +7,17 @@ The fastest way to create RESTful resourcs.
 
 For full documentation please visit:
 
-    http://restx.mulesoft.com
+    <http://restx.mulesoft.com>
 
 
 For Windows installation instructions, please see: 
 
-    http://restx.mulesoft.org/installing-and-running-windows
+    <http://restx.mulesoft.org/installing-and-running-windows>
 
 
 For the quick start guide, please see:
 
-    http://restx.mulesoft.org/quick-start-guide
+    <http://restx.mulesoft.org/quick-start-guide>
 
 
 Please see 'INSTALL.txt' for installation instructions.
@@ -27,7 +27,8 @@ Please see 'LICENSE.txt' for the GPLv3 license text.
 
 
 Files
-=====
+-----
+
 You can see the following files and directories:
 
 install.sh      The installation script for Linux/Unix. It performs necessary
@@ -54,7 +55,9 @@ src/python      Contains the Python code (this includes some test utilities).
                 The restx/ directory there contains most of the code. starter.py
                 and restxjson.py are the exception.
 
-src/java        Contains the java code.
+src/java        Contains the Java code.
+
+src/javascript  Contains the JavaScript code.
 
 src/python/starter.py  The start script for the RESTx server. No need to call it
                 directly. The restxctl script performs all the necessary steps
@@ -63,7 +66,7 @@ src/python/starter.py  The start script for the RESTx server. No need to call it
 src/python/restx/settings.py  A settings file in which values like the port or
                 document root can be set.
 
-static_files/   The directory from where the RESTx erver can serve static files.
+static_files/   The directory from where the RESTx server can serve static files.
 
 resourceDB/     This is where the RESTx server stores resource definitions.
 
