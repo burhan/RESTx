@@ -22,6 +22,7 @@ package org.mulesoft.restx.clientapi;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Represents information about a service of a RESTx component or resource. This
@@ -72,9 +73,10 @@ public class RestxService
             if (pdict != null)
             {
                 parameters = new HashMap<String, RestxParameter>();
-                for (final String pname : pdict.keySet())
+                for (final Entry<String, Map<String, ?>> pdictEntry : pdict.entrySet())
                 {
-                    parameters.put(pname, new RestxParameter(pname, pdict.get(pname)));
+                    parameters.put(pdictEntry.getKey(), new RestxParameter(pdictEntry.getKey(),
+                        pdictEntry.getValue()));
                 }
             }
             else
