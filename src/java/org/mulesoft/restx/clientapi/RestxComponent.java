@@ -21,6 +21,7 @@ package org.mulesoft.restx.clientapi;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Client-side representation of a component on a RESTx server. This can be used by
@@ -71,15 +72,16 @@ public class RestxComponent
             description = (String) cdesc.get(DESC_KEY);
             docUri = (String) cdesc.get(DOC_KEY);
             uri = (String) cdesc.get(URI_KEY);
-            final Map<String, ?> pdict = (Map<String, ?>) cdesc.get(PARAMS_KEY);
-            final Map<String, ?> sdict = (Map<String, ?>) cdesc.get(SERVICES_KEY);
+            final Map<String, Map<String, ?>> pdict = (Map<String, Map<String, ?>>) cdesc.get(PARAMS_KEY);
+            final Map<String, Map<String, ?>> sdict = (Map<String, Map<String, ?>>) cdesc.get(SERVICES_KEY);
 
             // Parse the parameter dictionary and attempt to translate
             // this into a dictionary of proper RestxParameter objects.
             parameters = new HashMap<String, RestxParameter>();
-            for (final String pname : pdict.keySet())
+            for (final Entry<String, Map<String, ?>> pdictEntry : pdict.entrySet())
             {
-                parameters.put(pname, new RestxParameter(pname, (Map<String, ?>) pdict.get(pname)));
+                parameters.put(pdictEntry.getKey(), new RestxParameter(pdictEntry.getKey(),
+                    pdictEntry.getValue()));
             }
 
             // Set the resource creation time parameters, which
@@ -95,9 +97,10 @@ public class RestxComponent
             // Parse the services dictionary and attempt to translate
             // this into a dictionary of proper RestxService objects.
             services = new HashMap<String, RestxService>();
-            for (final String sname : sdict.keySet())
+            for (final Entry<String, Map<String, ?>> sdictEntry : sdict.entrySet())
             {
-                services.put(sname, new RestxService(sname, (Map<String, ?>) sdict.get(sname)));
+                services.put(sdictEntry.getKey(),
+                    new RestxService(sdictEntry.getKey(), sdictEntry.getValue()));
             }
         }
         catch (final Exception e)
