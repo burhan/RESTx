@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.json.JSONException;
 import org.mulesoft.restx.ResourceAccessorInterface;
@@ -439,12 +440,12 @@ public abstract class BaseComponent
         }
     }
 
-    private Map<String, Object> changeParamsToPlainDict(Map<String, ParameterDef> paramDict)
+    private Map<String, Object> changeParamsToPlainDict(Map<String, ParameterDef> params)
     {
         final HashMap<String, Object> d = new HashMap<String, Object>();
-        for (final String name : paramDict.keySet())
+        for (final Entry<String, ParameterDef> param : params.entrySet())
         {
-            d.put(name, paramDict.get(name).asDict());
+            d.put(param.getKey(), param.getValue().asDict());
         }
         return d;
     }
@@ -562,18 +563,18 @@ public abstract class BaseComponent
 
                 if (params != null)
                 {
-                    for (final String pname : params.keySet())
+                    for (final Entry<String, Object> param : params.entrySet())
                     {
-                        Object param = params.get(pname);
-                        if (param instanceof ParameterDef)
+                        final Object paramValue = param.getValue();
+                        if (paramValue instanceof ParameterDef)
                         {
                             // Need the type check since we may have constructed the
                             // representation from storage, rather than in memory.
                             // If it's from storage then we don't have ParameterDefs
                             // in this dictionary here, so we don't need to convert
                             // anything.
-                            param = ((ParameterDef) param).asDict();
-                            params.put(pname, param);
+                            final HashMap<String, Object> paramValueAsDict = ((ParameterDef) paramValue).asDict();
+                            params.put(param.getKey(), paramValueAsDict);
                         }
                     }
                 }
