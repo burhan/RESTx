@@ -161,8 +161,14 @@ public class RestxServer
             {
                 conn.setDoOutput(true);
                 final OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
-                wr.write(data);
-                wr.flush();
+                try
+                {
+                    wr.write(data);
+                }
+                finally
+                {
+                    wr.close();
+                }
             }
 
             // Get the response

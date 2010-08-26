@@ -15,13 +15,12 @@
  * 
  *  You should have received a copy of the GNU General Public License 
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
- */ 
+ */
 
 package org.mulesoft.restx.util;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 /*
@@ -32,14 +31,21 @@ import java.io.IOException;
  */
 public class RawFileReader
 {
-    public byte[] readFile(String fname) throws FileNotFoundException, IOException
+    public byte[] readFile(String fname) throws IOException
     {
-        int len = (int)(new File(fname).length());
-        byte[] bb = new byte[len];
-        FileInputStream fs = new FileInputStream(fname);
-        fs.read(bb, 0, len);
+        final int len = (int) (new File(fname).length());
+        final byte[] bb = new byte[len];
+        final FileInputStream fs = new FileInputStream(fname);
+
+        try
+        {
+            fs.read(bb, 0, len);
+        }
+        finally
+        {
+            fs.close();
+        }
+
         return bb;
     }
 }
-
-
