@@ -7,17 +7,17 @@ The fastest way to create RESTful resourcs.
 
 For full documentation please visit:
 
-    <http://restx.mulesoft.com>
+    http://restx.mulesoft.com
 
 
 For Windows installation instructions, please see: 
 
-    <http://restx.mulesoft.org/installing-and-running-windows>
+    http://restx.mulesoft.org/installing-and-running-windows
 
 
 For the quick start guide, please see:
 
-    <http://restx.mulesoft.org/quick-start-guide>
+    http://restx.mulesoft.org/quick-start-guide
 
 
 Please see 'INSTALL.txt' for installation instructions.
