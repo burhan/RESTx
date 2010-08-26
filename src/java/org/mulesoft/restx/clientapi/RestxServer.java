@@ -200,7 +200,7 @@ public class RestxServer
             }
             return new HttpResult(conn.getResponseCode(), buf.toString());
         }
-        catch (final Exception e)
+        catch (final IOException e)
         {
             if (conn != null)
             {
@@ -460,18 +460,20 @@ public class RestxServer
     {
         final HttpResult res = jsonSend(uri, null, null, 200, null);
         @SuppressWarnings("unchecked")
-        final Map<String, Map<String, String>> hm = (Map<String, Map<String, String>>) res.data;
+        final Map<String, Map<String, String>> namedResources = (Map<String, Map<String, String>>) res.data;
 
         // Store the dictionary we get from the server in a hash map
         // that uses the DescUriHolder class.
-        final HashMap<String, DescUriHolder> data = new HashMap<String, DescUriHolder>();
-        for (final String name : hm.keySet())
+        final HashMap<String, DescUriHolder> namedDuhs = new HashMap<String, DescUriHolder>();
+
+        for (final Entry<String, Map<String, String>> namedResource : namedResources.entrySet())
         {
-            final Map<String, String> elem = hm.get(name);
+            final Map<String, String> elem = namedResource.getValue();
             final DescUriHolder duh = new DescUriHolder(elem.get(DESCURI_DESC_KEY), elem.get(DESCURI_URI_KEY));
-            data.put(name, duh);
+            namedDuhs.put(namedResource.getKey(), duh);
         }
-        return data;
+
+        return namedDuhs;
     }
 
     /*******************************************************************
