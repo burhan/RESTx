@@ -15,85 +15,90 @@
  * 
  *  You should have received a copy of the GNU General Public License 
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
- */ 
-
+ */
 
 package org.mulesoft.restx.component;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import org.mulesoft.restx.component.BaseComponent;
-import org.mulesoft.restx.component.api.*;
-import org.mulesoft.restx.exception.*;
+import org.mulesoft.restx.component.api.ComponentInfo;
+import org.mulesoft.restx.component.api.Default;
+import org.mulesoft.restx.component.api.HttpMethod;
+import org.mulesoft.restx.component.api.HttpResult;
+import org.mulesoft.restx.component.api.InputTypes;
+import org.mulesoft.restx.component.api.MakeResourceResult;
+import org.mulesoft.restx.component.api.OutputTypes;
+import org.mulesoft.restx.component.api.Parameter;
+import org.mulesoft.restx.component.api.ParamsInReqBody;
+import org.mulesoft.restx.component.api.Result;
+import org.mulesoft.restx.component.api.Service;
+import org.mulesoft.restx.exception.RestxException;
 
-
-@ComponentInfo(name        = "TestComponent",
-               description = "This is a Java test component",
-               doc         = "Here is a doc string")
+@ComponentInfo(name = "TestComponent", description = "This is a Java test component", doc = "Here is a doc string")
 public class TestComponent extends BaseComponent
-{    
-    @Parameter(name="api_key", desc="This is the API key")
-    //@Default("foo foo foo")
+{
+    @Parameter(name = "api_key", desc = "This is the API key")
+    // @Default("foo foo foo")
     public String api_key;
-    
+
     @Service(description = "This is the foobar service")
-    //@InputType(InputType.NO_INPUT)
-    //@InputType(InputType.ANY_INPUT)
+    // @InputType(InputType.NO_INPUT)
+    // @InputType(InputType.ANY_INPUT)
     @InputTypes({"application/json", "application/x-www-form-urlencoded"})
-    @OutputTypes({"application/json", "text/html", "text/plain" })
+    @OutputTypes({"application/json", "text/html", "text/plain"})
     @ParamsInReqBody
-    public Result foobar(HttpMethod method, Object input,
-                         
-                         @Parameter(name="query", desc="This is the query string", positional=true)
-                         @Default("foo")
-                         String     query,
-                         
-                         @Parameter(name="num", desc="The number of results", positional=true)
-                         @Default("10")
-                         BigDecimal num)
+    public Result foobar(HttpMethod method,
+                         Object input,
+                         @Parameter(name = "query", desc = "This is the query string", positional = true) @Default("foo") String query,
+                         @Parameter(name = "num", desc = "The number of results", positional = true) @Default("10") BigDecimal num)
     {
         System.out.println("----------------------------------------------------------");
-        if (input != null) {
+        if (input != null)
+        {
             System.out.println("### input:   " + input.getClass() + " === " + input);
         }
         System.out.println("### method:  " + method.getClass() + " === " + method);
-             
+
         System.out.println("Query parameter: " + query);
         System.out.println("Num parameter:   " + num);
 
         System.out.println("My request headers: " + getRequestHeaders());
         System.out.println("My request header type: " + getRequestHeaders().getClass().getName());
-        
-        HashMap res = new HashMap();
+
+        final Map<String, Object> res = new HashMap<String, Object>();
         res.put("foo", "This is a test");
-        HashMap sub = new HashMap();
+        final Map<String, Object> sub = new HashMap<String, Object>();
         res.put("bar", sub);
         sub.put("some value", 1);
         sub.put("another value", "Some text");
-        ArrayList v = new ArrayList();
+        List<Object> v = new ArrayList<Object>();
         v.add("Blah");
         v.add(12345);
         sub.put("some ArrayList", v);
-        
-        v = new ArrayList();
+
+        v = new ArrayList<Object>();
         v.add("Some text");
         v.add(123);
         v.add(res);
-        
+
         return Result.ok(v);
     }
- 
+
     @Service(description = "Makes another resource")
     public Result maker(HttpMethod method, String input) throws RestxException
     {
-        HashMap params = new HashMap();
+        final Map<String, String> params = new HashMap<String, String>();
         params.put("api_key", "123123");
         params.put("default_search", "java");
 
-        MakeResourceResult res = makeResource("GoogleSearchComponent", "NewResourceName", "Description for my resource", false, params);
-        String resbuf = "Created a resource! Status: " + res.status + " --- Name: " + res.name + " --- URI: " + res.uri;
+        final MakeResourceResult res = makeResource("GoogleSearchComponent", "NewResourceName",
+            "Description for my resource", false, params);
+        final String resbuf = "Created a resource! Status: " + res.status + " --- Name: " + res.name
+                              + " --- URI: " + res.uri;
         return Result.ok(resbuf);
     }
 
@@ -101,7 +106,7 @@ public class TestComponent extends BaseComponent
     public Result blahblah(HttpMethod method, String input)
     {
         HttpResult res;
-        HashMap params = new HashMap();
+        final Map<String, String> params = new HashMap<String, String>();
         params.put("query", "foo");
         res = accessResource("/resource/MyGoogleSearch/search", null, params);
         return new Result(res.status, res.data);
@@ -110,10 +115,8 @@ public class TestComponent extends BaseComponent
     @Service(description = "This returns Japanese message for test")
     public Result japanese(HttpMethod method, String input)
     {
-	// This is a Japanese message (kore wa nihongo no message desu).
-        String message = "\u3053\u308c\u306f\u65e5\u672c\u8a9e\u306e\u30e1\u30c3\u30bb\u30fc\u30b8\u3067\u3059\u3002";
-	return Result.ok(message);
+        // This is a Japanese message (kore wa nihongo no message desu).
+        final String message = "\u3053\u308c\u306f\u65e5\u672c\u8a9e\u306e\u30e1\u30c3\u30bb\u30fc\u30b8\u3067\u3059\u3002";
+        return Result.ok(message);
     }
 }
-
-

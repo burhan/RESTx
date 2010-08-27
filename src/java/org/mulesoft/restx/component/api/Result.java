@@ -49,6 +49,13 @@ public class Result
         return this;
     }
 
+    @Override
+    public String toString()
+    {
+        return "Result [code=" + code + ", data=" + data + ", headers=" + headers + ", negotiatedType="
+               + negotiatedType + "]";
+    }
+
     public static Result ok()
     {
         return new Result(HTTP.OK, null);
@@ -89,6 +96,11 @@ public class Result
     public static Result methodNotAllowed(String message)
     {
         return new Result(HTTP.METHOD_NOT_ALLOWED, message);
+    }
+
+    public static Result methodNotAllowed(HttpMethod httpMethod)
+    {
+        return methodNotAllowed("Method Not Allowed: " + httpMethod);
     }
 
     public static Result noContent()

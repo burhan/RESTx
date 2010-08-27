@@ -17,35 +17,12 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */
 
-package org.mulesoft.restx.util;
+package org.mulesoft.restx.parameter;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-
-/*
- * This raw reader here is used when we read binary data. It's
- * easier to just write this code in Java than to try to deal
- * with implicit conversions when reading things in Python and
- * then passing it on to Java methods.
- */
-public class RawFileReader
+public class ParameterType
 {
-    public byte[] readFile(String fname) throws IOException
-    {
-        final int len = (int) (new File(fname).length());
-        final byte[] bb = new byte[len];
-        final FileInputStream fs = new FileInputStream(fname);
-
-        try
-        {
-            fs.read(bb, 0, len);
-        }
-        finally
-        {
-            fs.close();
-        }
-
-        return bb;
-    }
+    public static final String STRING = "string";
+    public static final String NUMBER = "number";
+    public static final String BOOLEAN = "boolean";
+    public static final String PASSWORD = "password";
 }

@@ -15,8 +15,7 @@
  * 
  *  You should have received a copy of the GNU General Public License 
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
- */ 
-
+ */
 
 package org.mulesoft.restx.parameter;
 
@@ -24,36 +23,37 @@ import java.util.HashMap;
 
 public abstract class ParameterDef
 {
-    public String  ptype;
-    public String  desc;
+    public String ptype;
+    public String desc;
     public boolean required;
-    
+
     public ParameterDef(String ptype, String desc, boolean required)
     {
-        this.ptype    = ptype;
-        this.desc     = desc;
+        this.ptype = ptype;
+        this.desc = desc;
         this.required = required;
     }
-    
+
     public abstract Object getDefaultVal();
-    
+
     public HashMap<String, Object> asDict()
     {
-        HashMap<String, Object> d = new HashMap<String, Object>();
-        
-        d.put("type",     ptype);
-        d.put("desc",     desc);
+        final HashMap<String, Object> d = new HashMap<String, Object>();
+
+        d.put("type", ptype);
+        d.put("desc", desc);
         d.put("required", required);
-        d.put("default",  getDefaultVal());
-        
+        d.put("default", getDefaultVal());
+
         return d;
     }
 
-    public String html_type(String name)   // strange naming? This is called from Python code as well
+    public String html_type(String name) // strange naming? This is called from
+                                         // Python code as well
     {
-        return "<input type=text name="+name+" />";
+        return "<input type=text name=" + name + " />";
     }
 
+    public abstract Class<?> getJavaType();
+
 }
-
-

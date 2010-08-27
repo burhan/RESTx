@@ -21,6 +21,7 @@ package org.mulesoft.restx.clientapi;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Represents information about a resource on a RESTx server. This representation can
@@ -67,9 +68,10 @@ public class RestxResource
             final Map<String, Map<String, ?>> sdict = (Map<String, Map<String, ?>>) rdesc.get(SERVICES_KEY);
 
             services = new HashMap<String, RestxAccessibleService>();
-            for (final String sname : sdict.keySet())
+            for (final Entry<String, Map<String, ?>> sdictEntry : sdict.entrySet())
             {
-                services.put(sname, new RestxAccessibleService(this, sname, sdict.get(sname)));
+                services.put(sdictEntry.getKey(), new RestxAccessibleService(this, sdictEntry.getKey(),
+                    sdictEntry.getValue()));
             }
         }
         catch (final RestxClientException e)

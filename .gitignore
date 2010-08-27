@@ -8,3 +8,11 @@ resourceDB/*
 storageDB/*
 static_files/*
 !static_files/restx/*
+bin/makejars
+bin/restx_start_stop_daemon
+bin/restxcompile
+jython/
+jython_installer.jar
+lib/json.jar
+restxctl
+restx.pid

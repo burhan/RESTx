@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.json.JSONException;
 import org.mulesoft.restx.ResourceAccessorInterface;
@@ -74,8 +75,8 @@ public abstract class BaseComponent
     // this helps our service-method calling proxy to arrange the parameters in
     // the right order - since Java does not allow the **fkwargs notation of named
     // parameters - and also allows us to do the necessary type casting.
-    private Map<String, ArrayList<String>> paramOrder;
-    private Map<String, ArrayList<Class<?>>> paramTypes;
+    protected Map<String, ArrayList<String>> paramOrder;
+    protected Map<String, ArrayList<Class<?>>> paramTypes;
 
     protected Map<String, String> instanceConf;
 
@@ -101,7 +102,7 @@ public abstract class BaseComponent
     {
         if (componentDescriptor == null)
         {
-            annotationParser();
+            initialiseComponentDescriptor();
         }
         return componentDescriptor;
     }
@@ -184,14 +185,14 @@ public abstract class BaseComponent
         return pdef;
     }
 
-    public void annotationParser() throws RestxException
+    protected void initialiseComponentDescriptor() throws RestxException
+
     {
         if (annotationsHaveBeenParsed || componentDescriptor != null)
         {
             return;
         }
         final Class<? extends BaseComponent> myclass = this.getClass();
-
         /*
          * Examine the class annotations to get information about the component.
          */
@@ -269,6 +270,7 @@ public abstract class BaseComponent
                         }
                     }
                 }
+
                 // Looking for output type annotations
                 ArrayList<String> inputTypes = null;
                 if (m.isAnnotationPresent(InputType.class))
@@ -354,7 +356,7 @@ public abstract class BaseComponent
 
     public Map<String, ArrayList<String>> getParameterOrder() throws RestxException
     {
-        annotationParser();
+        initialiseComponentDescriptor();
 
         // Returns the order in which parameters were defined
         return paramOrder;
@@ -362,7 +364,7 @@ public abstract class BaseComponent
 
     public Map<String, ArrayList<Class<?>>> getParameterTypes() throws RestxException
     {
-        annotationParser();
+        initialiseComponentDescriptor();
 
         // Returns the order in which parameters were defined
         return paramTypes;
@@ -438,19 +440,19 @@ public abstract class BaseComponent
         }
     }
 
-    private Map<String, Object> changeParamsToPlainDict(Map<String, ParameterDef> paramDict)
+    private Map<String, Object> changeParamsToPlainDict(Map<String, ParameterDef> params)
     {
         final HashMap<String, Object> d = new HashMap<String, Object>();
-        for (final String name : paramDict.keySet())
+        for (final Entry<String, ParameterDef> param : params.entrySet())
         {
-            d.put(name, paramDict.get(name).asDict());
+            d.put(param.getKey(), param.getValue().asDict());
         }
         return d;
     }
 
     public Map<String, Object> getMetaData() throws RestxException, Exception
     {
-        annotationParser();
+        initialiseComponentDescriptor();
 
         final HashMap<String, Object> d = new HashMap<String, Object>();
 
@@ -481,7 +483,7 @@ public abstract class BaseComponent
     {
         if (componentDescriptor == null)
         {
-            annotationParser();
+            initialiseComponentDescriptor();
         }
         return componentDescriptor.getParamMap();
     }
@@ -528,7 +530,7 @@ public abstract class BaseComponent
 
     public Map<String, Object> _getServices(String resourceBaseUri) throws RestxException
     {
-        annotationParser();
+        initialiseComponentDescriptor();
 
         // Get the base URI for all services. If no resource base URI
         // was defined (can happen when we just look at code meta data)
@@ -561,18 +563,18 @@ public abstract class BaseComponent
 
                 if (params != null)
                 {
-                    for (final String pname : params.keySet())
+                    for (final Entry<String, Object> param : params.entrySet())
                     {
-                        Object param = params.get(pname);
-                        if (param instanceof ParameterDef)
+                        final Object paramValue = param.getValue();
+                        if (paramValue instanceof ParameterDef)
                         {
                             // Need the type check since we may have constructed the
                             // representation from storage, rather than in memory.
                             // If it's from storage then we don't have ParameterDefs
                             // in this dictionary here, so we don't need to convert
                             // anything.
-                            param = ((ParameterDef) param).asDict();
-                            params.put(pname, param);
+                            final HashMap<String, Object> paramValueAsDict = ((ParameterDef) paramValue).asDict();
+                            params.put(param.getKey(), paramValueAsDict);
                         }
                     }
                 }

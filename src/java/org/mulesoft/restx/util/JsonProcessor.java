@@ -45,13 +45,12 @@ public class JsonProcessor
      */
     public static String dumps(Object obj) throws JSONException
     {
-        final Class<?> oclass = obj.getClass();
-        if (oclass == Map.class)
+        if (obj instanceof Map<?, ?>)
         {
             // The JSON library offers a specific class for maps...
             return (new JSONObject(obj)).toString();
         }
-        else if (oclass == Collection.class)
+        else if (obj instanceof Collection<?>)
         {
             // ... and another for arrays.
             return (new JSONArray(obj)).toString();
@@ -84,16 +83,7 @@ public class JsonProcessor
     public static Object loads(String str) throws JSONException
     {
         final JSONTokener t = new JSONTokener(str);
-        Object v = t.nextValue();
-        if (v.getClass() == JSONArray.class)
-        {
-            v = jsonListTranscribe((JSONArray) v);
-        }
-        else if (v.getClass() == JSONObject.class)
-        {
-            v = jsonObjectTranscribe((JSONObject) v);
-        }
-        return v;
+        return transcribe(t.nextValue());
     }
 
     /**
@@ -107,22 +97,15 @@ public class JsonProcessor
     {
         final Map<String, Object> d = new HashMap<String, Object>();
         final String[] nameArray = JSONObject.getNames(obj);
+
         if (nameArray != null)
         {
             for (final String name : JSONObject.getNames(obj))
             {
-                Object o = obj.get(name);
-                if (o.getClass() == JSONArray.class)
-                {
-                    o = jsonListTranscribe((JSONArray) o);
-                }
-                else if (o.getClass() == JSONObject.class)
-                {
-                    o = jsonObjectTranscribe((JSONObject) o);
-                }
-                d.put(name, o);
+                d.put(name, transcribe(obj.get(name)));
             }
         }
+
         return d;
     }
 
@@ -138,17 +121,23 @@ public class JsonProcessor
         final List<Object> l = new ArrayList<Object>();
         for (int i = 0; i < arr.length(); ++i)
         {
-            Object o = arr.get(i);
-            if (o.getClass() == JSONArray.class)
-            {
-                o = jsonListTranscribe((JSONArray) o);
-            }
-            else if (o.getClass() == JSONObject.class)
-            {
-                o = jsonObjectTranscribe((JSONObject) o);
-            }
-            l.add(o);
+            l.add(transcribe(arr.get(i)));
         }
         return l;
+    }
+
+    private static Object transcribe(Object o) throws JSONException
+    {
+        if (o instanceof JSONArray)
+        {
+            return jsonListTranscribe((JSONArray) o);
+        }
+
+        if (o instanceof JSONObject)
+        {
+            return jsonObjectTranscribe((JSONObject) o);
+        }
+
+        return o;
     }
 }

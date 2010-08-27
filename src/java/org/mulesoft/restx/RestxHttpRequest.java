@@ -15,38 +15,54 @@
  * 
  *  You should have received a copy of the GNU General Public License 
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
- */ 
-
+ */
 
 package org.mulesoft.restx;
 
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
+
 import com.sun.net.httpserver.HttpExchange;
 
+@SuppressWarnings("restriction")
 public abstract class RestxHttpRequest
 {
     /*
-     * This is the base class we use for our HttpRequest.
-     * By using a Java base class, we can use the HttpRequest
-     * equally easily in Java as well as Python.
+     * This is the base class we use for our HttpRequest. By using a Java base class,
+     * we can use the HttpRequest equally easily in Java as well as Python.
      */
-    public abstract void    setNativeRequest(HttpExchange nativeRequest);
-    public abstract void    setResponseCode(int code);
-    public abstract void    setResponseBody(String body);
-    public abstract void    setResponseHeader(String name, String value);
-    public abstract void    setResponse(int code, String body);
-    public abstract String  getRequestProtocol();
-    public abstract String  getRequestMethod();
-    public abstract String  getRequestURI();
-    public abstract String  getRequest();
-    public abstract Map<String, List<String>> getRequestHeaders();   // We return a dict() for Python. Python doesn't care.
-    public abstract String  getRequestQuery();
-    public abstract String  getRequestBody();
-    public abstract void    sendResponseHeaders();
-    public abstract void    sendResponseBody();
-    public abstract void    sendResponse();
-    public abstract void    close();    
+    public abstract void setNativeRequest(HttpExchange nativeRequest);
+
+    public abstract void setResponseCode(int code);
+
+    public abstract void setResponseBody(String body);
+
+    public abstract void setResponseHeader(String name, String value);
+
+    public abstract void setResponse(int code, String body);
+
+    public abstract String getRequestProtocol();
+
+    public abstract String getRequestMethod();
+
+    public abstract String getRequestURI();
+
+    public abstract String getRequest();
+
+    public abstract Map<String, List<String>> getRequestHeaders(); // We return a
+                                                                   // dict() for
+                                                                   // Python. Python
+                                                                   // doesn't care.
+
+    public abstract String getRequestQuery();
+
+    public abstract String getRequestBody();
+
+    public abstract void sendResponseHeaders();
+
+    public abstract void sendResponseBody();
+
+    public abstract void sendResponse();
+
+    public abstract void close();
 }
-
-

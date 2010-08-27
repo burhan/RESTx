@@ -25,7 +25,9 @@ __IMPORT_COMPLETE = False
 
 __LANG_PY   = "python"
 __LANG_JAVA = "java"
-__KNOWN_LANGUAGES    = [ __LANG_PY, __LANG_JAVA ]
+__LANG_JAVASCRIPT = "javascript"
+
+__KNOWN_LANGUAGES    = [ __LANG_PY, __LANG_JAVA, __LANG_JAVASCRIPT ]
 
 __MANIFEST_EXTENSION = ".cmfs"
 

@@ -15,25 +15,24 @@
  * 
  *  You should have received a copy of the GNU General Public License 
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
- */ 
-
+ */
 
 package org.mulesoft.restx.parameter;
 
 public class ParameterDefPassword extends ParameterDef
 {
-    private String defaultVal;
+    private final String defaultVal;
 
     public ParameterDefPassword(String desc)
     {
         this(desc, true, null);
     }
-    
+
     public ParameterDefPassword(String desc, String defaultVal)
     {
         this(desc, false, defaultVal);
     }
-    
+
     public ParameterDefPassword(String desc, boolean required, String defaultVal)
     {
         super("password", desc, required);
@@ -45,6 +44,10 @@ public class ParameterDefPassword extends ParameterDef
     {
         return defaultVal;
     }
+
+    @Override
+    public Class<?> getJavaType()
+    {
+        return String.class;
+    }
 }
-
-

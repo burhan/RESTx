@@ -50,6 +50,7 @@ MODULE_NAME_SUFFIX="$9"
 COMPILATION_NEEDED="${10}"
 OPTIONAL_TARGET="${11}"
 OPTIONAL_MODULE="${12}"
+OPTIONAL_IMPORT="${13}"
 
 SAMPLE_COMPONENT="$SAMPLE_COMPONENT_NAME""$LANGUAGE_ENDING"
 
@@ -153,7 +154,13 @@ fi
 #
 # Finalize the manifest file for the component
 #
-echo "module  = $modulename" >> $COMPONENT_CONF_FILE
+if [ "$OPTIONAL_IMPORT" != "" ]; then
+    echo "import  = $OPTIONAL_IMPORT" >> $COMPONENT_CONF_FILE
+    echo "module  = $OPTIONAL_MODULE" >> $COMPONENT_CONF_FILE
+else
+    echo "module  = $modulename" >> $COMPONENT_CONF_FILE
+fi
+
 echo "path    = $manifestpath/$filename" >> $COMPONENT_CONF_FILE
 
 echo -e "Created new component:           $newfile"
