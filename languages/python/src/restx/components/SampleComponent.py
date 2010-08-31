@@ -64,6 +64,8 @@ class SampleComponent(BaseComponent):
                            "some_subresource" : {
                                # A human readable, brief description of the service.
                                "desc" : "This is the XYZ subresource",
+                               # The supported input types. Specify 'None' if no input is allowed.
+                               #"input_types" : None,
                                # The supported output types. Optional. If not provided, JSON and HTML
                                # are default. Can also just be a single type in a single string.
                                "output_types" : [ "application/json", "text/html" ],

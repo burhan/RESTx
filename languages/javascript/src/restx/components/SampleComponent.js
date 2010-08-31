@@ -45,8 +45,8 @@ this.parameters = {
 // ---------------
 // Attach these attributes to the functions you want to be service methods.
 someService.description = "This is the XYZ subresource service"
-someService.inputTypes  = ["application/json"]        // Optional: Specify supported input content types. Use inputType for a single value.
-                                                      //           Specify an empty list here to indicate that no input is allowed.
+//someService.inputTypes  = []                          // Optional: Specify supported input content types. Use inputType for a single value.
+                                                        //           Specify an empty list here to indicate that no input is allowed.
 someService.outputTypes = ["text/plain", "text/html"] // Optional: Specify supported output content types. Use outputType for a single value.
 
 // Optional: Specify query string / URL parameters
