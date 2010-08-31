@@ -107,7 +107,7 @@ public abstract class BaseScriptingComponent extends BaseComponent
     protected final Object evaluateEmbeddedScript(Bindings bindings, String resourceName)
         throws RestxException
     {
-        return evaluate(bindings, getClass().getResourceAsStream(resourceName));
+        return evaluate(bindings, BaseScriptingComponent.class.getResourceAsStream(resourceName));
     }
 
     /**
