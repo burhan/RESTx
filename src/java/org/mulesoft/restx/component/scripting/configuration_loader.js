@@ -78,7 +78,9 @@ function getServiceMeta(service) {
 }
 
 //Base configuration
-this.componentDescriptor = new org.mulesoft.restx.component.api.ComponentDescriptor(name, description, documentation)
+this.componentDescriptor = new org.mulesoft.restx.component.api.ComponentDescriptor(uz(name, null),
+                                                                                    uz(description, null),
+                                                                                    uz(documentation, null))
 
 //Resource parameters
 for (parameterName in parameters) {
