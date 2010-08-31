@@ -65,7 +65,7 @@ function someService(method, input,   // Parameters method and input are always 
   // and accessible libraries.
 
   // -----------------------------------------------
-  // A few global variables are aumatically bound to make 
+  // A few global variables are automatically bound to make 
   // life easier for the component author.
   //
   // RESTx engine:
