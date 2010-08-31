@@ -43,6 +43,13 @@ trap 'rm -f $ENVIRON_TMP_FILE $SCRIPT_COMBINER_TMP_FILE' EXIT SIGHUP SIGINT SIGQ
 # Helper functions
 # ---------------------------------------------
 
+function usage
+{
+    echo "Usage: `basename $0` options"
+    echo "  --java-source-encoding=ENCODING encoding for Java component source files"
+    echo "  --help                          print this help"
+}
+
 function error_report
 {
     echo -e "\nError: "$1"\n"
@@ -130,6 +137,14 @@ function script_combiner {
 # Main program
 # ---------------------------------------------
 
+while [ $# -ge 1 ]; do
+    case $1 in
+        --java-source-encoding=*) encoding=`echo $1 | sed -e 's/--java-source-encoding=//'`;;
+        -h|-help|--help) usage; exit 1; ;;
+    esac
+    shift;
+done
+
 echo -e "\n=== Welcome to the RESTx installer.\n=== (c) 2010 MuleSoft.
 ===
 === Please see LICENSE.TXT for the complete license.
@@ -209,7 +224,7 @@ if [ $? == 1 ]; then
         if [ ! -z "$ui" ]; then
             if [ "$ui" == "y" ]; then
                 if [ -d $DEFAULT_INSTALL_DIR ]; then
-                    read -p "Please specify the Jython install directory or or press enter if you have used default ($DEFAULT_INSTALL_DIR): " install_dir
+                    read -p "Please specify the Jython install directory or press enter if you have used default ($DEFAULT_INSTALL_DIR): " install_dir
                     if [ -z "$install_dir" ]; then
                         install_dir="$DEFAULT_INSTALL_DIR"
                     fi
@@ -390,6 +405,11 @@ echo 'VERSION='$VERSION >> $ENVIRON_TMP_FILE
 #
 echo 'COMPILE_SCRIPT='$RESTX_HOME/$RESTX_BIN_DIR/$COMPILE_SCRIPT >> $ENVIRON_TMP_FILE
 echo 'COMPILE_SCRIPT_NAME='$COMPILE_SCRIPT >> $ENVIRON_TMP_FILE
+if [ -z "$encoding" ]; then
+    echo 'COMPILE_OPTIONS=-nowarn' >> $ENVIRON_TMP_FILE
+else
+    echo 'COMPILE_OPTIONS="-nowarn -encoding '$encoding'"' >> $ENVIRON_TMP_FILE
+fi
 echo 'CTL_SCRIPT_NAME='$CTL_SCRIPT >> $ENVIRON_TMP_FILE
 echo 'PID_FILE='$RESTX_HOME/$PID_FILE >> $ENVIRON_TMP_FILE
 
