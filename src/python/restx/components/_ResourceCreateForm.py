@@ -66,21 +66,13 @@ The user submits the filled-out form and a new resource is created.
                            }
                        }
     
-    def error_return(self, component_name, message, specialized=False):
-        """
-        Sends client back to form page with error message.
-
-        """
-        return Result.temporaryRedirect("%s%s/form/%s?message=%s%s" % (settings.DOCUMENT_ROOT, self.getMyResourceUri(),
-                                                                       component_name, message, "&specialized=y" if specialized else ""))
-
     def create(self, method, input, component_name, specialized=False):
         """
         Accept a resource creation form for a specified component.
 
         """
         if not input:
-            return self.error_return(component_name, "Need form input!", specialized)
+            return self.form(method, None, component_name, "Need form input!", specialized)
 
         d = dict()
         for name, value in input.items():
@@ -97,7 +89,7 @@ The user submits the filled-out form and a new resource is created.
         try:
             ret_msg = makeResource(component_name, d, specialized)
         except RestxException, e:
-            return self.error_return(component_name, e.msg, specialized)
+            return self.form(method, d, component_name, e.msg, specialized)
         
         return Result.ok(ret_msg)
 
@@ -121,6 +113,20 @@ The user submits the filled-out form and a new resource is created.
         @rtype:                 Result
 
         """
+        if input  and  type(input) is dict:
+            # We receive a dict of values if the 'create' method discovered an
+            # error. In that case, the values should be used to pre-populate
+            # the fields when the form is re-displayed (with the error messsage
+            # on top).
+            input_rctp   = input.get('resource_creation_params', dict())   # Resource creation time parameters
+            input_params = input.get('params', dict())                     # Other parameters
+        else:
+            # Only a dict of values is accepted. If we get anything else, we
+            # set this to the empty dict, since that simplifies the code later
+            # on (don't need to switch or check anything).
+            input_rctp   = dict()    # Resource creation time parameters
+            input_params = dict()    # Other parameters
+
         if specialized:
             # Need to read the definition of the partial resource and get the
             # component name from there.
@@ -168,7 +174,7 @@ The user submits the filled-out form and a new resource is created.
 """<tr>
     <td valign=top>%s<br><small>(%s%s)</small></td>
     <td valign=top>%s</td>
-</tr>""" % (pname, pdef.desc, opt_str, pdef.html_type("params__"+pname))
+</tr>""" % (pname, pdef.desc, opt_str, pdef.html_type("params__"+pname, input_params.get(pname)))
 
         if message:
             msg = "<b><i><font color=red>%s</font></i></b><br><p>" % message
@@ -185,26 +191,34 @@ Please enter the resource configuration...<br><p>
 <form name="input" action="%s" method="POST">
     <table>""" % (fname, fdesc, msg, "%s%s/create/%s%s" % (settings.DOCUMENT_ROOT, self.getMyResourceUri(),
                                                            component_name if not specialized else specialized_code_name, "?specialized=y" if specialized else ""))
+        # Gather any initial values of the resource creation time form fields
+        suggested_name_value = input_rctp.get("suggested_name", "")
+        if suggested_name_value:
+            suggested_name_value = 'value="%s" ' % suggested_name_value
+        desc_value           = input_rctp.get("desc", "")
+        if desc_value:
+            desc_value = 'value="%s" ' % desc_value
+        specialized_value    = "checked " if input_rctp.get("specialized") in [ "on", "ON" ] else " "
         if not specialized:
             body += """
         <tr>
             <td>Make this a specialized component:</td>
-            <td><input type="checkbox" id=resource_creation_params__specialized name="resource_creation_params__specialized" /><label for=resource_creation_params__specialized><small>Can only be used as basis for other resources</small></label></td>
+            <td><input type="checkbox" %s id=resource_creation_params__specialized name="resource_creation_params__specialized" /><label for=resource_creation_params__specialized><small>Can only be used as basis for other resources</small></label></td>
         </tr>
-            """
+            """ % specialized_value
         body += """
         <tr>
             <td>Resource name:</td>
-            <td><input type="text" name="resource_creation_params__suggested_name" /></td>
+            <td><input type="text" %sname="resource_creation_params__suggested_name" /></td>
         </tr>
         <tr>
             <td>Description:<br><small>(optional)</small></td>
-            <td><input type="text" name="resource_creation_params__desc" /></td>
+            <td><input type="text" %sname="resource_creation_params__desc" /></td>
         </tr>
         %s
         <tr><td colspan=2 align=center><input type="submit" value="Submit" /></tr></tr>
     </table>
-</form>""" % (param_fields_html)
+</form>""" % (suggested_name_value, desc_value, param_fields_html)
 
         footer = settings.HTML_FOOTER
 

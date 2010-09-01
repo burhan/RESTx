@@ -48,10 +48,15 @@ public abstract class ParameterDef
         return d;
     }
 
-    public String html_type(String name) // strange naming? This is called from
-                                         // Python code as well
+    public String html_type(String name, String initial) // strange naming? This is called from
+                                                         // Python code as well
     {
-        return "<input type=text name=" + name + " />";
+        String init_val = " ";
+        if (initial != null  &&  initial.length() > 0) {
+            init_val = " value=\"" + initial + "\" ";
+        }
+            
+        return "<input type=text name=" + name + init_val + "/>";
     }
 
     public abstract Class<?> getJavaType();

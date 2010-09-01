@@ -46,13 +46,24 @@ public class ParameterDefBoolean extends ParameterDef
     }
 
     @Override
-    public String html_type(String name) // strange naming? This is called from
-                                         // Python code as well
+    public String html_type(String name, String initial) // strange naming? This is called from
+                                                         // Python code as well
     {
-        final String ret = "<label for=" + name + "_yes><input type=radio id=" + name + "_yes name=" + name
+        String yes_value = "";
+        String no_value  = "";
+        if (initial != null  &&  initial.length() > 0) {
+            if (initial.equals("yes")) {
+                yes_value = " checked";
+            }
+            if (initial.equals("no")) {
+                no_value = " checked";
+            }
+        }
+            
+        final String ret = "<label for=" + name + "_yes><input" + yes_value + " type=radio id=" + name + "_yes name=" + name
                            + " value=yes />yes</label><br>";
 
-        return ret + "<label for=" + name + "_no><input type=radio id=" + name + "_no name=" + name
+        return ret + "<label for=" + name + "_no><input" + no_value + " type=radio id=" + name + "_no name=" + name
                + " value=no />no</label><br>";
     }
 

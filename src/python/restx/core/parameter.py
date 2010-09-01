@@ -195,7 +195,7 @@ class ParameterDef(object):
                     required         = self.required,
                     default          = self.default)
 
-    def html_type(self, name):
+    def html_type(self, name, initial=None):
         """
         Return the HTML form field typoe for a value of this type.
 
@@ -206,8 +206,14 @@ class ParameterDef(object):
 
         """
         if self.ptype == PARAM_BOOL:
-            return '''<label for="%s_yes"><input type="radio" id="%s_yes" name="%s" value="yes" />yes</label><br>
-                      <label for="%s_no"><input type="radio" id="%s_no" name="%s" value="no" />no</label>''' % (name, name, name, name, name, name)
+            yes_value = "checked " if initial == "yes" else ""
+            no_value  = "checked " if initial == "no" else ""
+            return '''<label for="%s_yes"><input %stype="radio" id="%s_yes" name="%s" value="yes" />yes</label><br>
+                      <label for="%s_no"><input %stype="radio" id="%s_no" name="%s" value="no" />no</label>''' % (name, yes_value, name, name, name, no_value, name, name)
         else:
-            return '<input type="text" name="%s" />' % name
+            if initial:
+                init_val = 'value="%s" ' % initial
+            else:
+                init_val = ''
+            return '<input type="text" name="%s" %s/>' % (name, init_val)
 

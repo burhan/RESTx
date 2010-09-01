@@ -56,6 +56,8 @@ public class SampleComponent extends BaseComponent
     @Parameter(name="anotherParameter", desc="Short description of this parameter")
     @Default("123.4")               // default value (as string representation) is specified: parameter is optional
     public BigDecimal anotherParameter;
+
+                                    // Use 'Boolean' as type for boolean parameters.
     
     // ---------------
     // Service methods
