@@ -25,17 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.mulesoft.restx.component.api.ComponentInfo;
-import org.mulesoft.restx.component.api.Default;
-import org.mulesoft.restx.component.api.HttpMethod;
-import org.mulesoft.restx.component.api.HttpResult;
-import org.mulesoft.restx.component.api.InputTypes;
-import org.mulesoft.restx.component.api.MakeResourceResult;
-import org.mulesoft.restx.component.api.OutputTypes;
-import org.mulesoft.restx.component.api.Parameter;
-import org.mulesoft.restx.component.api.ParamsInReqBody;
-import org.mulesoft.restx.component.api.Result;
-import org.mulesoft.restx.component.api.Service;
+import org.mulesoft.restx.component.api.*;
 import org.mulesoft.restx.exception.RestxException;
 
 @ComponentInfo(name = "TestComponent", description = "This is a Java test component", doc = "Here is a doc string")
@@ -46,9 +36,9 @@ public class TestComponent extends BaseComponent
     public String api_key;
 
     @Service(description = "This is the foobar service")
-    // @InputType(InputType.NO_INPUT)
+    @InputType(InputType.NO_INPUT)
     // @InputType(InputType.ANY_INPUT)
-    @InputTypes({"application/json", "application/x-www-form-urlencoded"})
+    //@InputTypes({"application/json", "application/x-www-form-urlencoded"})
     @OutputTypes({"application/json", "text/html", "text/plain"})
     @ParamsInReqBody
     public Result foobar(HttpMethod method,

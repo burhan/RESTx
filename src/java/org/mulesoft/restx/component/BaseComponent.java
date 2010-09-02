@@ -282,6 +282,9 @@ public abstract class BaseComponent
                     {
                         inputTypes.add(it_val);
                     }
+                    else {
+                        inputTypes.add(null);
+                    }
                 }
                 if (m.isAnnotationPresent(InputTypes.class))
                 {
@@ -298,6 +301,9 @@ public abstract class BaseComponent
                             if (!ts.equals(InputType.NO_INPUT))
                             {
                                 inputTypes.add(ts);
+                            }
+                            else {
+                                inputTypes.add(null);
                             }
                         }
                     }

@@ -1,0 +1,71 @@
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="/static/demo/styles.css">
+</head>
+<body>
+<script src="/static/demo/script.js" type="text/javascript"></script>
+
+<table cellspacing=10 cellpadding=10>
+<tr>
+<td valign=top style="border-right:1px dashed #444444;">
+    <h3>A form to create a new RESTful web service</h3>
+    <p>What you see here is the form you fill in to create a new RESTful web service.
+    Some elements of the form are the same for each component, since that is where you
+    specify general information about a RESTful resource. Other elements of the form
+    are unique for every component, since each of them has its own, unique
+    set of parameters it requires. Through the form you provide values for those parameters,
+    which the RESTx server then stores for later use. We have more information on our web
+    site about <a href="http://restx.mulesoft.org/about-restful-resources" target="_blank">RESTful resources</a>.</p>
+
+    <h3>Elements that are the same for every component</h3>
+    <p>First element in the form is the
+    <span onmouseover="rowHighlight('Make_this_a_specialized_component');" onmouseout="stopRowHighlight('Make_this_a_specialized_component');" class="lref">specialized flag</span>.
+    We will explain the meaning of this later in the demo. For now, please just leave this flag unset.</p>
+    <p>Next there is the 
+    <span onmouseover="rowHighlight('Resource_name');" onmouseout="stopRowHighlight('Resource_name');" class="lref">resource name</span> field. This is
+    the name you want to give the new resource. It will appear in the URI of the resource once it is created and is a chance for you to give
+    the resource a name that makes sense to the users of the resource once it is created. For our example here, let's call it "restx_search_results", because
+    we are going to create a resource that creates Google search results for the term "RESTx". Please enter "restx_search_results" into the form field now (exactly as
+    written here, since that exact name is expected for the demo). Note that the value you enter here is just a suggestion to the server. While it normally follows
+    your suggestion, there might be cases where the server choses a different name instead. The actually chosen name will be communicated to you after the
+    resource was created.</p>
+
+    <p>Finally we have the
+    <span onmouseover="rowHighlight('Description');" onmouseout="stopRowHighlight('Description');" class="lref">description</span> field. This allows you
+    to enter a short, one-line description for your users, which summarizes quickly what this resource is. Here you could enter something like "A set of
+    search results for the term 'RESTx'", for example.</p>
+
+    <h3>Elements that are specific to a component</h3>
+    <p>Besides the previous three elements, which are the same every time you create a resource, each component very often also
+    has its own, unique set of parameters. For our Google-search component, we first have the
+    <span onmouseover="rowHighlight('api_key');" onmouseout="stopRowHighlight('api_key');" class="lref">api_key</span>, which you can
+    get from Google's web site. Turns out we are using a Google API where this key is actually not needed after all, so you can just
+    enter here anything you like (it's still a mandatory form field, so a value is required).</p>
+    <p>Next we have the
+    <span onmouseover="rowHighlight('default_search');" onmouseout="stopRowHighlight('default_search');" class="lref">default search</span> value.
+    Please enter "RESTx" here, since that is the term we want to search for.</p>
+</td>
+<td valign=top width=350>
+    <h3>Next:</h3>
+    <p>Do these steps in order:</p>
+    <ol>
+        <li>Leave the 
+            <span onmouseover="rowHighlight('Make_this_a_specialized_component');" onmouseout="stopRowHighlight('Make_this_a_specialized_component');" class="lref">specialized flag</span>
+            unset.</li>
+        <li>Enter &nbsp; <code>restx_search_results</code> &nbsp; in the
+            <span onmouseover="rowHighlight('Resource_name');" onmouseout="stopRowHighlight('Resource_name');" class="lref">resource name</span> field.</li>
+        <li>Enter &nbsp; <code>A set of search results for the term 'RESTx'</code> &nbsp; in the
+            <span onmouseover="rowHighlight('Description');" onmouseout="stopRowHighlight('Description');" class="lref">description</span> field.</li>
+        <li>Enter anything you wish in the
+            <span onmouseover="rowHighlight('api_key');" onmouseout="stopRowHighlight('api_key');" class="lref">api_key</span> field.</li>
+        <li>Enter &nbsp; <code>RESTx</code> &nbsp; in the
+            <span onmouseover="rowHighlight('default_search');" onmouseout="stopRowHighlight('default_search');" class="lref">default search</span> field.</li>
+        <li>Press the 
+            <span onmouseover="elemHighlight('submit_button');" onmouseout="stopElemHighlight('submit_button');" class="lref">submit button</span>.</li>
+    </ol>
+</td>
+</tr>
+</table>
+</body>
+</html>
+

@@ -1,0 +1,32 @@
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="/static/demo/styles.css">
+</head>
+<body>
+<script src="/static/demo/script.js" type="text/javascript"></script>
+
+<table cellspacing=10 cellpadding=10>
+<tr>
+<td valign=top style="border-right:1px dashed #444444;">
+    <h3>A new RESTful resource has been created</h3>
+    <p>Here you see the confirmation that your resource was
+    <span onmouseover="elemHighlight('status_value');" onmouseout="stopElemHighlight('status_value');" class="lref">created successfully</span>.
+    You also receive the confirmation of the chosen
+    <span onmouseover="elemHighlight('name_value');" onmouseout="stopElemHighlight('name_value');" class="lref">resource name</span>.
+    This is important, since the actual name of the created resources is up to the
+    server. The 'resource name' in the resource creation form is merely a suggestion.</p>
+
+    <p>Lastly, you get the
+    <span onmouseover="linkHighlight('/resource/###');" onmouseout="stopLinkHighlight('/resource/###');" class="lref">URI of the RESTful resource</span>
+    you just created. That URI is all that a user of the new resource needs to know. Accessing it provides you with information about how to use the resource.</p>
+</td>
+<td valign=top width=350>
+    <h3>Next:</h3>
+    <p>Click on the 
+    <span onmouseover="linkHighlight('/resource/###');" onmouseout="stopLinkHighlight('/resource/###');" class="lref">URI of the RESTful resource</span>.
+</td>
+</tr>
+</table>
+</body>
+</html>
+

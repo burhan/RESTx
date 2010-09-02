@@ -186,7 +186,7 @@ class CodeBrowser(BaseBrowser):
                 else:
                     qs = "?specialized=y"
                     cname = specialized_code_name
-                self.context_header.append(("[ Create resource ]", settings.PREFIX_RESOURCE+"/_createResourceForm/form/"+cname+qs, "target=_blank"))
+                self.context_header.append(("[ Create resource ]", settings.PREFIX_RESOURCE+"/_createResourceForm/form/"+cname+qs, ""))  #, "target=_blank"))
             else:
                 #
                 # Some sub-detail of the requested component was requested

@@ -55,7 +55,8 @@ class GsearchComponent(BaseComponent):
                                     "num"   : ParameterDef(PARAM_NUMBER, "The number of results you would like to have returned",
                                                            required=False,
                                                            default=10)
-                               }
+                               },
+                               "input_types" : [],
                            }
                        }
     

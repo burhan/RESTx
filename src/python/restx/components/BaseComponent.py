@@ -119,7 +119,7 @@ class BaseComponent(object):
             elif sdef['input_types'] is None  or  sdef['input_types'] == []:
                 # If None or an empty list was defined for input types
                 # then we remove them from the dictionary.
-                del sdef['input_types']
+                sdef['input_types'] = None
             elif type(sdef['input_types']) in [ str, unicode ]:
                 # We can also specify the input type as a single value (not a list).
                 # In that case, we transcribe it into a single-element list, so that

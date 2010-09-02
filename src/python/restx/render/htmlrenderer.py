@@ -139,8 +139,8 @@ class HtmlRenderer(BaseRenderer):
             #out += '<tr><td class="dict"><i>Key</i></td><td class="dict"><i>Value</i></td></tr>\n'
             pass
         for key in keys:
-            out += '<tr>\n<td class="key" valign=top>%s</td>\n<td valign=top>' % \
-                                            (key.as_html() if type(key) is Url else key)
+            out += '<tr>\n<td id="%s_name" class="key" valign=top>%s</td>\n<td id="%s_value" valign=top>' % \
+                                            (key, key.as_html() if type(key) is Url else key, key)
             out += self.render(data[key])
             out += "\n</td>\n</tr>"
         out += "</table>"

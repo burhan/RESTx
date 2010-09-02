@@ -172,9 +172,9 @@ The user submits the filled-out form and a new resource is created.
                     opt_str = ""
                 param_fields_html += \
 """<tr>
-    <td valign=top>%s<br><small>(%s%s)</small></td>
+    <td valign=top id="%s_name">%s<br><small>(%s%s)</small></td>
     <td valign=top>%s</td>
-</tr>""" % (pname, pdef.desc, opt_str, pdef.html_type("params__"+pname, input_params.get(pname)))
+</tr>""" % (pname, pname, pdef.desc, opt_str, pdef.html_type("params__"+pname, input_params.get(pname)))
 
         if message:
             msg = "<b><i><font color=red>%s</font></i></b><br><p>" % message
@@ -202,21 +202,21 @@ Please enter the resource configuration...<br><p>
         if not specialized:
             body += """
         <tr>
-            <td>Make this a specialized component:</td>
+            <td id="Make_this_a_specialized_component_name">Make this a specialized component:</td>
             <td><input type="checkbox" %s id=resource_creation_params__specialized name="resource_creation_params__specialized" /><label for=resource_creation_params__specialized><small>Can only be used as basis for other resources</small></label></td>
         </tr>
             """ % specialized_value
         body += """
         <tr>
-            <td>Resource name:</td>
+            <td id="Resource_name_name">Resource name:</td>
             <td><input type="text" %sname="resource_creation_params__suggested_name" /></td>
         </tr>
         <tr>
-            <td>Description:<br><small>(optional)</small></td>
+            <td id="Description_name">Description:<br><small>(optional)</small></td>
             <td><input type="text" %sname="resource_creation_params__desc" /></td>
         </tr>
         %s
-        <tr><td colspan=2 align=center><input type="submit" value="Submit" /></tr></tr>
+        <tr><td colspan=2 align=center><input id="submit_button" type="submit" value="Submit" /></tr></tr>
     </table>
 </form>""" % (suggested_name_value, desc_value, param_fields_html)
 
