@@ -11,6 +11,14 @@ var elems_bg_color  = new Array();
 var elems_color     = new Array();
 var blink_interval  = 250;
 
+Array.prototype.has = function(v) {
+    var ind;
+    for (ind=0; ind<this.length; ind++) {
+        if (this[ind]==v) return true;
+    }
+    return false;
+}
+
 function ScrollToElement(theElement){
     // Code for this function is from: http://radio.javaranch.com/pascarello/2005/01/09/1105293729000.html
     // with some additions and modifications to prevent unnecessary scrolling (if the element is already
@@ -23,7 +31,7 @@ function ScrollToElement(theElement){
         selectedPosY += theElement.offsetTop;
         theElement = theElement.offsetParent;
     }
-    current_scroll_offset = parent.top.frames[2].pageYOffset;
+    var current_scroll_offset = parent.top.frames[2].pageYOffset;
     if (top.frames[2].innerHeight + current_scroll_offset < selectedPosY  ||  selectedPosY < current_scroll_offset) {
         parent.top.frames[2].scrollTo(selectedPosX,selectedPosY);
     }
@@ -62,7 +70,7 @@ function getLinkByUrl(url)
         url = url.substring(0, url.length-3);
         search_start = true;
     }
-    doc = parent.top.frames[2].document;
+    var doc = parent.top.frames[2].document;
     var links = doc.getElementsByTagName("A");
     var total = links.length
     for (i=0; i<total; i++) {
@@ -76,7 +84,7 @@ function getLinkByUrl(url)
 
 function linkHighlight(url)
 {
-    link = getLinkByUrl(url);
+    var link = getLinkByUrl(url);
     if (link != null) {
         elems[link.innerHTML] = link;
         linkHigh(link.innerHTML);
@@ -85,9 +93,9 @@ function linkHighlight(url)
 
 function stopLinkHighlight(url)
 {
-    link = getLinkByUrl(url);
+    var link = getLinkByUrl(url);
     if (link != null) {
-        link_name = link.innerHTML;
+        var link_name = link.innerHTML;
         if (link_name in elems) {
             linkLow(link_name, true);
             delete elems[link_name];
@@ -97,14 +105,14 @@ function stopLinkHighlight(url)
 
 function getElemById(id)
 {
-    doc = parent.top.frames[2].document;
+    var doc  = parent.top.frames[2].document;
     var elem = doc.getElementById(id);
     return elem;
 }
 
 function elemHighlight(id)
 {
-    elem = getElemById(id);
+    var elem = getElemById(id);
     if (elem != null) {
         elems[id] = elem;
         ScrollToElement(elem);
@@ -121,7 +129,7 @@ function rowHighlight(id)
 function elemHigh(id)
 {
     if (id in elems) {
-        elem = elems[id];
+        var elem = elems[id];
         if (!(id in elems_bg_color)) {
             elems_bg_color[id] = elem.style.backgroundColor;
         }
@@ -131,8 +139,9 @@ function elemHigh(id)
 
 function elemLow(id, no_high)
 {
+    var id;
     if (id in elems) {
-        elem = elems[id];
+        var elem = elems[id];
         elem.style.backgroundColor = elems_bg_color[id];
         if (no_high === undefined) {
             setTimeout("elemHigh('" + id + "')", blink_interval);
@@ -142,7 +151,7 @@ function elemLow(id, no_high)
 
 function stopElemHighlight(id)
 {
-    elem = getElemById(id);
+    var elem = getElemById(id);
     if (elem != null  &&  id in elems) {
         elemLow(id, true);
         delete elems[id];
@@ -159,5 +168,63 @@ function stopRowHighlight(id)
 {
     stopElemHighlight(id+"_name");
     //stopElemHighlight(id+"_value");
+}
+
+function onClickActionLink()
+{
+    alert("Sorry, but this link is not part of the demo...");
+    return false;
+}
+
+function onClickActionCheckbox()
+{
+    alert("Sorry, but checking this element is currently disabled for the demo.");
+    return false;
+}
+
+function disableLinks(url_list)
+{
+    // First get all the links that should NOT be disable
+    var allowed_links = new Array();
+    var i;
+    for (i=0; i<url_list.length; ++i) {
+        allowed_links.push(getLinkByUrl(url_list[i]));
+    }
+
+    var doc   = parent.top.frames[2].document;
+    var links = doc.getElementsByTagName("a");
+    for (i=0; i<links.length; ++i) {
+        if (!allowed_links.has(links[i])) {
+            links[i].onclick = onClickActionLink;
+        }
+    }
+}
+
+function disableClickById(id)
+{
+    var doc   = parent.top.frames[2].document;
+    var elem  = doc.getElementById(id);
+    elem.onclick = onClickActionCheckbox;
+}
+
+function forceFieldValue(id, value, title)
+{
+    var doc  = parent.top.frames[2].document;
+    var elem = doc.getElementsByName(id)[0];
+    elem.onchange = function() {
+                        if (elem.value != value) {
+                            alert("Sorry, but for the demo, please enter exactly '" + value + "' for the '" + title + "' field.");
+                            elem.value = "";
+                            elem.focus();
+                            return false;
+                        }
+                    }
+}
+
+function changeInnerHtml(id, value)
+{
+    var doc  = parent.top.frames[2].document;
+    var elem = doc.getElementById(id);
+    elem.innerHTML = value;
 }
 

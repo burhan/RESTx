@@ -97,7 +97,7 @@ def _send_data(relative_url, obj):
             relative_url = relative_url[len(DOCROOT):]
     if relative_url.startswith("/"):
         relative_url = relative_url[1:]
-    resp = http.urlopen("POST", SERVER_URL + "/" + relative_url, headers={"Accept" : "application/json"}, data=json.dumps(obj))
+    resp = http.urlopen("POST", SERVER_URL + "/" + relative_url, headers={"Accept" : "application/json", "Content-type" : "application/json" }, data=json.dumps(obj))
     buf = resp.read()
     if resp.getStatus() >= 200 and resp.getStatus() <= 300:
         data = json.loads(buf)
@@ -164,7 +164,7 @@ def test_10_home():
                     "doc"      : DOCROOT + "/meta/doc",
                     "static"   : DOCROOT + "/static",
                     "name"     : "MuleSoft RESTx server",
-                    "version"  : "0.9.2"
+                    "version"  : "0.9.4"
              }
     allkeys = [ 'code', 'resource', 'doc', 'static', 'name', 'version', 'specialized code' ]
 
@@ -677,7 +677,7 @@ def test_70_positional_params():
 
     # Retrieve a file
     cdef, resp = _get_data("/resource/_test_foobarstorage/files/foo")
-    assert(cdef == '"This is a buffer"')
+    assert(cdef == 'This is a buffer')
     assert(resp.getStatus() == 200)
 
     # Delete the file again

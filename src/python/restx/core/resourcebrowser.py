@@ -34,7 +34,7 @@ from org.mulesoft.restx.exception       import *
 from org.mulesoft.restx.component.api   import HTTP, HttpMethod, Result
 
 from restx.logger                       import *
-from restx.render                       import DEFAULT_OUTPUT_TYPES
+from restx.render                       import DEFAULT_OUTPUT_TYPES, RENDERER_ID_SHORTCUTS
 from restx.core.basebrowser             import BaseBrowser
 from restx.resources                    import paramSanityCheck, fillDefaults, listResources, \
                                                retrieveResourceFromStorage, getResourceUri, deleteResourceFromStorage
@@ -201,12 +201,27 @@ class ResourceBrowser(BaseBrowser):
                 # and call this service function.
                 #
                 
-                service_name       = path_elems[1]
+                service_name = path_elems[1]
 
-                # Get the supported output content types for this service method
-                requested_content_types = self.request.preferredContentTypes()
+                # If the service name contains a "." then we might deal with
+                # a content type ID in the URI (used by clients who don't know how
+                # to deal with the 'Accept' or 'Content-type' headers properly).
+                # In that case, we remove that ID from the service name.
+                content_type_from_id = None
+                if "." in service_name:
+                    service_name, content_id = service_name.split(".")
+                    content_type_from_id = RENDERER_ID_SHORTCUTS.get(content_id)
+                    self.request.setContentType(content_type_from_id)
+
+                if not content_type_from_id:
+                    # Get the supported output content types for this service method
+                    requested_content_types = self.request.preferredContentTypes()
+                else:
+                    # We have a content type specified in the URI
+                    requested_content_types = [ content_type_from_id ]
+
                 try:
-                    service_def             = complete_resource_def['public']['services'][service_name]
+                    service_def = complete_resource_def['public']['services'][service_name]
                 except KeyError, e:
                     raise RestxResourceNotFoundException("Cannot find '%s'." % service_name)
 

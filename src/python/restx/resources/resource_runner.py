@@ -150,32 +150,25 @@ def _accessComponentService(component, complete_resource_def, resource_name, ser
                 raise RestxUnsupportedMediaTypeException()
 
         # A request header may tell us about the request body type.
-        ct = None
         if request:
-            req_headers = request.getRequestHeaders()
-            if req_headers  and  input:
-                # The input is still a string. Let's see if the content type
-                # of the input is a format we know. In that case, we call the
-                # proper parsing method and create (an) object(s).
-                ct_array = req_headers.get("Content-type")
-                if ct_array:
-                    ct = ct_array[0]    # Only consider the first specified content type, there should only be one anyway
-                    input_renderer_class = KNOWN_INPUT_RENDERERS.get(ct)
-                    if input_renderer_class:
-                        parser = input_renderer_class()
-                        try:
-                            input  = parser.parse(input)
-                        except Exception, e:
-                            # Some format error? 
-                            raise RestxBadRequestException("Bad request: Input content is malformed.")
-                    else:
-                        # Could not find proper render class. If we allowed any
-                        # input (content type "") then we are still good and pass
-                        # the input buffer as is. But if we didn't allow "" as
-                        # input type then it's an error if we don't get an exact
-                        # match of the content type against renderers.
-                        if "" not in input_types_def:
-                            raise RestxUnsupportedMediaTypeException()
+            if input:
+                ct = request.getContentType()
+                input_renderer_class = KNOWN_INPUT_RENDERERS.get(ct)
+                if input_renderer_class:
+                    parser = input_renderer_class()
+                    try:
+                        input  = parser.parse(input)
+                    except Exception, e:
+                        # Some format error? 
+                        raise RestxBadRequestException("Bad request: Input content is malformed.")
+                else:
+                    # Could not find proper render class. If we allowed any
+                    # input (content type "") then we are still good and pass
+                    # the input buffer as is. But if we didn't allow "" as
+                    # input type then it's an error if we don't get an exact
+                    # match of the content type against renderers.
+                    if "" not in input_types_def:
+                        raise RestxUnsupportedMediaTypeException()
                             
         if runtime_param_def:
             # If the 'allow_params_in_body' flag is set for a service then we

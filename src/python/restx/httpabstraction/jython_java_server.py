@@ -68,6 +68,7 @@ class JythonJavaHttpRequest(RestxHttpRequest):
     __response_headers         = None
     __response_encoded         = False
     __preferred_content_types  = None
+    __content_type             = None
 
     def preferredContentTypes(self):
         """
@@ -108,7 +109,7 @@ class JythonJavaHttpRequest(RestxHttpRequest):
             # q=2 for sorting purposes.
             type_q_tuples = [ e.split(";") for e in elems ]
 
-            # Below, the sorted() returns a list of iterable list elements, each eith
+            # Below, the sorted() returns a list of iterable list elements, each with
             # either one or two elements. We then only take the first element since
             # we are not interested in returning the q=* value.
             self.__preferred_content_types = [ e[0] for e in sorted(type_q_tuples, key=lambda x: x[1] if len(x) > 1 else "q=2", reverse=True) ]
@@ -119,6 +120,32 @@ class JythonJavaHttpRequest(RestxHttpRequest):
     def __init__(self, *args, **kwargs):
         super(JythonJavaHttpRequest, self).__init__(*args, **kwargs)
         self.__response_headers = dict()
+
+    def setContentType(self, content_type):
+        """
+        Set the content type of this request body. Overrides what's sent in the 'content-type' header.
+
+        This is used when a content type is indicated as part of the URI. In that case we set
+        this here.
+
+        """
+        self.__content_type = content_type
+
+    def getContentType(self):
+        """
+        Return the content type of this request body.
+
+        """
+        if self.__content_type:
+            return self.__content_type
+
+        hdrs = self.getRequestHeaders()
+        if hdrs:
+            ct_array = hdrs.get("Content-type")
+            if ct_array:
+                return ct_array[0]
+
+        return None
     
     def setNativeRequest(self, native_req):
         """

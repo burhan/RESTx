@@ -31,6 +31,7 @@ You can import these classes straight from module level:
 # to specify the individual file names in their imports.
 from restx.render.htmlrenderer     import HtmlRenderer
 from restx.render.jsonrenderer     import JsonRenderer
+from restx.render.extjsonrenderer  import ExtJsonRenderer
 from restx.render.wwwformrenderer  import WwwFormRenderer
 from restx.render.textrenderer     import TextRenderer
 
@@ -41,7 +42,20 @@ KNOWN_RENDERERS = {
     "text/html"                          : HtmlRenderer,
     "text/plain"                         : TextRenderer,
     "application/json"                   : JsonRenderer,
+    "application/ext+json"               : ExtJsonRenderer,
     "application/x-www-form-urlencoded"  : WwwFormRenderer,
+}
+
+# Some clients cannot properly deal with the content type
+# headers. Therefore, we allow an additional mechanism:
+# Specify the content type you send or want as a .xyz
+# behind the service method name (sub-resource) in the URI.
+# If 'xyz' is one of the recognized ones below, the content
+# type (or accept header) is assumed to be of whatever we
+# translate it to below.
+RENDERER_ID_SHORTCUTS = {
+    "json"     : "application/json",
+    "ext_json" : "application/ext+json",
 }
 
 DEFAULT_OUTPUT_TYPES          = [ "application/json", "text/html", "*/*" ]

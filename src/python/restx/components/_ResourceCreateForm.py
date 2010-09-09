@@ -56,24 +56,13 @@ The user submits the filled-out form and a new resource is created.
                                },
                                "positional_params": [ "component_name" ]
                             },
-                            "create" : {
-                               "desc" : "Accepts a posted resource creation form",
-                               "params" : {
-                                   "component_name" : ParameterDef(PARAM_STRING, "Name of the component", required=True),
-                                   "specialized"    : ParameterDef(PARAM_BOOL,   "Indicates if this is based on a specialized component", required=False, default=False),
-                               },
-                               "positional_params": [ "component_name" ]
-                           }
                        }
     
-    def create(self, method, input, component_name, specialized=False):
+    def __create(self, input, component_name, specialized=False):
         """
         Accept a resource creation form for a specified component.
 
         """
-        if not input:
-            return self.form(method, None, component_name, "Need form input!", specialized)
-
         d = dict()
         for name, value in input.items():
             path_elems = name.split("__")
@@ -87,12 +76,10 @@ The user submits the filled-out form and a new resource is created.
                         d2[pe] = value
 
         try:
-            ret_msg = makeResource(component_name, d, specialized)
+            return (True, makeResource(component_name, d, specialized), d)
         except RestxException, e:
-            return self.form(method, d, component_name, e.msg, specialized)
+            return (False, e.msg, d)
         
-        return Result.ok(ret_msg)
-
     def form(self, method, input, component_name, message="", specialized=False):
         """
         Display a resource creation form for a specified component.
@@ -113,19 +100,23 @@ The user submits the filled-out form and a new resource is created.
         @rtype:                 Result
 
         """
-        if input  and  type(input) is dict:
-            # We receive a dict of values if the 'create' method discovered an
-            # error. In that case, the values should be used to pre-populate
-            # the fields when the form is re-displayed (with the error messsage
-            # on top).
-            input_rctp   = input.get('resource_creation_params', dict())   # Resource creation time parameters
-            input_params = input.get('params', dict())                     # Other parameters
-        else:
-            # Only a dict of values is accepted. If we get anything else, we
-            # set this to the empty dict, since that simplifies the code later
-            # on (don't need to switch or check anything).
-            input_rctp   = dict()    # Resource creation time parameters
-            input_params = dict()    # Other parameters
+        input_params = dict()
+        input_rctp   = dict()
+        if input  and  HttpMethod.POST:
+            flag, msg, input = self.__create(input, component_name, specialized)
+            if not flag:
+                message = msg
+            else:
+                return Result.created(msg['uri'], msg)
+
+        if input:
+            if type(input) is dict:
+                # We receive a dict of values if the 'create' method discovered an
+                # error. In that case, the values should be used to pre-populate
+                # the fields when the form is re-displayed (with the error messsage
+                # on top).
+                input_rctp   = input.get('resource_creation_params', dict())   # Resource creation time parameters
+                input_params = input.get('params', dict())                     # Other parameters
 
         if specialized:
             # Need to read the definition of the partial resource and get the
@@ -189,7 +180,7 @@ The user submits the filled-out form and a new resource is created.
 Please enter the resource configuration...<br><p>
 %s
 <form name="input" action="%s" method="POST">
-    <table>""" % (fname, fdesc, msg, "%s%s/create/%s%s" % (settings.DOCUMENT_ROOT, self.getMyResourceUri(),
+    <table>""" % (fname, fdesc, msg, "%s%s/form/%s%s" % (settings.DOCUMENT_ROOT, self.getMyResourceUri(),
                                                            component_name if not specialized else specialized_code_name, "?specialized=y" if specialized else ""))
         # Gather any initial values of the resource creation time form fields
         suggested_name_value = input_rctp.get("suggested_name", "")
