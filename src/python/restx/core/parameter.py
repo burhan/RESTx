@@ -215,5 +215,5 @@ class ParameterDef(object):
                 init_val = 'value="%s" ' % initial
             else:
                 init_val = ''
-            return '<input type="text" name="%s" %s/>' % (name, init_val)
+            return '<input type="text" name="%s" id="%s" %s/>' % (name, name, init_val)
 

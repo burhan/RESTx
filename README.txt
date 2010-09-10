@@ -24,6 +24,19 @@ Please see 'INSTALL.txt' for installation instructions.
 
 Please see 'LICENSE.txt' for the GPLv3 license text.
 
+Once you have started the server, it will listen on localhost:8001.
+
+
+Demo
+----
+RESTx comes with a built in guided tour and demo.
+
+This demo utilizes an sqlite database for some chapters. Please download the sqlite JDBC
+driver from http://www.zentus.com/sqlitejdbc/ ( http://files.zentus.com/sqlitejdbc/sqlitejdbc-v056.jar ).
+Copy the JAR file in the RESTx/lib folder. Copy the file 'test.db' (to be found in the RESTx
+directory) to /var/tmp. Then restart the server.
+
+You can get a guided tour of the server by visiting http://localhost:8001/static/demo/start.html
 
 
 Files
@@ -75,6 +88,8 @@ storageDB/      This is where the file-storage facility for components stores
 
 tools/          Holds a few third party sources we are bundling to reduce dependencies
                 during install.
+
+test.db         A small sqlite database, which is used in the demo.
 
 
 

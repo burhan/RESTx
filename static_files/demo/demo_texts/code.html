@@ -6,8 +6,10 @@
 <script src="/static/demo/script.js" type="text/javascript"></script>
 
 <script>
-    disableLinks([ "Home", "/code/GsearchComponent" ])
+    disableLinks([ "Home", "/code/GsearchComponent", "/code/DatabaseAccess" ])
 </script>
+
+<div id="menu_div" style="width:100%;text-align:center;border-bottom:1px dashed #444444;">&nbsp;</div>
 
 <table cellspacing=10 cellpadding=10>
 <tr>
@@ -42,11 +44,16 @@
     <ol>
         <li>Click on the
             <span onmouseover="linkHighlight('/code/GsearchComponent');" onmouseout="stopLinkHighlight('/code/GsearchComponent');" class="lref">/code/GsearchComponent</span>
-            link. The 'GsearchComponent' implements access to Google's search API.</li>
+            link. The 'GsearchComponent' implements access to Google's search API. This illustrates creation of a basic resource from a component.</li>
+        <li>Click on the
+            <span onmouseover="linkHighlight('/code/DatabaseAccess');" onmouseout="stopLinkHighlight('/code/DatabaseAccess');" class="lref">/code/DatabaseAccess</span>
+            link. The 'DatabaseAccess' implements access to an SQL database. This illustrates the important concept of specialized components.</li>
     </ol>
 </td>
 </tr>
 </table>
 </body>
+<script>makeMenu();</script>
+
 </html>
 

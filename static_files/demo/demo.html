@@ -12,16 +12,25 @@ function oc(a)
   return o;
 }
 
-var known_urls_list = [ "/", "/code", "/meta/doc", "/code/GsearchComponent", "/code/GsearchComponent/doc",
+var known_urls_list = [ "/", "/code", "/resource", "/meta/doc",
+                        "/code/GsearchComponent", "/code/GsearchComponent/doc",
+                        "/code/DatabaseAccess", "/code/DatabaseAccess/doc",
+                        "/specialized/PeopleBase",
                         "/resource/_createResourceForm/form/GsearchComponent",
-                        "/resource/_createResourceForm/create/GsearchComponent",
+                        "/resource/_createResourceForm/form/PeopleBase_specialized_y",
+                        "/resource/_createResourceForm/form/DatabaseAccess",
                         "/resource/restx_search_results",
-                        "/resource/restx_search_results/search" ]
+                        "/resource/restx_search_results/search",
+                        "/resource/YoungEmployees",
+                        "/resource/YoungEmployees/entries" ]
 var known_urls      = oc(known_urls_list)
 
 function processChange(url) {
     url = url.substring(10);
     url = url.substring(url.indexOf("/"));
+    // Remove special characters that might be used when there are query parameters
+    url = url.replace("?", "_");
+    url = url.replace("=", "_");
     if (!(url in known_urls)) {
         url = "/unknown";
     }

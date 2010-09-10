@@ -56,7 +56,7 @@ public abstract class ParameterDef
             init_val = " value=\"" + initial + "\" ";
         }
             
-        return "<input type=text name=" + name + init_val + "/>";
+        return "<input type=text name=" + name + " id=" + name + init_val + "/>";
     }
 
     public abstract Class<?> getJavaType();

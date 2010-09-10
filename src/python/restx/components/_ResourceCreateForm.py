@@ -179,7 +179,7 @@ The user submits the filled-out form and a new resource is created.
 <hr>
 Please enter the resource configuration...<br><p>
 %s
-<form name="input" action="%s" method="POST">
+<form id="resource_form" name="input" action="%s" method="POST">
     <table>""" % (fname, fdesc, msg, "%s%s/form/%s%s" % (settings.DOCUMENT_ROOT, self.getMyResourceUri(),
                                                            component_name if not specialized else specialized_code_name, "?specialized=y" if specialized else ""))
         # Gather any initial values of the resource creation time form fields
@@ -194,20 +194,20 @@ Please enter the resource configuration...<br><p>
             body += """
         <tr>
             <td id="Make_this_a_specialized_component_name">Make this a specialized component:</td>
-            <td><input type="checkbox" %s id=resource_creation_params__specialized name="resource_creation_params__specialized" /><label for=resource_creation_params__specialized><small>Can only be used as basis for other resources</small></label></td>
+            <td><input type="checkbox" %s id="resource_creation_params__specialized" name="resource_creation_params__specialized" /><label for=resource_creation_params__specialized><small>Can only be used as basis for other resources</small></label></td>
         </tr>
             """ % specialized_value
         body += """
         <tr>
             <td id="Resource_name_name">Resource name:</td>
-            <td><input type="text" %sname="resource_creation_params__suggested_name" /></td>
+            <td><input type="text" %sname="resource_creation_params__suggested_name" id="resource_creation_params__suggested_name" /></td>
         </tr>
         <tr>
             <td id="Description_name">Description:<br><small>(optional)</small></td>
-            <td><input type="text" %sname="resource_creation_params__desc" /></td>
+            <td><input type="text" %sname="resource_creation_params__desc" id="resource_creation_params__desc" /></td>
         </tr>
         %s
-        <tr><td colspan=2 align=center><input id="submit_button" type="submit" value="Submit" /></tr></tr>
+        <tr><td colspan=2 align=center><input id="submit_button" type="submit" value="Submit" /></tr>
     </table>
 </form>""" % (suggested_name_value, desc_value, param_fields_html)
 

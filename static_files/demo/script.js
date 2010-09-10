@@ -205,14 +205,21 @@ function disableClickById(id)
     var doc   = parent.top.frames[2].document;
     var elem  = doc.getElementById(id);
     elem.onclick = onClickActionCheckbox;
+    elem.checked = false;
 }
 
-function forceFieldValue(id, value, title)
+function forceFieldValue(id, value, title, ignore_case)
 {
     var doc  = parent.top.frames[2].document;
     var elem = doc.getElementsByName(id)[0];
     elem.onchange = function() {
-                        if (elem.value != value) {
+                        var ev = elem.value;
+                        var v  = value;
+                        if (ignore_case) {
+                            ev = ev.toLowerCase();
+                            v  = v.toLowerCase();
+                        }
+                        if (ev != v) {
                             alert("Sorry, but for the demo, please enter exactly '" + value + "' for the '" + title + "' field.");
                             elem.value = "";
                             elem.focus();
@@ -221,10 +228,37 @@ function forceFieldValue(id, value, title)
                     }
 }
 
+function forceEmptyFieldValue(id)
+{
+    var doc  = parent.top.frames[2].document;
+    var elem = doc.getElementsByName(id)[0];
+    elem.onchange = function() {
+                        if (elem.value.length > 0) {
+                            alert("Sorry, but for the demo, please leave this field empty.");
+                            elem.value = "";
+                            return false;
+                        }
+                    }
+}
+   
+
 function changeInnerHtml(id, value)
 {
     var doc  = parent.top.frames[2].document;
     var elem = doc.getElementById(id);
     elem.innerHTML = value;
+}
+
+/*
+ * Create the menu at the top
+ */
+
+function makeMenu()
+{
+    var elem = document.getElementById("menu_div");
+    elem.innerHTML = " \
+<a href=\"/static/demo/demo.html\" target=\"_top\">Restart demo</a> &nbsp; - &nbsp; \
+<a href=\"http://restx.mulesoft.org\" target=\"_blank\">RESTx home page</a> &nbsp; - &nbsp; \
+<a href=\"http://restx.mulesoft.org/download-restx\" target=\"_blank\">Download</a>";
 }
 

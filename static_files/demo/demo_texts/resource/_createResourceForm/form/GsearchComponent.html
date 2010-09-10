@@ -8,9 +8,11 @@
 <script>
     disableLinks([ ]);
     disableClickById("resource_creation_params__specialized")
-    forceFieldValue("resource_creation_params__suggested_name", "restx_search_results", "Resource name");
+    forceFieldValue("resource_creation_params__suggested_name", "restx_search_results", "Resource name", false);
+    forceFieldValue("params__default_search", "RESTx", "default_search", true);
 </script>
 
+<div id="menu_div" style="width:100%;text-align:center;border-bottom:1px dashed #444444;">&nbsp;</div>
 
 <table cellspacing=10 cellpadding=10>
 <tr>
@@ -25,6 +27,10 @@
     site about <a href="http://restx.mulesoft.org/about-restful-resources" target="_blank">RESTful resources</a>.</p>
 
     <h3>Elements that are the same for every component</h3>
+
+    <p><i>Note: For this demo, we can pre-fill the form fields for you, if you like. Just press: 
+       <button style="font-size:0.9em;cursor:hand;" onClick="preFillForm();">pre-fill form</button></i></p>
+
     <p>First element in the form is the
     <span onmouseover="rowHighlight('Make_this_a_specialized_component');" onmouseout="stopRowHighlight('Make_this_a_specialized_component');" class="lref">specialized flag</span>.
     We will explain the meaning of this later in the demo. For now, please just leave this flag unset.</p>
@@ -54,7 +60,12 @@
 </td>
 <td id="next_cell" valign=top width=350>
     <h3>Next:</h3>
-    <p>Do these steps in order:</p>
+    <p>You can either let us pre-fill the form for you:
+    <ol>
+       <li><button style="font-size:0.9em;cursor:hand;" onClick="preFillForm();">pre-fill form</button></li>
+       <li>Now press the <span onmouseover="elemHighlight('submit_button');" onmouseout="stopElemHighlight('submit_button');" class="lref">submit button</span>.</li>
+    </ol>
+    <p>Or you can perform the steps yourself:
     <ol>
         <li>Leave the 
             <span onmouseover="rowHighlight('Make_this_a_specialized_component');" onmouseout="stopRowHighlight('Make_this_a_specialized_component');" class="lref">specialized flag</span>
@@ -75,6 +86,18 @@
 </table>
 </body>
 <script>
+
+makeMenu();
+
+function preFillForm()
+{
+    var form = getElemById("resource_form");
+    form.resource_creation_params__specialized.checked = false;
+    form.resource_creation_params__suggested_name.value = "restx_search_results";
+    form.resource_creation_params__desc.value = "A set of search results for the term 'RESTx'";
+    form.params__api_key.value = "aabbccxxyyzz";
+    form.params__default_search.value = "RESTx";
+}
 
 var interval;
 // Check whether an element has appeared in the frame, which
