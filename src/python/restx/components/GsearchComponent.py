@@ -24,7 +24,6 @@ A test component.
 """
 # Python imports
 import urllib
-import urllib
 
 # RESTx imports
 from restx.components.api import *
