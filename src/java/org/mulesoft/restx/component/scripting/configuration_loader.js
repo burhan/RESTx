@@ -32,12 +32,12 @@ function vtol(value) {
     return value == undefined ? null : java.util.Collections.singletonList(value)
 }
 
-function getParameterDef(type, description, required, defaultValue) {
+function getParameterDef(type, description, required, defaultValue, choices) {
     switch(type) {
-        case TYPE.STRING  : return new org.mulesoft.restx.parameter.ParameterDefString(description, required, defaultValue)
+        case TYPE.STRING  : return new org.mulesoft.restx.parameter.ParameterDefString(description, required, defaultValue, choices)
         case TYPE.PASSWORD: return new org.mulesoft.restx.parameter.ParameterDefPassword(description, required, defaultValue)
         case TYPE.BOOLEAN : return new org.mulesoft.restx.parameter.ParameterDefBoolean(description, required, defaultValue)
-        case TYPE.NUMBER  : return new org.mulesoft.restx.parameter.ParameterDefNumber(description, required, defaultValue)
+        case TYPE.NUMBER  : return new org.mulesoft.restx.parameter.ParameterDefNumber(description, required, defaultValue, choices)
         default           : throw "Unsupported parameter type: " + type
     }
 }
@@ -59,7 +59,8 @@ function getServiceMeta(service) {
         parameterDef = getParameterDef(parameter.type,
                                        parameter.description,
                                        uz(parameter.required, false),
-                                       uz(parameter.defaultValue, null))
+                                       uz(parameter.defaultValue, null),
+                                       uz(parameter.choices, null))
         
         parameterTypes.add(parameterDef.getJavaType())
 
@@ -90,7 +91,8 @@ for (parameterName in parameters) {
                                      getParameterDef(parameter.type,
                                                      parameter.description,
                                                      uz(parameter.required, false),
-                                                     uz(parameter.defaultValue, null)))
+                                                     uz(parameter.defaultValue, null),
+                                                     uz(parameter.choices, null)))
 }
 
 //Services

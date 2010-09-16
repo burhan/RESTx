@@ -35,6 +35,16 @@ public class TestComponent extends BaseComponent
     // @Default("foo foo foo")
     public String api_key;
 
+    @Parameter(name = "foo_1", desc = "This is a string choice type")
+    @Choices({"Foo A", "Foo B", "Foo C"})
+    @Default("Foo B")
+    public String foo_1;
+
+    @Parameter(name = "foo_2", desc = "This is a number choice type")
+    @Choices({"1", "2", "3"})
+    @Default("3")
+    public BigDecimal foo_2;
+
     @Service(description = "This is the foobar service")
     @InputType(InputType.NO_INPUT)
     // @InputType(InputType.ANY_INPUT)

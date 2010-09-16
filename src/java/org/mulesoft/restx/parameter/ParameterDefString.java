@@ -19,24 +19,45 @@
 
 package org.mulesoft.restx.parameter;
 
+import org.mulesoft.restx.exception.RestxException;
+
 public class ParameterDefString extends ParameterDef
 {
     private final String defaultVal;
 
     public ParameterDefString(String desc)
     {
-        this(desc, true, null);
-    }
-
-    public ParameterDefString(String desc, String defaultVal)
-    {
-        this(desc, false, defaultVal);
+        this(desc, true, (String)null);
     }
 
     public ParameterDefString(String desc, boolean required, String defaultVal)
     {
         super("string", desc, required);
         this.defaultVal = defaultVal;
+    }
+
+    public ParameterDefString(String desc, boolean required, String[] choices) throws RestxException
+    {
+        this(desc, required, null, choices);
+    }
+
+    public ParameterDefString(String desc, boolean required, String defaultVal, String[] choices) throws RestxException
+    {
+        super("string", desc, required);
+        this.defaultVal = defaultVal;
+        if (defaultVal != null  &&  choices != null) {
+            boolean foundDefault = false;
+            for (String s: choices) {
+                if (s.equals(defaultVal)) {
+                    foundDefault = true;
+                    break;
+                }
+            }
+            if (!foundDefault) {
+                throw new RestxException("Specified default value is not listed in 'choices'");
+            }
+        }
+        this.choices = choices;
     }
 
     @Override

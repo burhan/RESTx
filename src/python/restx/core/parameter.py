@@ -138,7 +138,7 @@ class ParameterDef(object):
     which is maintained by each component.
     
     """
-    def __init__(self, ptype, desc="", required=True, default=None):
+    def __init__(self, ptype, desc="", required=True, default=None, choices=None):
         """
         Define a new parameter.
         
@@ -158,6 +158,10 @@ class ParameterDef(object):
         @param default:          A default value for this parameter of a suitable type.
                                  Only used if 'required == False'.
         @type default:           Whatever is needed as default value
+
+        @param choices:          If the allowed input values should be restricted to a
+                                 number of choices, specify them here as a list of strings.
+        @type choices:           list
         
         """
         self.ptype            = ptype
@@ -165,7 +169,15 @@ class ParameterDef(object):
         self.required         = required
         if not self.required and default is None:
             raise RestxException("A default value is required for optional parameters")
+        if self.required and default:
+            raise RestxException("A default value cannot be provided for a required parameter")
         self.default          = default
+        self.choices          = choices
+        if self.choices:
+            if self.default and str(self.default) not in self.choices:
+                raise RestxException("Specified default value is not listed in 'choices'")
+            if self.ptype not in [ PARAM_STRING, PARAM_NUMBER ]:
+                raise RestxException("Choices are not supported for this type.")
 
     def getDefaultVal(self):
         """
@@ -211,6 +223,13 @@ class ParameterDef(object):
             return '''<label for="%s_yes"><input %stype="radio" id="%s_yes" name="%s" value="yes" />yes</label><br>
                       <label for="%s_no"><input %stype="radio" id="%s_no" name="%s" value="no" />no</label>''' % (name, yes_value, name, name, name, no_value, name, name)
         else:
+            if self.choices:
+                buf = '<select name="%s" id="%s">' % (name, name)
+                if self.default:
+                    buf +=  '<option value="">--- Accept default ---</option>'
+                buf += '%s</select>' % ( [ '<option value="%s"%s>%s</option>' % (c, 'selected="selected"' if initial and c == initial else "", c) for c in self.choices ] )
+                return buf
+
             if initial:
                 init_val = 'value="%s" ' % initial
             else:

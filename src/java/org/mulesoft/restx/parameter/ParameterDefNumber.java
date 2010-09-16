@@ -19,6 +19,8 @@
 
 package org.mulesoft.restx.parameter;
 
+import org.mulesoft.restx.exception.RestxException;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
@@ -29,11 +31,6 @@ public class ParameterDefNumber extends ParameterDef
     public ParameterDefNumber(String desc)
     {
         this(desc, true, null);
-    }
-
-    public ParameterDefNumber(String desc, int defaultVal)
-    {
-        this(desc, false, defaultVal);
     }
 
     public ParameterDefNumber(String desc, float defaultVal)
@@ -51,6 +48,53 @@ public class ParameterDefNumber extends ParameterDef
         super("number", desc, required);
         this.defaultVal = toBigDecimal(defaultVal);
     }
+
+    /*
+    public ParameterDefNumber(String desc, boolean required, Number defaultVal, int[] choices) throws RestxException
+    {
+        super("number", desc, required);
+        this.defaultVal = toBigDecimal(defaultVal);
+        processChoices(choices);
+    }
+
+    public ParameterDefNumber(String desc, boolean required, Number defaultVal, float[] choices) throws RestxException
+    {
+        super("number", desc, required, defaultVal);
+        this.defaultVal = toBigDecimal(defaultVal);
+        processChoices(choices);
+    }
+    */
+
+    public ParameterDefNumber(String desc, boolean required, Number defaultVal, String[] choices) throws RestxException
+    {
+        super("number", desc, required);
+        this.defaultVal = toBigDecimal(defaultVal);
+        if (choices != null) {
+            processChoices(choices);
+        }
+    }
+
+    private void processChoices(String[] choices) throws RestxException
+    {
+        String strChoices[] = new String[choices.length];
+
+        int        i = 0;
+        boolean    foundDefault = false;
+        for (String bvStr: choices) {
+            BigDecimal bv = new BigDecimal(bvStr);
+            if (defaultVal != null) {
+                if (bv.compareTo((BigDecimal)(this.defaultVal)) == 0) {
+                    foundDefault = true;
+                }
+            }
+            strChoices[i++] = bv.toString();
+        }
+        if (defaultVal != null  &&  !foundDefault) {
+            throw new RestxException("Specified default value is not listed in 'choices'");
+        }
+        this.choices = strChoices;
+    }
+
 
     @Override
     public Object getDefaultVal()

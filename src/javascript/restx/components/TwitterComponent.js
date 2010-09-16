@@ -35,6 +35,7 @@ this.documentation = "The Twitter component is designed to provide access to a T
 
 this.parameters = {
   accountName     : { type: TYPE.STRING, description: "Twitter account name", required: true },
+  accountNumber   : { type: TYPE.NUMBER, description: "Twitter account name", required: true },
   accountPassword : { type: TYPE.PASSWORD, description: "Password", required: true }
 }
 

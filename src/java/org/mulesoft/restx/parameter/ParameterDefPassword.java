@@ -28,11 +28,6 @@ public class ParameterDefPassword extends ParameterDef
         this(desc, true, null);
     }
 
-    public ParameterDefPassword(String desc, String defaultVal)
-    {
-        this(desc, false, defaultVal);
-    }
-
     public ParameterDefPassword(String desc, boolean required, String defaultVal)
     {
         super("password", desc, required);

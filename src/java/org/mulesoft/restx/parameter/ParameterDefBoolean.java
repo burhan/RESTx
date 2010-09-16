@@ -28,11 +28,6 @@ public class ParameterDefBoolean extends ParameterDef
         this(desc, true, false);
     }
 
-    public ParameterDefBoolean(String desc, boolean defaultVal)
-    {
-        this(desc, false, defaultVal);
-    }
-
     public ParameterDefBoolean(String desc, boolean required, boolean defaultVal)
     {
         super("boolean", desc, required);

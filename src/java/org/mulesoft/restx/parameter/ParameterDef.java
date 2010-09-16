@@ -23,9 +23,12 @@ import java.util.HashMap;
 
 public abstract class ParameterDef
 {
-    public String ptype;
-    public String desc;
-    public boolean required;
+    public    String    ptype;
+    public    String    desc;
+    public    boolean   required;
+
+    protected String[]  choices = null;
+
 
     public ParameterDef(String ptype, String desc, boolean required)
     {
@@ -54,6 +57,25 @@ public abstract class ParameterDef
         String init_val = " ";
         if (initial != null  &&  initial.length() > 0) {
             init_val = " value=\"" + initial + "\" ";
+        }
+
+        if (choices != null) {
+            String buf = "<select name=" + name + " id=" + name + ">";
+            if (!this.required) {
+                // If we are not required then we definitely have a default value
+                buf += "<option value=\"\">--- Accept default ---</option>";
+
+            }
+                
+            for (String c: choices) {
+                String args = "";
+                if ((initial != null)  &&  (c.equals(initial))) {
+                    args = " selected=\"selected\"";
+                }
+                buf += "<option value=\"" + c + "\"" + args + ">" + c + "</option>";
+            }
+            buf += "</select>";
+            return buf;
         }
             
         return "<input type=text name=" + name + " id=" + name + init_val + "/>";

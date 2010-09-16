@@ -46,6 +46,7 @@ import org.mulesoft.restx.component.api.MakeResourceResult;
 import org.mulesoft.restx.component.api.OutputType;
 import org.mulesoft.restx.component.api.OutputTypes;
 import org.mulesoft.restx.component.api.Parameter;
+import org.mulesoft.restx.component.api.Choices;
 import org.mulesoft.restx.component.api.ParamsInReqBody;
 import org.mulesoft.restx.component.api.Service;
 import org.mulesoft.restx.component.api.ServiceDescriptor;
@@ -165,18 +166,27 @@ public abstract class BaseComponent
     private ParameterDef createParamDefType(Class<?> paramType,
                                             String desc,
                                             boolean required,
-                                            String defaultVal)
+                                            String defaultVal,
+                                            String[] choices) throws RestxException
     {
         ParameterDef pdef = null;
         if (paramType == String.class)
         {
-            pdef = new ParameterDefString(desc, required, defaultVal);
+            pdef = new ParameterDefString(desc, required, defaultVal, choices);
         }
         else if (paramType == Integer.class || paramType == BigDecimal.class || paramType == Double.class
                  || paramType == Float.class || paramType == int.class || paramType == float.class
                  || paramType == double.class)
         {
-            pdef = new ParameterDefNumber(desc, required, new BigDecimal(defaultVal));
+            BigDecimal defaultValue;
+            if (defaultVal == null) {
+                defaultValue = null;
+            }
+            else {
+                defaultValue = new BigDecimal(defaultVal);
+            }
+
+            pdef = new ParameterDefNumber(desc, required, defaultValue, choices);
         }
         else if (paramType == Boolean.class)
         {
@@ -214,7 +224,8 @@ public abstract class BaseComponent
                 final String paramName = fa.name();
                 final String paramDesc = fa.desc();
                 String defaultVal = null;
-                boolean required = true;
+                boolean required  = true;
+                String[] choices  = null;
 
                 // Check if we have a default value and set that one as well
                 final Default fad = f.getAnnotation(Default.class);
@@ -223,9 +234,15 @@ public abstract class BaseComponent
                     defaultVal = fad.value();
                     required = false;
                 }
+
+                // Check if we have a list of choices
+                final Choices cad = f.getAnnotation(Choices.class);
+                if (cad != null)
+                {
+                    choices = cad.value();
+                }
                 final Class<?> ftype = f.getType();
-                componentDescriptor.addParameter(paramName, createParamDefType(ftype, paramDesc, required,
-                    defaultVal));
+                componentDescriptor.addParameter(paramName, createParamDefType(ftype, paramDesc, required, defaultVal, choices));
             }
         }
 
@@ -346,7 +363,7 @@ public abstract class BaseComponent
                     }
                     if (name != null)
                     {
-                        sd.addParameter(name, createParamDefType(types[i], desc, required, defaultVal));
+                        sd.addParameter(name, createParamDefType(types[i], desc, required, defaultVal, null));
                     }
                     ++i;
                 }
