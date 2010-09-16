@@ -202,10 +202,14 @@ class ParameterDef(object):
         @rtype:   dict
         
         """
-        return dict(type             = self.ptype,
-                    desc             = self.desc,
-                    required         = self.required,
-                    default          = self.default)
+        d = dict(type             = self.ptype,
+                 desc             = self.desc,
+                 required         = self.required,
+                 default          = self.default)
+        if self.choices:
+            d['val_choices'] = self.choices
+        return d
+
 
     def html_type(self, name, initial=None):
         """

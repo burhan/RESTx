@@ -20,6 +20,7 @@
 package org.mulesoft.restx.parameter;
 
 import java.util.HashMap;
+import java.util.ArrayList;
 
 public abstract class ParameterDef
 {
@@ -47,6 +48,14 @@ public abstract class ParameterDef
         d.put("desc", desc);
         d.put("required", required);
         d.put("default", getDefaultVal());
+
+        if (choices != null) {
+            ArrayList<String> clist = new ArrayList<String>();
+            for (String s: choices) {
+                clist.add(s);
+            }
+            d.put("val_choices", clist);
+        }
 
         return d;
     }
