@@ -215,5 +215,10 @@ class ParameterDef(object):
                 init_val = 'value="%s" ' % initial
             else:
                 init_val = ''
-            return '<input type="text" name="%s" id="%s" %s/>' % (name, name, init_val)
+
+            if self.ptype == PARAM_PASSWORD:
+                type_str = "password"
+            else:
+                type_str = "text"
+            return '<input type="%s" name="%s" id="%s" %s/>' % (type_str, name, name, init_val)
 

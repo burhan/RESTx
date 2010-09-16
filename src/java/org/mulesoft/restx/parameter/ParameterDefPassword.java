@@ -40,6 +40,18 @@ public class ParameterDefPassword extends ParameterDef
     }
 
     @Override
+    public String html_type(String name, String initial) // strange naming? This is called from
+                                                         // Python code as well
+    {
+        String init_val = " ";
+        if (initial != null  &&  initial.length() > 0) {
+            init_val = " value=\"" + initial + "\" ";
+        }
+            
+        return "<input type=password name=" + name + " id=" + name + init_val + "/>";
+    }
+
+    @Override
     public Object getDefaultVal()
     {
         return defaultVal;
