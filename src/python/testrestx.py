@@ -710,6 +710,29 @@ def test_80_japanese_message():
     assert(data == expected)
     assert(resp.getStatus() == 200)
 
+def test_90_choice_params():
+    """
+    Testing resource creation for components with choices for their parameters.
+
+    """
+    d = {
+            "params"                   : { "api_key" : "this_is_an_api_key", "foo_1" : "xyz" },
+            "resource_creation_params" : { "suggested_name" : "_test_component_2", "desc" : "A foobar storage resource" }
+        }
+    TEST_RESOURCES.append("/resource/_test_component_2")
+    data, resp = _send_data(DOCROOT + "/code/TestComponent", d)
+    assert(resp.getStatus() == 400)
+    assert(data == "Value 'xyz' for parameter 'foo_1' is not one of the permissible choices.")
+
+    d['params']['foo_1'] = "Foo B"
+    d['params']['foo_2'] = 19
+    data, resp = _send_data(DOCROOT + "/code/TestComponent", d)
+    assert(resp.getStatus() == 400)
+    assert(data == "Value '19' for parameter 'foo_2' is not one of the permissible choices.")
+
+    d['params']['foo_2'] = 2
+    data, resp = _send_data(DOCROOT + "/code/TestComponent", d)
+    assert(resp.getStatus() == 201)
 
 def test_999_cleanup():
     """
@@ -793,10 +816,15 @@ if __name__ == '__main__':
     # Collect the names of all test methods
     #
 
+    params = sys.argv[1:]
+
     test_methods = [ name for name in dir() if name.startswith("test_") ]
     test_methods.sort()
     methods = [ (globals()[method_name], method_name) for method_name in test_methods ]
 
-    while (True):
+    if "loop" in params:
+        while (True):
+            run_all_tests(methods)
+    else:
         run_all_tests(methods)
 

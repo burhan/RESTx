@@ -181,7 +181,7 @@ def paramSanityCheck(param_dict, param_def_dict, name_for_errors, make_specializ
     
      * Are there any keys in the params that are not in the definition?
      * Are all required parameters present?
-     * Are the types are compatible?
+     * Are the types compatible?
     
     Does not return anything but raises RestxException with
     meaningful error message in case of problem.
@@ -223,12 +223,18 @@ def paramSanityCheck(param_dict, param_def_dict, name_for_errors, make_specializ
             param_value = param_dict[pname]
             param_type  = type(param_value)
             storage_types, runtime_types, conversion_func = TYPE_COMPATIBILITY[type_str]
+            choices     = param_def_dict[pname].get('val_choices')
+            if choices:
+                if str(param_value) not in choices:
+                    raise RestxBadRequestException("Value '%s' for parameter '%s' is not one of the permissible choices." % (str(param_value), pname))
+
             if param_type in runtime_types:
                 pass
             elif param_type not in storage_types:
+                val = None
                 try:
                     if conversion_func:
-                        conversion_func(param_value)
+                        val = conversion_func(param_value)
                     else:
                         raise Exception("Cannot convert provided parameter type (%s) to necessary type(s) '%s'" % \
                                         (param_type, runtime_types))
@@ -368,7 +374,6 @@ def makeResourceFromComponentObject(component, params, specialized=None, partial
                         "user"     : "AccountName",
                         "password" : "some password"
                 },
-                "positional_params" : [ "user" ]      # Optional
             }
 
     The method performs sanity checking on the supplied

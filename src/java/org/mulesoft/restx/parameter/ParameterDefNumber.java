@@ -95,7 +95,6 @@ public class ParameterDefNumber extends ParameterDef
         this.choices = strChoices;
     }
 
-
     @Override
     public Object getDefaultVal()
     {

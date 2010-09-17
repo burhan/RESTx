@@ -191,7 +191,7 @@ class ParameterDef(object):
 
         """
         return self.default
-        
+
     def as_dict(self):
         """
         Unwraps this single parameter definition into a plain dictionary.
