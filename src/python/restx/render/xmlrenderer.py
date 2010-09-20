@@ -31,8 +31,7 @@ class XmlRenderer(BaseRenderer):
     
     """
 
-    #CONTENT_TYPE = "application/xml; charset=UTF-8"
-    CONTENT_TYPE = "application/xml"
+    CONTENT_TYPE = "application/xml; charset=UTF-8"
     CAN_PARSE    = False
 
     __indent_spaces = "    "

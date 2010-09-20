@@ -35,12 +35,14 @@ from restx.render.extjsonrenderer  import ExtJsonRenderer
 from restx.render.wwwformrenderer  import WwwFormRenderer
 from restx.render.textrenderer     import TextRenderer
 from restx.render.xmlrenderer      import XmlRenderer
+from restx.render.csvrenderer      import CsvRenderer
 
 # Add new renderers here...
 KNOWN_RENDERERS = {
     ""                                   : HtmlRenderer,
     "*/*"                                : HtmlRenderer,
     "text/html"                          : HtmlRenderer,
+    "text/csv"                           : CsvRenderer,
     "text/plain"                         : TextRenderer,
     "application/json"                   : JsonRenderer,
     "application/xml"                    : XmlRenderer,
@@ -56,6 +58,7 @@ KNOWN_RENDERERS = {
 # type (or accept header) is assumed to be of whatever we
 # translate it to below.
 RENDERER_ID_SHORTCUTS = {
+    "csv"      : "text/csv",
     "xml"      : "application/xml",
     "json"     : "application/json",
     "ext_json" : "application/ext+json",
