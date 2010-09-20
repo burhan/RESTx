@@ -134,7 +134,7 @@ name_value_pairs : If set then we return each table row as a dictionary with the
                                    "id"  : ParameterDef(PARAM_NUMBER, "The ID of the entry, needed for PUT and (optionally) GET", required=False, default=-1),
                                },
                                "positional_params": [ "id" ],
-                               "output_types" : [ "application/json", "text/html", "application/ext+json" ],
+                               "output_types" : [ "application/json", "application/xml", "text/html", "application/ext+json" ],
                                "input_types" : [ "application/json", "application/x-www-form-urlencoded", "application/ext+json" ],
                                #"input_types" : None,
                            }

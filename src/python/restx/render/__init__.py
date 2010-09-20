@@ -34,6 +34,7 @@ from restx.render.jsonrenderer     import JsonRenderer
 from restx.render.extjsonrenderer  import ExtJsonRenderer
 from restx.render.wwwformrenderer  import WwwFormRenderer
 from restx.render.textrenderer     import TextRenderer
+from restx.render.xmlrenderer      import XmlRenderer
 
 # Add new renderers here...
 KNOWN_RENDERERS = {
@@ -42,6 +43,7 @@ KNOWN_RENDERERS = {
     "text/html"                          : HtmlRenderer,
     "text/plain"                         : TextRenderer,
     "application/json"                   : JsonRenderer,
+    "application/xml"                    : XmlRenderer,
     "application/ext+json"               : ExtJsonRenderer,
     "application/x-www-form-urlencoded"  : WwwFormRenderer,
 }
@@ -54,11 +56,12 @@ KNOWN_RENDERERS = {
 # type (or accept header) is assumed to be of whatever we
 # translate it to below.
 RENDERER_ID_SHORTCUTS = {
+    "xml"      : "application/xml",
     "json"     : "application/json",
     "ext_json" : "application/ext+json",
 }
 
-DEFAULT_OUTPUT_TYPES          = [ "application/json", "text/html", "*/*" ]
+DEFAULT_OUTPUT_TYPES          = [ "application/json", "application/xml", "text/html", "*/*" ]
 DEFAULT_INPUT_TYPES           = [ "application/json", "application/x-www-form-urlencoded" ]
 
 KNOWN_INPUT_RENDERERS  = dict( [ (type_str, KNOWN_RENDERERS[type_str]) for type_str in KNOWN_RENDERERS.keys() if KNOWN_RENDERERS[type_str]().canParse() ] )

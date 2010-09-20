@@ -48,6 +48,10 @@ def content_type_match(possible_types, accepted_types):
     """
     Find the first match between possible types and accepted types.
 
+    Note: We make a specific exception for text/html. This is normally
+    sent by a browser. If we detect that anywhere (!) in the list of
+    accepted content types, then we will give this one priority.
+
     Throws exception if we can't find a match.
 
     @param possible_types:      List of possible content types.
@@ -64,6 +68,9 @@ def content_type_match(possible_types, accepted_types):
         # If no specific content type was defined with 'Accept' then
         # we will just assume the first one of our specified output types.
         return possible_types[0]
+
+    if "text/html" in accepted_types and "text/html" in possible_types:
+        return "text/html"
 
     for atype in accepted_types:
         if atype in possible_types:
