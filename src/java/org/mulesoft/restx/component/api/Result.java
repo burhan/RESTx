@@ -56,6 +56,11 @@ public class Result
                + negotiatedType + "]";
     }
 
+    public static Result generic(int code, Object data)
+    {
+        return new Result(code, data);
+    }
+
     public static Result ok()
     {
         return new Result(HTTP.OK, null);
