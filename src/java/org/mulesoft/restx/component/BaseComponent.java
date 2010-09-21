@@ -439,7 +439,7 @@ public abstract class BaseComponent
     }
 
     // JSON processing
-    public Object fromJsonStr(String str) throws RestxException
+    public Object fromJson(String str) throws RestxException
     {
         try
         {
@@ -451,7 +451,7 @@ public abstract class BaseComponent
         }
     }
 
-    public String toJsonStr(Object obj) throws RestxException
+    public String toJson(Object obj) throws RestxException
     {
         try
         {

@@ -83,8 +83,8 @@ function someService(method, input,   // Parameters method and input are always 
   //     RESTx.makeResource()
   //
   // Processing JSON:
-  //     RESTx.fromJsonStr()
-  //     RESTx.toJsonString()
+  //     RESTx.fromJson()
+  //     RESTx.toJson()
   
   // -------------------------------------------------------------------------
   // Preparing return data:

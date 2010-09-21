@@ -51,7 +51,7 @@ function status(method, input) {
   function getStatus() {
     result = RESTx.httpGet("http://api.twitter.com/1/users/show.json?screen_name=" + accountName)
     
-    return response(function() { return RESTx.fromJsonStr(result.data).get("status").get("text") })
+    return response(function() { return RESTx.fromJson(result.data).get("status").get("text") })
   }
   
   function postStatus(input) {
@@ -112,7 +112,7 @@ function timeline(method, input, count, filter) {
   result = RESTx.httpGet("http://api.twitter.com/1/statuses/user_timeline.json?count=" + count)
 
   return response(function() {
-                    jsonResults = RESTx.fromJsonStr(result.data)
+                    jsonResults = RESTx.fromJson(result.data)
                     return filter ? filterResults(jsonResults) : jsonResults
                   })
 }
