@@ -84,7 +84,7 @@ class GsearchComponent(BaseComponent):
         start = 1
         results = []
         if not query:
-            query=urllib.quote(self.default_search)
+            query = self.default_search
         while len(results) < num:
             url = "http://ajax.googleapis.com/ajax/services/search/web?v=1.0&q=%s&start=%d" % (query, start)
             code, data_str = self.httpGet(url)

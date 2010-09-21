@@ -131,20 +131,10 @@ class BaseCapabilities(BaseComponentCapabilities):
         @rtype:            tuple
         
         """
-        #
-        # For some reason, under Jython we are REALLY slow in handling the kind
-        # of host names where we get more than one DNS hit back.
-        #
-        # As a stop gap measure:
-        # 1. Extract the host name from the URI
-        # 2. Do a normal DNS lookup for the name, using the socket library
-        # 3. Replace the host name in the URI with the IP address string
-        # 4. Add a 'Host' header with the original host name to the request
-        #
-        # Wish I wouldn't have to do that...
-        #
         (scheme, host_port, path, params, query, fragment) = urlparse.urlparse(url)
-        allpath     = url[url.index(host_port)+len(host_port):]
+        path        = urllib.quote(path)
+        query       = urllib.quote_plus(query, safe="=&")
+        allpath     = path + (("?%s" % query) if query else "") + (("#%s" % fragment) if fragment else "")
         host, port  = urllib.splitport(host_port)
 
         if headers:
@@ -158,6 +148,18 @@ class BaseCapabilities(BaseComponentCapabilities):
         else:
             headers = dict()
 
+        #
+        # For some reason, under Jython we are REALLY slow in handling the kind
+        # of host names where we get more than one DNS hit back.
+        #
+        # As a stop gap measure:
+        #
+        #    1. Do a normal DNS lookup for the host name, using the socket library
+        #    2. Replace the host name in the URI with the IP address string
+        #    3. Add a 'Host' header with the original host name to the request
+        #
+        # Wish I wouldn't have to do that...
+        #
         try:
             ipaddr          = socket.gethostbyname(host)   # One of the possible IP addresses for this host
             headers["Host"] = host                         # Will add a proper host header
