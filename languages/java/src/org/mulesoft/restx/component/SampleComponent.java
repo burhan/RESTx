@@ -19,7 +19,7 @@
 
 
 /*
- * A sample template for RESTx components, written in Python.
+ * A sample template for RESTx components, written in Java.
  */
 
 package ___MODULE_NAME_PLACEHOLDER___;
