@@ -28,13 +28,7 @@ import java.math.BigDecimal;                        // Default type for numeric 
 
 import org.mulesoft.restx.component.BaseComponent;  // Base class for all components
 import org.mulesoft.restx.component.api.*;          // Imports all aspects of the API
-
-//
-// If you want to handle or throw RESTx specific exceptions, you might also want
-// to import this:
-//
-// import org.mulesoft.restx.exception.*;
-//
+import org.mulesoft.restx.exception.*;              // Imports RESTx exceptions, which you can throw or handle
 
 // -----------------------------------------------
 // Tell RESTx some information about this component.
@@ -66,7 +60,7 @@ public class SampleComponent extends BaseComponent
     @ParamsInReqBody                                                   // Optional: Allows parameters to be sent in the request body.
     //@InputType(InputType.NO_INPUT)                                   // Optional: Specify supported input content types, use @InputTypes({...}) for multiple
     @OutputTypes({"application/json", "text/html"})                    // Optional: Specify supported output content types, use @OutputType() for single
-    public Result someSubresource(HttpMethod method, String input,     // These two parameters are always present
+    public Result someSubresource(HttpMethod method, Object input,     // These two parameters are always present
                          
                                   // Here now the parameters that are exposed on the URI command line
 
