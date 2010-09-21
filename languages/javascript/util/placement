@@ -26,5 +26,9 @@ OPTIONAL_TARGET="$4"
 OPTIONAL_MODULE="org.mulesoft.restx.component.scripting"
 OPTIONAL_IMPORT="JavaScriptComponentWrapper"
 
+if [ -z $OPTIONAL_TARGET ]; then
+    OPTIONAL_TARGET="-"
+fi
+
 "$RESTX_HOME"/bin/generic_placement "$name" "$RESTX_HOME" "$LANGUAGE" "$LANGUAGE_ENDING" "$LANGUAGES_SRC" "$RESTX_SRC" "$SAMPLE_COMPONENT_NAME" "$COMPONENT_CONF_FILE" ".""$name" 0 $OPTIONAL_TARGET $OPTIONAL_MODULE $OPTIONAL_IMPORT
 

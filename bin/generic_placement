@@ -67,6 +67,10 @@ echo
 #
 fullpath="`cd $LANGUAGES_SRC; find * -name $SAMPLE_COMPONENT`"
 
+if [ "$OPTIONAL_TARGET" = "-" ]; then
+    unset OPTIONAL_TARGET
+fi
+
 if [ -z "$OPTIONAL_TARGET" ]; then
     #
     # The directory in which the new component should be stored
