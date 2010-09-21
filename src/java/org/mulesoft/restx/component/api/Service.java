@@ -26,6 +26,6 @@ import java.lang.annotation.*;
 @Target(ElementType.METHOD)
 public @interface Service
 {
-    String   description();
+    String desc();
 }
 

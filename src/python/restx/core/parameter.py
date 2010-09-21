@@ -204,8 +204,9 @@ class ParameterDef(object):
         """
         d = dict(type             = self.ptype,
                  desc             = self.desc,
-                 required         = self.required,
-                 default          = self.default)
+                 required         = self.required)
+        if not self.required:
+            d['default'] = self.default
         if self.choices:
             d['val_choices'] = self.choices
         return d

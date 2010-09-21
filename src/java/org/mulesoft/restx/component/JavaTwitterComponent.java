@@ -27,8 +27,10 @@ import org.mulesoft.restx.component.api.Parameter;
 import org.mulesoft.restx.component.api.Result;
 import org.mulesoft.restx.component.api.Service;
 
-@ComponentInfo(name = "JavaTwitterComponent", description = "This is a Java implementation of a Twitter component", doc = "The Twitter component is designed to provide access to a Twitter account."
-                                                                                                                          + "It can be used to get status as well as update status.")
+@ComponentInfo(name = "JavaTwitterComponent",
+               desc = "This is a Java implementation of a Twitter component",
+               doc  = "The Twitter component is designed to provide access to a Twitter account."
+                      + "It can be used to get status as well as update status.")
 public class JavaTwitterComponent extends BaseComponent
 {
     @Parameter(name = "account_name", desc = "Twitter account name")
@@ -57,7 +59,7 @@ public class JavaTwitterComponent extends BaseComponent
         return (String) res.data;
     }
 
-    @Service(description = "You can GET the status or POST a new status to it.")
+    @Service(desc = "You can GET the status or POST a new status to it.")
     public Result status(HttpMethod method, String input)
     {
         final int status = HTTP.OK;

@@ -28,7 +28,9 @@ import java.util.Map;
 import org.mulesoft.restx.component.api.*;
 import org.mulesoft.restx.exception.RestxException;
 
-@ComponentInfo(name = "TestComponent", description = "This is a Java test component", doc = "Here is a doc string")
+@ComponentInfo(name = "TestComponent",
+               desc = "This is a Java test component",
+               doc  = "Here is a doc string")
 public class TestComponent extends BaseComponent
 {
     @Parameter(name = "api_key", desc = "This is the API key")
@@ -45,7 +47,7 @@ public class TestComponent extends BaseComponent
     @Default("3")
     public BigDecimal foo_2;
 
-    @Service(description = "This is the foobar service")
+    @Service(desc = "This is the foobar service")
     @InputType(InputType.NO_INPUT)
     // @InputType(InputType.ANY_INPUT)
     //@InputTypes({"application/json", "application/x-www-form-urlencoded"})
@@ -88,7 +90,7 @@ public class TestComponent extends BaseComponent
         return Result.ok(v);
     }
 
-    @Service(description = "Makes another resource")
+    @Service(desc = "Makes another resource")
     public Result maker(HttpMethod method, String input) throws RestxException
     {
         final Map<String, String> params = new HashMap<String, String>();
@@ -102,7 +104,7 @@ public class TestComponent extends BaseComponent
         return Result.ok(resbuf);
     }
 
-    @Service(description = "This accesses a Python Google search resource and returns the result")
+    @Service(desc = "This accesses a Python Google search resource and returns the result")
     public Result blahblah(HttpMethod method, String input)
     {
         HttpResult res;
@@ -112,7 +114,7 @@ public class TestComponent extends BaseComponent
         return new Result(res.status, res.data);
     }
 
-    @Service(description = "This returns Japanese message for test")
+    @Service(desc = "This returns Japanese message for test")
     public Result japanese(HttpMethod method, String input)
     {
         // This is a Japanese message (kore wa nihongo no message desu).

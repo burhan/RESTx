@@ -27,7 +27,7 @@ import java.lang.annotation.*;
 public @interface ComponentInfo
 {    
     String  name();
-    String  description();
+    String  desc();
     String  doc();
 }
 

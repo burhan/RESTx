@@ -238,13 +238,11 @@ def test_40_twitter_code():
 
     params_def = {
         "account_name": {
-            "default": None, 
             "desc": "Twitter account name", 
             "required": True, 
             "type": "string"
         }, 
         "account_password": {
-            "default": None, 
             "desc": "Password", 
             "required": True, 
             "type": "password"
@@ -261,7 +259,6 @@ def test_40_twitter_code():
             "type": "string"
         }, 
         "suggested_name": {
-            "default": None, 
             "desc": "Can be used to suggest the resource name to the server", 
             "required": True, 
             "type": "string"
@@ -280,12 +277,12 @@ def test_40_twitter_code():
         u'status': {
             u'desc': u'You can GET the status or POST a new status to it.',
             u'uri': u'/code/TwitterComponent/status',
-            u'output_types': [u'application/json', u'text/html', u'*/*' ],
+            u'output_types': [u'application/json', u'application/xml', u'text/html', u'*/*' ],
             u'input_types': [u'application/json', u'application/x-www-form-urlencoded'],
         },
         u'home_timeline': {
             u'desc': u'You can GET the home timeline of the user.',
-            u'output_types': [u'application/json', u'text/html', u'*/*' ],
+            u'output_types': [u'application/json', u'application/xml', u'text/html', u'*/*' ],
             u'input_types': [u'application/json', u'application/x-www-form-urlencoded'],
             u'params': {
                 u'count': {
@@ -305,7 +302,7 @@ def test_40_twitter_code():
         },
         u'timeline': {
             u'desc': u'You can GET the timeline of the user.',
-            u'output_types': [u'application/json', u'text/html', u'*/*' ],
+            u'output_types': [u'application/json', u'application/xml', u'text/html', u'*/*' ],
             u'input_types': [u'application/json', u'application/x-www-form-urlencoded'],
             u'params': {
                 u'count': {
@@ -325,7 +322,9 @@ def test_40_twitter_code():
         }
     }
 
-    _dict_compare(cdef['services'], services_def)
+    _dict_compare(cdef['services']['status'], services_def['status'])
+    _dict_compare(cdef['services']['home_timeline'], services_def['home_timeline'])
+    _dict_compare(cdef['services']['timeline'], services_def['timeline'])
 
 
 def test_45_twitter_doc():
@@ -418,13 +417,13 @@ def test_55_examine_resource():
             "status": {
                 "uri": DOCROOT + "/resource/_test_foobar/status", 
                 "desc": "You can GET the status or POST a new status to it.",
-                'output_types': [u'application/json', u'text/html', u'*/*' ],
+                'output_types': [u'application/json', u'application/xml', u'text/html', u'*/*' ],
                 u'input_types': [u'application/json', u'application/x-www-form-urlencoded'],
             }, 
             "timeline": {
                 "uri": DOCROOT + "/resource/_test_foobar/timeline", 
                 "desc": "You can GET the timeline of the user.",
-                'output_types': [u'application/json', u'text/html', u'*/*' ],
+                'output_types': [u'application/json', u'application/xml', u'text/html', u'*/*' ],
                 u'input_types': [u'application/json', u'application/x-www-form-urlencoded'],
                 'params': {
                     'count': {
@@ -444,7 +443,7 @@ def test_55_examine_resource():
             'home_timeline': {
                 "uri": DOCROOT + "/resource/_test_foobar/home_timeline", 
                 'desc': 'You can GET the home timeline of the user.',
-                'output_types': [u'application/json', u'text/html', u'*/*' ],
+                'output_types': [u'application/json', u'application/xml', u'text/html', u'*/*' ],
                 u'input_types': [u'application/json', u'application/x-www-form-urlencoded'],
                 'params': {
                     'count': {
@@ -508,7 +507,6 @@ def test_62_examine_partial_resource():
                 "desc": "Can be used to suggest the resource name to the server", 
                 "type": "string", 
                 "required": True, 
-                "default": None
             }, 
             "desc": {
                 "desc": "Specifies a description for this new resource", 
@@ -521,13 +519,13 @@ def test_62_examine_partial_resource():
         "services": {
             "status": {
                 "desc": "You can GET the status or POST a new status to it.", 
-                'output_types': [u'application/json', u'text/html', u'*/*' ],
+                'output_types': [u'application/json', u'application/xml', u'text/html', u'*/*' ],
                 'input_types': [u'application/json', u'application/x-www-form-urlencoded'],
                 "uri": "/code/TwitterComponent/status"
             }, 
             "home_timeline": {
                 "desc": "You can GET the home timeline of the user.", 
-                'output_types': [u'application/json', u'text/html', u'*/*' ],
+                'output_types': [u'application/json', u'application/xml', u'text/html', u'*/*' ],
                 'input_types': [u'application/json', u'application/x-www-form-urlencoded'],
                 "params": {
                     "count": {
@@ -547,7 +545,7 @@ def test_62_examine_partial_resource():
             }, 
             "timeline": {
                 "desc": "You can GET the timeline of the user.", 
-                'output_types': [u'application/json', u'text/html', u'*/*' ],
+                'output_types': [u'application/json', u'application/xml', u'text/html', u'*/*' ],
                 'input_types': [u'application/json', u'application/x-www-form-urlencoded'],
                 "params": {
                     "count": {
@@ -579,7 +577,6 @@ def test_62_examine_partial_resource():
                 "desc": "Twitter account name", 
                 "type": "string", 
                 "required": True, 
-                "default": None
             }
         }, 
         "uri": "/specialized/_test_partial_base", 

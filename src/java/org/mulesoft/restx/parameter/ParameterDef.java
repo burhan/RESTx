@@ -47,7 +47,9 @@ public abstract class ParameterDef
         d.put("type", ptype);
         d.put("desc", desc);
         d.put("required", required);
-        d.put("default", getDefaultVal());
+        if (!required) {
+            d.put("default", getDefaultVal());
+        }
 
         if (choices != null) {
             ArrayList<String> clist = new ArrayList<String>();

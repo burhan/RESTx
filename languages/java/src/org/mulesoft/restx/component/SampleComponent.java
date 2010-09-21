@@ -33,9 +33,9 @@ import org.mulesoft.restx.exception.*;              // Imports RESTx exceptions,
 // -----------------------------------------------
 // Tell RESTx some information about this component.
 // -----------------------------------------------
-@ComponentInfo(name        = "SampleComponent",
-               description = "One line description of the component",
-               doc         = "Longer description text, possibly multi-line, goes here")
+@ComponentInfo(name = "SampleComponent",
+               desc = "One line description of the component",
+               doc  = "Longer description text, possibly multi-line, goes here")
 public class SampleComponent extends BaseComponent
 {    
     // ---------------------------------
@@ -56,7 +56,7 @@ public class SampleComponent extends BaseComponent
     // ---------------
     // Service methods
     // ---------------
-    @Service(description = "This is the XYZ subresource service")
+    @Service(desc = "This is the XYZ subresource service")
     @ParamsInReqBody                                                   // Optional: Allows parameters to be sent in the request body.
     //@InputType(InputType.NO_INPUT)                                   // Optional: Specify supported input content types, use @InputTypes({...}) for multiple
     @OutputTypes({"application/json", "text/html"})                    // Optional: Specify supported output content types, use @OutputType() for single

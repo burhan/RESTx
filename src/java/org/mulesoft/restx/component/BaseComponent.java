@@ -211,7 +211,7 @@ public abstract class BaseComponent
         {
             throw new RestxException("Component does not have a ComponentInfo annotation");
         }
-        componentDescriptor = new ComponentDescriptor(ci.name(), ci.description(), ci.doc());
+        componentDescriptor = new ComponentDescriptor(ci.name(), ci.desc(), ci.doc());
 
         /*
          * Examine field annotations to identify resource creation time parameters.
@@ -325,7 +325,7 @@ public abstract class BaseComponent
                         }
                     }
                 }
-                final ServiceDescriptor sd = new ServiceDescriptor(at.description(), pinreq, outputTypes,
+                final ServiceDescriptor sd = new ServiceDescriptor(at.desc(), pinreq, outputTypes,
                     inputTypes);
                 final Class<?>[] types = m.getParameterTypes();
                 final Annotation[][] allParamAnnotations = m.getParameterAnnotations();
