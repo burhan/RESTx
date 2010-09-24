@@ -28,27 +28,117 @@ fields in each input can have different names.
 
 """
 
-# Imports all aspects of the API
 from restx.components.api import *
 
 class Join(BaseComponent):
 
-    # Name, description and doc string of the component as it should appear to the user.
     NAME             = "Join"
     DESCRIPTION      = "Capable of joining lists of dictionaries."
-    DOCUMENTATION    = """
+    DOCUMENTATION    = """<pre>
+The RESTx Join component
+========================
 Given two resources (identified by their relative URI), this component conducts a join.
-Each resource is expected to produce an array of dictionaries
 
-A 'key' field can be identified in for each resource. The join will be conducted on
-that key field.
 
+          Resource A          Resource B
+          ----------          ----------
+                \                /  
+                 \              /
+                  \            /
+                   \          /
+                    V        V
+                New joined resource
+                -------------------
+
+
+Each resource is expected to produce an array of dictionaries, where each dictionary
+represents a row. The key fields of each row produced by a resource are expected to
+stay the same, thus representing a table.
+
+
+The join is conducted on a 'key field' that can be specified individually for each
+of the two source resources.
+
+
+Example:
+
+
+    Output from resource A:
+
+
+        [
+            { "email" : "a@b.c", "foo" : "A_foo_a" },
+            { "email" : "b@b.c", "foo" : "A_foo_b" },
+            { "email" : "c@b.c", "foo" : "A_foo_c" },
+            { "email" : "d@b.c", "foo" : "A_foo_d" }
+        ]
+
+
+    Output from resource B:
+
+
+        [
+            { "Email_Address" : "x@b.c", "foo" : "B_foo_x", "bar" : "bar_x" },
+            { "Email_Address" : "b@b.c", "foo" : "B_foo_b", "bar" : "bar_b" },
+            { "Email_Address" : "c@b.c", "foo" : "B_foo_c", "bar" : "bar_c" }
+        ]
+
+
+Note that each 'record' in a resource's output contains the same fields.
+The field names for resource A are [ 'email', 'foo' ] while the field
+names for resource B are [ 'Email_Address', 'foo', 'bar' ].
+
+
+The parameters used by the Join component are as follows:
+
+
+    'resource_A_uri' :    The URI of resource A
+    'resource_B_uri' :    The URI of resource B
+    'keyfield_A' :        The key-field on which to perform the join for record A
+    'keyfield_B' :        The key-field on which to perform the join for record B
+    'prefix_name_A' :     An optional prefix for fields from A
+    'prefix_name_B' :     An optional prefix for fields from B
+    'new_keyfield_name' : A new name for the keyfield, if defined.
+    'always_use_prefix' : Prefixes are normally only used to resolve name conflicts.
+
+
+If we define the key fields in A and B to be 'email' and 'Email_Address' respectively
+then the output of the join is:
+
+
+    [
+        { "email" : "b@b.c", "A.foo" : "A_foo_b", "B.foo" : "B_foo_b", "bar" : "bar_b" },
+        { "email" : "c@b.c", "A.foo" : "A_foo_c", "B.foo" : "B_foo_c", "bar" : "bar_c" }
+    ]
+
+
+Note that the field "foo" needed the prefixes in order to resolve the name collision,
+while the field "bar" does not, since it only appears in one of the sources.
+
+
+If 'always_use_prefix' is set then the output is:
+
+
+    [
+        { "A.email" : "b@b.c", "A.foo" : "A_foo_b", "B.foo" : "B_foo_b", "B.bar" : "bar_b" },
+        { "A.email" : "c@b.c", "A.foo" : "A_foo_c", "B.foo" : "B_foo_c", "B.bar" : "bar_c" }
+    ]
+
+
+If 'new_keyfield_name' is set to "Address" and 'always_use_prefix' is set then the output is:
+
+
+    [
+        { "Address" : "b@b.c", "A.foo" : "A_foo_b", "B.foo" : "B_foo_b", "B.bar" : "bar_b" },
+        { "Address" : "c@b.c", "A.foo" : "A_foo_c", "B.foo" : "B_foo_c", "B.bar" : "bar_c" }
+    ]
+
+
+If prefix names are not defined then in case of name collision, "A" and "B" will be used
+as default prefixes.
+</pre>
 """
 
-    # Resource creation time parameters.
-    # Each parameter is created through a ParameterDef object, which encapsulates
-    # the definition of the parameter. The PARAM_* argument determines the type
-    # of the parameter. Currently, we know PARAM_STRING, PARAM_NUMBER and PARAM_BOOL.
     PARAM_DEFINITION = {
                            "resource_A_uri" :    ParameterDef(PARAM_STRING, "URI of a first resource", required=True),
                            "resource_B_uri" :    ParameterDef(PARAM_STRING, "URI of a second resource", required=True),
@@ -60,7 +150,6 @@ that key field.
                            "always_use_prefix" : ParameterDef(PARAM_BOOL,   "Always prefix field names with resource names?", required=False, default=True),
                        }
     
-    # A dictionary with information about each exposed service method (sub-resource).
     SERVICES         = {
                            "join" : {
                                "desc" : "Get the join result",
@@ -75,6 +164,8 @@ that key field.
     def __make_keyfield_name(self):
         #
         # The new name of the keyfield
+        #
+        # If no new_keyfield_name was specified, it takes the shorter name of the keyfield from the two data sources.
         #
         if self.new_keyfield_name:
             new_keyfield_name = self.new_keyfield_name
@@ -152,8 +243,8 @@ that key field.
             raise RestxException("Could not get data from resource B")
 
         # Index the data from each table by the key field
-        data_A_dict = dict([ ( e[self.keyfield_A], e) for e in data_A ])
-        data_B_dict = dict([ ( e[self.keyfield_B], e) for e in data_B ])
+        data_A_dict = dict([ (e[self.keyfield_A], e) for e in data_A ])
+        data_B_dict = dict([ (e[self.keyfield_B], e) for e in data_B ])
 
         # Create the join
         out = list()
@@ -164,6 +255,10 @@ that key field.
 
         return Result.ok(out)
 
+
+# ============
+# Testing
+# ============
 if __name__ == '__main__':
 
     #
@@ -250,6 +345,7 @@ if __name__ == '__main__':
         { "Email" : "x@b.c", "foo" : "B foo x", "bar" : "bar X" },
         { "Email" : "b@b.c", "foo" : "B foo b", "bar" : "bar B" },
         { "Email" : "c@b.c", "foo" : "B foo c", "bar" : "bar C" },
+        { "Email" : "d@d.d", "foo" : "B foo c", "bar" : "bar C" },
     ]
     RESOURCE_DICT = { c.resource_A_uri : data_A, c.resource_B_uri : data_B }
 
