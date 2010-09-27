@@ -277,8 +277,12 @@ to that type then the element is considered not-matched.
     # the definition of the parameter. The PARAM_* argument determines the type
     # of the parameter. Currently, we know PARAM_STRING, PARAM_NUMBER and PARAM_BOOL.
     PARAM_DEFINITION = {
-                           "input_resource_uri" : ParameterDef(PARAM_STRING, "URI of a resource", required=True),
-                           "filter_expression"  : ParameterDef(PARAM_STRING, "Filter expression", required=True)
+                           "input_resource_uri"   : ParameterDef(PARAM_STRING, "URI of a resource", required=True),
+                           "filter_expression_1"  : ParameterDef(PARAM_STRING, "Filter expression", required=True),
+                           "filter_expression_2"  : ParameterDef(PARAM_STRING, "Filter expression", required=False, default=""),
+                           "filter_expression_3"  : ParameterDef(PARAM_STRING, "Filter expression", required=False, default=""),
+                           "match_all"            : ParameterDef(PARAM_BOOL,   "If set, all filiter expressions need to match, othrwise, a single match is sufficient",
+                                                                 required=False, default=True)
                        }
     
     # A dictionary with information about each exposed service method (sub-resource).
@@ -402,11 +406,23 @@ to that type then the element is considered not-matched.
         #
         # Parse the filter expression, performing some sanity checking
         #
-        res = self._filter_compile(self.filter_expression)
+        search_expres = list()   # List of tuples of all search lists, operators and values
+        res = self._filter_compile(self.filter_expression_1)
         if not res:
-            raise RestxException("Filter epxression is invalid")
+            raise RestxException("Filter epxression 1 is invalid")
+        search_expres.append(res)
 
-        search_list, op, value = res
+        if self.filter_expression_2:
+            res = self._filter_compile(self.filter_expression_2)
+            if not res:
+                raise RestxException("Filter epxression 2 is invalid")
+            search_expres.append(res)
+
+        if self.filter_expression_3:
+            res = self._filter_compile(self.filter_expression_3)
+            if not res:
+                raise RestxException("Filter epxression 3 is invalid")
+            search_expres.append(res)
 
         status, data = accessResource(self.input_resource_uri)
         if status != 200:
@@ -427,11 +443,17 @@ to that type then the element is considered not-matched.
             
         for k in keys:
             top_level_elem = data[k]
+            matched_count  = 0
             matched        = False
             try:
-                elem = self._get_elem(top_level_elem, search_list)
-                if self.__OP_LIST[op](elem, value):
-                    matched = True
+                # Match against all of any of the search expressions
+                for (search_list, op, value) in search_expres:
+                    elem = self._get_elem(top_level_elem, search_list)
+                    if self.__OP_LIST[op](elem, value):
+                        matched_count += 1
+                        if not self.match_all  or  (matched_count == len(search_expres)):
+                            matched = True
+                            break
             except:
                 pass
             if (matched and not negate)  or  (not matched and negate):
@@ -541,8 +563,11 @@ if __name__ == '__main__':
     # Setting up a dummy component
     #
     rctp = dict(
-        input_resource_uri = "/resource/foo",
-        filter_expression  = "a/b/c = 123"
+        input_resource_uri   = "/resource/foo",
+        filter_expression_1  = "a/b/c = 123",
+        filter_expression_2  = "",
+        filter_expression_3  = "",
+        match_all            = True,
     )
     c = make_component(rctp, Filter)
 
@@ -585,7 +610,7 @@ if __name__ == '__main__':
         { "email" : "c@b.c", "foo" : "xyz" },
     ]
     RESOURCE_DICT = { c.input_resource_uri : data }
-    rctp['filter_expression']  = "foo = xyz"
+    rctp['filter_expression_1']  = "foo = xyz"
     c = make_component(rctp, Filter)
 
     #
@@ -624,6 +649,52 @@ if __name__ == '__main__':
         "ddd" : { "email" : "c@b.c", "foo" : "xyz" },
     }
     test_evaluator("Test 16", compare_dicts(res.entity, should_be))
+
+    #
+    # Test 17: Other operator: !=
+    #
+    rctp['filter_expression_1']  = "foo != xyz"
+    c   = make_component(rctp, Filter)
+    res = c.filter(None, None, False)
+    should_be = {
+        "aaa" : { "email" : "a@b.c", "foo" : "abc" },
+    }
+    test_evaluator("Test 17", compare_dicts(res.entity, should_be))
+
+    #
+    # Test 18: Multiple expressions with AND
+    #
+    data = [
+        { "a" : 1, "b" : 2, "c" : 1 },
+        { "a" : 1, "b" : 1, "c" : 1 },
+        { "a" : 1, "b" : 2, "c" : 1 },
+        { "a" : 1, "b" : 3, "c" : 1 },
+        { "a" : 1, "b" : 3, "c" : 4 },
+    ]
+    RESOURCE_DICT = { c.input_resource_uri : data }
+    rctp['filter_expression_1']  = "b = 2"
+    rctp['filter_expression_2']  = "c = 1"
+    c   = make_component(rctp, Filter)
+    res = c.filter(None, None, False)
+    should_be = [
+        { "a" : 1, "b" : 2, "c" : 1 },
+        { "a" : 1, "b" : 2, "c" : 1 },
+    ]
+    test_evaluator("Test 18", compare_outputs(res.entity, should_be))
+
+    #
+    # Test 19: Multiple expressions with OR
+    #
+    rctp['filter_expression_2']  = "c = 4"
+    rctp['match_all']            = False
+    c   = make_component(rctp, Filter)
+    res = c.filter(None, None, False)
+    should_be = [
+        { "a" : 1, "b" : 2, "c" : 1 },
+        { "a" : 1, "b" : 2, "c" : 1 },
+        { "a" : 1, "b" : 3, "c" : 4 },
+    ]
+    test_evaluator("Test 19", compare_outputs(res.entity, should_be))
 
     print
 
