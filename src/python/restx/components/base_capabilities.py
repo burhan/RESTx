@@ -28,9 +28,8 @@ import urlparse, urllib, urllib2, socket, httplib, base64
 import restx.settings as settings
 
 from restx.storageabstraction.file_storage import FileStorage
-
-from org.mulesoft.restx.component        import BaseComponentCapabilities
-from org.mulesoft.restx.component.api    import HttpResult, HTTP
+from org.mulesoft.restx.component          import BaseComponentCapabilities
+from org.mulesoft.restx.component.api      import HttpResult, HTTP
 
 
 class BaseCapabilities(BaseComponentCapabilities):
