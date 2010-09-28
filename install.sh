@@ -32,6 +32,7 @@ CTL_SCRIPT="restxctl"
 COMPILE_SCRIPT_BODY="bin/frags/_compile_frg"
 COMPILE_SCRIPT="restxcompile"
 MAKEJARS_SCRIPT="makejars"
+TESTRUN_SCRIPT="testrun"
 RESTX_BIN_DIR="bin"
 PID_FILE="restx.pid"
 START_STOP_SCRIPT_NAME="restx_start_stop_daemon"
@@ -436,6 +437,7 @@ script_combiner $ENVIRON_TMP_FILE  $RESTX_HOME/bin/frags/_ctl_frg        $RESTX_
 script_combiner $ENVIRON_TMP_FILE  $RESTX_HOME/bin/frags/_compile_frg    $RESTX_HOME/$RESTX_BIN_DIR/$COMPILE_SCRIPT
 script_combiner $ENVIRON_TMP_FILE  $RESTX_HOME/bin/frags/_start_stop_frg $RESTX_HOME/$RESTX_BIN_DIR/$START_STOP_SCRIPT_NAME
 script_combiner $ENVIRON_TMP_FILE  $RESTX_HOME/bin/frags/_makejars_frg   $RESTX_HOME/$RESTX_BIN_DIR/$MAKEJARS_SCRIPT
+script_combiner $ENVIRON_TMP_FILE  $RESTX_HOME/bin/frags/_testrun        $RESTX_HOME/$RESTX_BIN_DIR/$TESTRUN_SCRIPT
 
 rm $ENVIRON_TMP_FILE
 
