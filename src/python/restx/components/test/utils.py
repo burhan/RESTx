@@ -23,59 +23,78 @@ Commonly used helper functions when creating tests for Python components.
 
 """
 
-#
-# -------------------------------------------------------------------
-# Test helper methods
-# -------------------------------------------------------------------
-#
-
-#
-# Create a new component of the specified class and initialized
-# with the provided resource-creation-time-parameters (given
-# as a dict).
-#
-# With 'base_capability_mock', a callable can be specified (taking
-# a 'base_capability' object as parameter, which patches up a
-# such an object. For example, with custom httpGet methods, or so.
-#
 from restx.components.base_capabilities import BaseCapabilities
+from org.mulesoft.restx                 import RestxHttpRequest
 
-def make_component(resource_creation_params, component_class, base_capability_mock=None):
+class __DefaultRequest(RestxHttpRequest):
+    pass
+
+_TEST_COUNT  = 0
+_TEST_FAILED = 0
+
+# ---------------------------------
+# Setup and initialization methods.
+# ---------------------------------
+
+def make_component(resource_creation_params, component_class,
+                   base_capabilities_mock_class=BaseCapabilities, request_mock_class=__DefaultRequest):
+    """
+    Create a new component of the specified class.
+
+    The component is initialized with the specified base-capabilities and request.
+
+    Create a new component of the specified class and initialized
+    with the provided resource-creation-time-parameters (given
+    as a dict).
+
+    With 'base_capability_mock_class' a class can be specified,
+    which should derive from BaseCapabilities, but which overrides
+    selected methods, for example to mock up HTTP access or access
+    to other resources.
+
+    With 'request_mock_class' a class can be specified, which should
+    derive from RestxHttpRequest and which returns specific HTTP
+    request headers.
+
+    """
     c  = component_class()
-    bc = BaseCapabilities(c)
-    if base_capability_mock:
-        base_capability_mock(bc)
+    bc = base_capabilities_mock_class(c)
     c.setBaseCapabilities(bc)
+    c.setRequest(request_mock_class())
     for key, value in resource_creation_params.items():
         setattr(c, key, value)
     return c
 
-#
-# Overriding the accessResource() API method with a mock method that
-# returns the desired data.
-#
-def make_accessResource(resource_dict):
-    def accessResource(name):
-        # Creating the fake data for the resource accesses
-        return 200, resource_dict[name]
-    return accessResource
 
-#
-# A helper method that can compare the output with a 'should' output
-# Used to compare string results.
-#
+# --------------------------
+# Result comparison methods.
+# --------------------------
+
 def compare_out_str(res, should_status, should_str):
+    """
+    Compare two strings and produce proper error message.
+
+    A helper method that can compare the output with a 'should' output
+    Used to compare string results.
+
+    """
     if res.status != should_status:
         return "Status type is not correct.  is == %d, should == %d" % (res.status, should_status)
     is_str = res.entity
     if is_str != should_str:
         return "Wrong output strings:   is  == '%s'  should == '%s'" % (is_str, should_str)
 
-#
-# A helper method that can compare the output with a 'should' output
-# Used to compare list of result records.
-#
+
 def compare_out_lists(res, should_status, should_list):
+    """
+    Compare two output lists.
+
+    A helper method that can compare the output of a resource,
+    consisting of a list of things with a 'should' output.
+
+    Used to compare list of result records.
+
+    """
     if res.status != should_status:
         return "Status type is not correct.  is == %d, should == %d" % (res.status, should_status)
     is_list = res.entity
@@ -91,11 +110,18 @@ def compare_out_lists(res, should_status, should_list):
                 return "Wrong value field:\n    is[%s]     == '%s'\n    should[%s] == '%s'" % (k, row_is[k], k, row_should[k])
     return None
 
-#
-# A helper method that can compare the output with a 'should' output
-# Used to compare dictionaries of result records.
-#
+
 def compare_out_dicts(res, should_status, should_dict):
+    """
+    Compare two output dictionaries.
+
+    A helper method that can compare the output of a resource,
+    consisting of a dictionaries of things with a 'should' output.
+
+    Used to compare dictionaries of result records.
+
+    """
+
     if res.status != should_status:
         return "Status type is not correct.  is == %d, should == %d" % (res.status, should_status)
     is_dict = res.entity
@@ -111,37 +137,37 @@ def compare_out_dicts(res, should_status, should_dict):
                 return "Wrong value field:\n    is[%s]     == '%s'\n    should[%s] == '%s'" % (k, row_is[k], k, row_should[k])
     return None
 
-#
-# A helper method to simply compare two iterables.
-#
+
 def compare_list(is_list, should_list):
+    """
+    Simply compare two iterables.
+
+    """
     for i, elem in enumerate(is_list):
         if elem != should_list[i]:
-            return "Wrong value field:   is[%d] == '%s'   should[%d] == '%s'" % (elem, should_list[i])
+            return "Wrong value field:   is[%d] == '%s'   should[%d] == '%s'" % (i, elem, i, should_list[i])
     return None
 
-#
-# A helper method for element comparison
-#
+
 def compare_elem(is_elem, should_elem):
+    """
+    Compare a single element.
+
+    """
     if is_elem != should_elem:
         return "Wrong element value:   is == '%s'   should == '%s'" % (is_elem, should_elem)
     return None
 
-_TEST_COUNT  = 0
-_TEST_FAILED = 0
-def init_test_run():
-    global _TEST_COUNT, _TEST_FAILED
-    _TEST_COUNT  = 0
-    _TEST_FAILED = 0
 
-def get_test_result():
-    return ( _TEST_FAILED, _TEST_COUNT )
-    
-#
-# Print error/success output based on test results.
-#
+# ------------------------------------
+# Evaluate test result and keep stats.
+# ------------------------------------
+
 def test_evaluator(test_name, out):
+    """
+    Check the supplied result, print message and update stats.
+
+    """
     global _TEST_COUNT, _TEST_FAILED
     # Prints test results in a nice manner
     _TEST_COUNT += 1
@@ -151,4 +177,15 @@ def test_evaluator(test_name, out):
     else:
         print "--- %s: Success!" % test_name
 
+
+# --------------------------------------------------------------------------
+# Test running methods (used by the test framework, not by the test author).
+# --------------------------------------------------------------------------
+def init_test_run():
+    global _TEST_COUNT, _TEST_FAILED
+    _TEST_COUNT  = 0
+    _TEST_FAILED = 0
+
+def get_test_result():
+    return ( _TEST_FAILED, _TEST_COUNT )
 

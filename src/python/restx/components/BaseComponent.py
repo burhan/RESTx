@@ -33,8 +33,6 @@ from restx.languages                       import __javaStructToPython
 from restx.core.parameter                  import *
 from restx.storageabstraction.file_storage import FileStorage
 from restx.render                          import DEFAULT_OUTPUT_TYPES, DEFAULT_INPUT_TYPES
-from restx.resources.resource_runner       import accessResource as accessResource_glob
-from restx.resources                       import makeResource as makeResource_glob
 from org.mulesoft.restx.component.api      import HttpResult, HTTP
 
 from org.json                              import JSONException
@@ -270,7 +268,7 @@ class BaseComponent(object):
         @type method:            HttpMethod
         
         """
-        return accessResource_glob(resource_uri, input, params, method)
+        return self.__base_capabilities.accessResource(resource_uri, input, params, method)
 
     def makeResource(self, component_name, params, specialized=False):
         """
@@ -303,7 +301,7 @@ class BaseComponent(object):
                                 problem with the provided parameters.
 
         """
-        return makeResource_glob(component_name, params, specialized)
+        return self.__base_capabilities.makeResource(component_name, params, specialized)
 
     def getMetaData(self):
         """

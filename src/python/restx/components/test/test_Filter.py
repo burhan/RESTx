@@ -39,8 +39,9 @@ def runtest():
     # -------------------------------------------------------------------
     #
 
-    def new_accessResource(resource_uri, input=None, params=None, method=HTTP.GET):
-        return RESOURCE_DICT[resource_uri]
+    class MyBaseCapabilities(BaseCapabilities):
+        def accessResource(self, resource_uri, input=None, params=None, method=HTTP.GET):
+            return RESOURCE_DICT[resource_uri]
 
 
     #
@@ -59,7 +60,7 @@ def runtest():
         filter_expression_3  = "",
         match_all            = True,
     )
-    c = make_component(rctp, Filter)
+    c = make_component(rctp, Filter, MyBaseCapabilities)
 
     #
     # Testing filter_compile()
@@ -93,8 +94,7 @@ def runtest():
     # Testing filtering
     #
     rctp['filter_expression_1']  = "foo = xyz"
-    c = make_component(rctp, Filter)
-    c.accessResource = new_accessResource
+    c = make_component(rctp, Filter, MyBaseCapabilities)
 
     data = [
         { "email" : "a@b.c", "foo" : "abc" },
@@ -127,8 +127,7 @@ def runtest():
     #
     # Test 16: Filter with dictionary at top level
     #
-    c = make_component(rctp, Filter)
-    c.accessResource = new_accessResource
+    c = make_component(rctp, Filter, MyBaseCapabilities)
 
     data = {
         "aaa" : { "email" : "a@b.c", "foo" : "abc" },
@@ -149,8 +148,7 @@ def runtest():
     # Test 17: Other operator: !=
     #
     rctp['filter_expression_1']  = "foo != xyz"
-    c = make_component(rctp, Filter)
-    c.accessResource = new_accessResource
+    c = make_component(rctp, Filter, MyBaseCapabilities)
 
     res = c.filter(None, None, False)
     should_be = {
@@ -163,8 +161,7 @@ def runtest():
     #
     rctp['filter_expression_1']  = "b = 2"
     rctp['filter_expression_2']  = "c = 1"
-    c = make_component(rctp, Filter)
-    c.accessResource = new_accessResource
+    c = make_component(rctp, Filter, MyBaseCapabilities)
 
     data = [
         { "a" : 1, "b" : 2, "c" : 1 },
@@ -187,8 +184,7 @@ def runtest():
     #
     rctp['filter_expression_2']  = "c = 4"
     rctp['match_all']            = False
-    c = make_component(rctp, Filter)
-    c.accessResource = new_accessResource
+    c = make_component(rctp, Filter, MyBaseCapabilities)
 
     res = c.filter(None, None, False)
     should_be = [

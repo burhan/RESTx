@@ -31,6 +31,7 @@ from restx.storageabstraction.file_storage import FileStorage
 from org.mulesoft.restx.component          import BaseComponentCapabilities
 from org.mulesoft.restx.component.api      import HttpResult, HTTP
 
+_ACCESS_RESOURCE_IMPORTED = False
 
 class BaseCapabilities(BaseComponentCapabilities):
     """
@@ -238,4 +239,73 @@ class BaseCapabilities(BaseComponentCapabilities):
         res                  = HttpResult()
         res.status, res.data = self.__http_access("POST", url, data, headers, timeout)
         return res
+
+    def accessResource(self, *args, **kwargs):
+        """
+        Access a resource identified by its URI.
+
+        @param resource_name:    The uri of the resource. We allow absolute URIs (well, later at least),
+                                 and relative URIs (starting with "/resource/").
+                                 Contains resource name, service name and any positional parameters.
+        @type resource_name:     string
+        
+        @param service_name:     Name of the desired service
+        @type service_name:      string
+        
+        @param input:            Any input information that may have been sent with the request body.
+        @type input:             string
+        
+        @param params:           Any run-time parameters for this service as key/value pairs.
+        @type params:            dict
+        
+        @param method:           The HTTP method to be used.
+        @type method:            HttpMethod
+        
+        """
+        global _ACCESS_RESOURCE_IMPORTED
+        if not _ACCESS_RESOURCE_IMPORTED:
+            # Some annoying circular import issued handled this way
+            from restx.resources.resource_runner import accessResource as accessResource_glob
+            from restx.resources                 import makeResource as makeResource_glob
+            _ACCESS_RESOURCE_IMPORTED = False
+        return accessResource_glob(*args, **kwargs)
+
+    def makeResource(self, *args, **kwargs):
+        """
+        Create a new resource representation from the
+        component class specified by its name and the parameter
+        dictionary and store it on disk.
+
+        Finds the class and then calls makeResourceFromComponentObject()
+
+        @param component_name:  Name of a class derived from BaseComponent.
+        @type  component_name:  BaseComponent or derived.
+        
+        @param params:          The resource parameters provided by the client.
+                                Needs to contain at least a 'params' dictionary
+                                or a 'resource_creation_dictionary'. Can contain
+                                both.
+        @type  params:          dict
+
+        @param specialized:     Flag indicates whether this is based on a specialized
+                                component resource. In which case the params can be
+                                partial and 'component_name' really refers to the name
+                                of the specialized component resource.
+        @type  specialized:     boolean
+        
+        @return:                Success message in form of dictionary that contains
+                                "status", "name" and "uri" fields.
+        @rtype:                 dict
+        
+        @raise RestxException:  If the resource creation failed or there was a
+                                problem with the provided parameters.
+
+        """
+        global _ACCESS_RESOURCE_IMPORTED
+        if not _ACCESS_RESOURCE_IMPORTED:
+            # Some annoying circular import issued handled this way
+            from restx.resources.resource_runner import accessResource as accessResource_glob
+            from restx.resources                 import makeResource as makeResource_glob
+            _ACCESS_RESOURCE_IMPORTED = False
+        return makeResource_glob(*args, **kwargs)
 

@@ -38,9 +38,9 @@ def runtest():
     # -------------------------------------------------------------------
     #
 
-    def new_accessResource(resource_uri, input=None, params=None, method=HTTP.GET):
-        return RESOURCE_DICT[resource_uri]
-
+    class MyBaseCapabilities(BaseCapabilities):
+        def accessResource(self, resource_uri, input=None, params=None, method=HTTP.GET):
+            return RESOURCE_DICT[resource_uri]
 
     #
     # -------------------------------------------------------------------
@@ -61,8 +61,7 @@ def runtest():
         resource_A_uri     = "/resource/A",
         resource_B_uri     = "/resource/B",
     )
-    c = make_component(rctp, Join)
-    c.accessResource = new_accessResource
+    c = make_component(rctp, Join, MyBaseCapabilities)
 
     data_A = [
         { "email" : "a@b.c", "foo" : "A foo A" },
@@ -87,8 +86,7 @@ def runtest():
     # Test 2: Same data, but not always prefix
     #
     rctp['always_use_prefix'] = False
-    c = make_component(rctp, Join)
-    c.accessResource = new_accessResource
+    c = make_component(rctp, Join, MyBaseCapabilities)
     res = c.join(None, None)
     should_be = [ {'A.foo': 'A foo C', 'B.foo': 'B foo c', 'BlahBlah': 'c@b.c', 'bar': 'bar C'},
                   {'A.foo': 'A foo B', 'B.foo': 'B foo b', 'BlahBlah': 'b@b.c', 'bar': 'bar B'} ]
@@ -99,8 +97,7 @@ def runtest():
     # Same data, but no new keyfield name
     #
     rctp['new_keyfield_name'] = None
-    c = make_component(rctp, Join)
-    c.accessResource = new_accessResource
+    c = make_component(rctp, Join, MyBaseCapabilities)
     res = c.join(None, None)
     should_be = [ {'A.foo': 'A foo C', 'B.foo': 'B foo c', 'email': 'c@b.c', 'bar': 'bar C'},
                   {'A.foo': 'A foo B', 'B.foo': 'B foo b', 'email': 'b@b.c', 'bar': 'bar B'} ]

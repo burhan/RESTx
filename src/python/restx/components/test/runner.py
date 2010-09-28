@@ -34,7 +34,8 @@ overall_start_time = datetime.datetime.now()
 overall_fail_count = 0
 overall_test_count = 0
 
-modnames = sys.argv[1:]
+modnames    = sys.argv[1:]
+failed_list = list()
 for name in modnames:
     # Patch the name: Remove .py at the end and replace '/' with '.'
     orig_name = name
@@ -58,6 +59,7 @@ for name in modnames:
         print "--- Ok."
     else:
         print "--- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    Failed %d out of %d tests!" % (num_failed, num_total)
+        failed_list.append( ( orig_name, num_failed ) )
     print "--- Total elapsed time: ", _make_timediff_str(start_time, end_time)
     print "---------------------------------------------------------------------\n"
 
@@ -70,6 +72,12 @@ if overall_fail_count == 0:
 else:
     print "%d failed." % overall_fail_count
 print "=== Overall elapsed time: ", _make_timediff_str(overall_start_time, overall_end_time)
+
+if failed_list:
+    print "==="
+    print "=== Error summary:"
+    for name, num in failed_list:
+        print "===   %3d failed tests in: %s" % (num, name)
 print "=====================================================================\n"
 
 
