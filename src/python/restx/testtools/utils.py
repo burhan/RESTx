@@ -148,14 +148,51 @@ def compare_list(is_list, should_list):
             return "Wrong value field:   is[%d] == '%s'   should[%d] == '%s'" % (i, elem, i, should_list[i])
     return None
 
-
 def compare_elem(is_elem, should_elem):
     """
     Compare a single element.
 
     """
+    if type(should_elem) != type(is_elem):
+        return "Wrong element type:   is == '%s'   should == '%s'\n    is-value ==     '%s'\n    should-value == '%s')" % (type(is_elem), type(should_elem), is_elem, should_elem)
     if is_elem != should_elem:
-        return "Wrong element value:   is == '%s'   should == '%s'" % (is_elem, should_elem)
+        return "Wrong element value:  is == '%s'   should == '%s'" % (is_elem, should_elem)
+    return None
+
+def compare_any(should_obj, is_obj):
+    """
+    Compare two parameter definition dictionaries.
+
+    """
+    if type(should_obj) != type(is_obj):
+        return "Object type '%s' encountered, when expecting type '%s'" % (type(is_obj), type(should_obj))
+
+    if len(should_obj) != len(is_obj):
+        return "Object has length %d, when expecting length %d" % (len(is_obj), len(should_obj))
+
+    if type(is_obj) is list:
+        for i, is_elem in enumerate(is_obj):
+            should_elem = should_obj[i]
+            if type(is_elem) in [ list, dict ]:
+                m = compare_any(should_elem, is_elem)
+            else:
+                m = compare_elem(is_elem, should_elem)
+            if m:
+                return m
+
+    elif type(is_obj) is dict:
+        for key in is_obj:
+            is_elem = is_obj[key]
+            if key not in should_obj:
+                return "Expected key '%s' not found in data" % key
+            should_elem = should_obj[key]
+            if type(is_elem) in [ list, dict ]:
+                m = compare_any(should_elem, is_elem)
+            else:
+                m = compare_elem(is_elem, should_elem)
+            if m:
+                return m
+
     return None
 
 

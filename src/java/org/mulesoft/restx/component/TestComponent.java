@@ -61,15 +61,15 @@ public class TestComponent extends BaseComponent
         System.out.println("----------------------------------------------------------");
         if (input != null)
         {
-            System.out.println("### input:   " + input.getClass() + " === " + input);
+            //System.out.println("### input:   " + input.getClass() + " === " + input);
         }
-        System.out.println("### method:  " + method.getClass() + " === " + method);
+        //System.out.println("### method:  " + method.getClass() + " === " + method);
 
-        System.out.println("Query parameter: " + query);
-        System.out.println("Num parameter:   " + num);
+        //System.out.println("Query parameter: " + query);
+        //System.out.println("Num parameter:   " + num);
 
-        System.out.println("My request headers: " + getRequestHeaders());
-        System.out.println("My request header type: " + getRequestHeaders().getClass().getName());
+        //System.out.println("My request headers: " + getRequestHeaders());
+        //System.out.println("My request header type: " + getRequestHeaders().getClass().getName());
 
         final Map<String, Object> res = new HashMap<String, Object>();
         res.put("foo", "This is a test");

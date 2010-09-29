@@ -35,7 +35,7 @@ conversion function whenever we use the components.
 
 """
 
-from restx.platform_specifics           import PLATFORM, PLATFORM_JYTHON
+from restx.platform_specifics         import PLATFORM, PLATFORM_JYTHON
 
 from org.mulesoft.restx.exception     import *
 from org.mulesoft.restx.component.api import HTTP, HttpMethod, Result

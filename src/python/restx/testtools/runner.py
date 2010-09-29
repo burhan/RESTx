@@ -2,7 +2,7 @@
 import sys
 import datetime
 
-from restx.components.test.utils import init_test_run
+from restx.testtools.utils import init_test_run
 
 def _get_func( func_name ):
     """

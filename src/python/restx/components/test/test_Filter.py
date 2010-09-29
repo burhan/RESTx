@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 # These imports are necessary for all component tests
-from restx.components.test.utils import *
+from restx.testtools.utils       import *
 from restx.components.api        import *
 
 # Importing the component we wish to test
