@@ -18,6 +18,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 
+#
+# To run this and other RESTx test files, use bin/testrun.
+#
+
 # This needs to be imported by all tests
 from restx.testtools.utils  import *
 
