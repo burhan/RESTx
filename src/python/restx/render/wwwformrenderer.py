@@ -58,6 +58,16 @@ class WwwFormRenderer(BaseRenderer):
                 # No value? That's as if the value wasn't set at all
                 continue
             name, value = elems
-            d[name.strip()] = urllib.unquote_plus(value.strip())
+            name  = name.strip()
+            value = urllib.unquote_plus(value.strip())
+            # A name may appear more than once (multi-choice select box). In that case,
+            # we should create a list
+            if name in d:
+                if type(d[name]) is list:
+                    d[name].append(value)
+                else:
+                    d[name] = [ d[name], value ]
+            else:
+                d[name] = value
         return d
 

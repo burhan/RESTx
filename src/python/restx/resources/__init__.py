@@ -56,7 +56,7 @@ import restx.settings as settings
 
 from restx.platform_specifics     import STORAGE_OBJECT
 from restx.logger                 import *
-from restx.core.parameter         import TYPE_COMPATIBILITY
+from restx.core.parameter         import TYPE_COMPATIBILITY, PARAM_STRING_LIST, PARAM_NUMBER_LIST
 from restx.languages              import *
 
 from org.mulesoft.restx.exception import *
@@ -224,13 +224,26 @@ def paramSanityCheck(param_dict, param_def_dict, name_for_errors, make_specializ
             param_type  = type(param_value)
             storage_types, runtime_types, conversion_func = TYPE_COMPATIBILITY[type_str]
             choices     = param_def_dict[pname].get('val_choices')
+            multi_choice = False
+                
             if choices:
-                if str(param_value) not in choices:
-                    raise RestxBadRequestException("Value '%s' for parameter '%s' is not one of the permissible choices." % (str(param_value), pname))
+                str_choices = [ str(c) for c in choices ]
+                if param_type is list:
+                    multi_choice = True
+                    # Multi choice box and multiple choices were specified by client
+                    for val in param_value:
+                        if str(val) not in str_choices:
+                            raise RestxBadRequestException("List value '%s' for parameter '%s' is not one of the permissible choices." % (str(val), pname))
+                else:
+                    if str(param_value) not in str_choices:
+                        raise RestxBadRequestException("Value '%s' for parameter '%s' is not one of the permissible choices." % (str(param_value), pname))
 
-            if param_type in runtime_types:
+            if param_type in runtime_types  and  param_type is not list:
+                # No type conversion necessary
                 pass
-            elif param_type not in storage_types:
+            elif param_type not in storage_types  or  param_type is list:
+                # Need to perform some type conversion (always needs to be done for lists, since each element
+                # needs to go through the conversion.
                 val = None
                 try:
                     if conversion_func:
@@ -299,12 +312,16 @@ def convertTypes(param_def_dict, param_dict):
             param_val  = param_dict[pname]
             param_type = type(param_val)
             storage_types, runtime_types, conversion_func = TYPE_COMPATIBILITY[type_str]
-            if param_type in runtime_types:
+            if param_type in runtime_types  and  param_type is not list:
                 pass
-            elif param_type not in storage_types:
+            elif param_type not in storage_types  or  param_type is list:
+                # Lists always need to undergo type conversion, since we need to perform the
+                # check for every element in the list
                 try:
                     if conversion_func:
                         param_dict[pname] = conversion_func(param_val)
+                        if param_dict[pname] is None:
+                            raise Exception("Cannot convert one of the provided list elements to the necessary type.")
                     else:
                         raise Exception("Cannot convert provided parameter type (%s) to necessary type(s) '%s'" % \
                                         (param_type, runtime_types))

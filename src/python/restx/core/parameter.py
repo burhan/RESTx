@@ -31,16 +31,15 @@ from org.mulesoft.restx.exception import RestxException
 #
 # Types for resource parameters
 #
-PARAM_STRING   = "string"
-PARAM_PASSWORD = "password"
-PARAM_BOOL     = "boolean"
-PARAM_DATE     = "date"
-PARAM_TIME     = "time"
-PARAM_NUMBER   = "number"
-PARAM_URI      = "uri"
-
-KNOWN_BASIC_TYPES = [ PARAM_STRING, PARAM_PASSWORD, PARAM_BOOL, PARAM_DATE,
-                      PARAM_TIME, PARAM_NUMBER, PARAM_URI ]
+PARAM_STRING_LIST  = "string_list"
+PARAM_STRING       = "string"
+PARAM_PASSWORD     = "password"
+PARAM_BOOL         = "boolean"
+PARAM_DATE         = "date"
+PARAM_TIME         = "time"
+PARAM_NUMBER_LIST  = "number_list"
+PARAM_NUMBER       = "number"
+PARAM_URI          = "uri"
 
 
 #
@@ -97,13 +96,15 @@ def __bool_convert(x):
 # the python types for a particular RESTx type. Then we add the
 # types of the other languages if and when appropriate.
 TYPES_DICT = {
-    "STRING_TYPES"   : [ unicode, str ],
-    "PASSWORD_TYPES" : [ unicode, str ],
-    "BOOL_TYPES"     : [ bool ],
-    "DATE_TYPES"     : [ unicode, str ],
-    "TIME_TYPES"     : [ unicode, str ],
-    "NUMBER_TYPES"   : [ int, float ],
-    "URI_TYPES"      : [ unicode, str ],
+    "STRING_LIST_TYPES"  : [ list ],
+    "STRING_TYPES"       : [ unicode, str ],
+    "PASSWORD_TYPES"     : [ unicode, str ],
+    "BOOL_TYPES"         : [ bool ],
+    "DATE_TYPES"         : [ unicode, str ],
+    "TIME_TYPES"         : [ unicode, str ],
+    "NUMBER_LIST_TYPES"  : [ list ],
+    "NUMBER_TYPES"       : [ int, float ],
+    "URI_TYPES"          : [ unicode, str ],
 }
 
 if PLATFORM == PLATFORM_JYTHON:
@@ -112,14 +113,33 @@ if PLATFORM == PLATFORM_JYTHON:
     TYPES_DICT["NUMBER_TYPES"].append(BigDecimal)
 
 
+def __list_to_strlist(x):
+    if type(x) is not list:
+        x = [ x ]
+    return [ str(e) for e in x ]
+
+def __list_to_numlist(x):
+    if type(x) is not list:
+        x = [ x ]
+    nlist = []
+    for e in x:
+        converted = __numstr_to_num(e)
+        if not converted:
+            return None
+        nlist.append(converted)
+    return nlist
+
+
 TYPE_COMPATIBILITY = {
-    PARAM_STRING   : (TYPES_DICT["STRING_TYPES"], [ str ], None),
-    PARAM_PASSWORD : (TYPES_DICT["PASSWORD_TYPES"], [ str ], None),
-    PARAM_BOOL     : (TYPES_DICT["BOOL_TYPES"], [ bool ], __bool_convert),
-    PARAM_DATE     : (TYPES_DICT["DATE_TYPES"], [ date ], lambda x : date(*[ int(elem) for elem in x.split("-")])),
-    PARAM_TIME     : (TYPES_DICT["TIME_TYPES"], [ time_class ], lambda x : time_class(*[ int(elem) for elem in x.split(":")])),
-    PARAM_NUMBER   : (TYPES_DICT["NUMBER_TYPES"], [ int, float ], __numstr_to_num),
-    PARAM_URI      : (TYPES_DICT["URI_TYPES"], [ str ], None)
+    PARAM_STRING_LIST  : (TYPES_DICT["STRING_LIST_TYPES"], [ list ], __list_to_strlist),
+    PARAM_STRING       : (TYPES_DICT["STRING_TYPES"], [ str ], None),
+    PARAM_PASSWORD     : (TYPES_DICT["PASSWORD_TYPES"], [ str ], None),
+    PARAM_BOOL         : (TYPES_DICT["BOOL_TYPES"], [ bool ], __bool_convert),
+    PARAM_DATE         : (TYPES_DICT["DATE_TYPES"], [ date ], lambda x : date(*[ int(elem) for elem in x.split("-")])),
+    PARAM_TIME         : (TYPES_DICT["TIME_TYPES"], [ time_class ], lambda x : time_class(*[ int(elem) for elem in x.split(":")])),
+    PARAM_NUMBER_LIST  : (TYPES_DICT["NUMBER_LIST_TYPES"], [ list ], __list_to_numlist),
+    PARAM_NUMBER       : (TYPES_DICT["NUMBER_TYPES"], [ int, float ], __numstr_to_num),
+    PARAM_URI          : (TYPES_DICT["URI_TYPES"], [ str ], None)
 }
 
 class ParameterDef(object):
@@ -162,7 +182,7 @@ class ParameterDef(object):
         @param choices:          If the allowed input values should be restricted to a
                                  number of choices, specify them here as a list of strings.
         @type choices:           list
-        
+
         """
         self.ptype            = ptype
         self.desc             = desc
@@ -174,9 +194,10 @@ class ParameterDef(object):
         self.default          = default
         self.choices          = choices
         if self.choices:
-            if self.default and str(self.default) not in self.choices:
+            str_choices = [ str(c) for c in self.choices ]
+            if self.default and str(self.default) not in str_choices:
                 raise RestxException("Specified default value is not listed in 'choices'")
-            if self.ptype not in [ PARAM_STRING, PARAM_NUMBER ]:
+            if self.ptype not in [ PARAM_STRING, PARAM_NUMBER, PARAM_STRING_LIST, PARAM_NUMBER_LIST ]:
                 raise RestxException("Choices are not supported for this type.")
 
     def getDefaultVal(self):
@@ -214,7 +235,7 @@ class ParameterDef(object):
 
     def html_type(self, name, initial=None):
         """
-        Return the HTML form field typoe for a value of this type.
+        Return the HTML form field type for a value of this type.
 
         Needed when we display a resource creation form.
 
@@ -229,10 +250,17 @@ class ParameterDef(object):
                       <label for="%s_no"><input %stype="radio" id="%s_no" name="%s" value="no" />no</label>''' % (name, yes_value, name, name, name, no_value, name, name)
         else:
             if self.choices:
-                buf = '<select name="%s" id="%s">' % (name, name)
+                if type(initial) is not list:
+                    initial = [ initial ]
+                buf = '<select '
+                if self.ptype in [ PARAM_STRING_LIST, PARAM_NUMBER_LIST ]:
+                    buf += "multiple size=%d " % min(8, len(self.choices))
+                buf += 'name="%s" id="%s">' % (name, name)
                 if self.default:
                     buf +=  '<option value="">--- Accept default ---</option>'
-                buf += '%s</select>' % ( [ '<option value="%s"%s>%s</option>' % (c, 'selected="selected"' if initial and c == initial else "", c) for c in self.choices ] )
+                # Initial may be a string, since that all the type information we can have when we convert
+                # the form input to a data structure
+                buf += '%s</select>' % ( [ '<option value="%s"%s>%s</option>' % (c, 'selected="selected"' if initial and str(c) in initial else "", c) for c in self.choices ] )
                 return buf
 
             if initial:

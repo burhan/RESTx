@@ -731,6 +731,37 @@ def test_90_choice_params():
     data, resp = _send_data(DOCROOT + "/code/TestComponent", d)
     assert(resp.getStatus() == 201)
 
+def test_95_multi_choice_params():
+    """
+    Testing resource creation for components with multiple choices for their parameters.
+
+    """
+    d = {
+            "params"                   : { "another_parameter" : [ 3, 123.4 ], "third_parameter" : [ 'A', 'B' ] }, 
+            "resource_creation_params" : { "suggested_name" : "_test_component_3", "desc" : "A foobar test resource" }
+        }
+    TEST_RESOURCES.append("/resource/_test_component_3")
+    data, resp = _send_data(DOCROOT + "/code/PythonTestComponent", d)
+    assert(resp.getStatus() == 400)
+    assert(data == "List value '3' for parameter 'another_parameter' is not one of the permissible choices.")
+
+    d['params']['another_parameter'] =  "3"
+    data, resp = _send_data(DOCROOT + "/code/PythonTestComponent", d)
+    assert(resp.getStatus() == 400)
+    assert(data == "Value '3' for parameter 'another_parameter' is not one of the permissible choices.")
+
+    d['params']['another_parameter'] =  2
+    data, resp = _send_data(DOCROOT + "/code/PythonTestComponent", d)
+    assert(resp.getStatus() == 201)
+
+    d['params']['another_parameter'] =  "2"
+    data, resp = _send_data(DOCROOT + "/code/PythonTestComponent", d)
+    assert(resp.getStatus() == 201)
+
+    d['params']['another_parameter'] =  [ 1, 2 ]
+    data, resp = _send_data(DOCROOT + "/code/PythonTestComponent", d)
+    assert(resp.getStatus() == 201)
+
 def test_999_cleanup():
     """
     Find all resources starting with "_test_" and delete them.
@@ -748,7 +779,6 @@ def test_999_cleanup():
     for name in TEST_RESOURCES:
         if "/_test_" in name:
             buf, resp = _delete(DOCROOT + name)
-            assert(resp.getStatus() == 200)
     TEST_RESOURCES = []
 
 
