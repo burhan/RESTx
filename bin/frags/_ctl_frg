@@ -379,7 +379,13 @@ function delete_component
         if [ "$ui" == "yes" ]; then
             echo
             echo "**** Ok. Deleting all files related to this component..."
-            myrmfile "$RESTX_HOME/$srcfile"
+            if [[ $srcfile == /* ]]; then
+                # It's an absolute filename
+                prefix=""
+            else
+                prefix=$RESTX_HOME
+            fi
+            myrmfile "$prefix/$srcfile"
             find_resources_for_component $comp_name delete
             myrmfile "$conf_file"
             echo "All files related to the component have been deleted. Please restart the server."
