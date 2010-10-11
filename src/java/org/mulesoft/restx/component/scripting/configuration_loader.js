@@ -32,7 +32,13 @@ function vtol(value) {
     return value == undefined ? null : java.util.Collections.singletonList(value)
 }
 
-function getParameterDef(type, description, required, defaultValue, choices) {
+function getParameterDef(type, description, defaultValue, choices) {
+    if (defaultValue == undefined) {
+        required = true
+    }
+    else {
+        required = false;
+    }
     switch(type) {
         case TYPE.STRING  : return new org.mulesoft.restx.parameter.ParameterDefString(description, required, defaultValue, choices)
         case TYPE.PASSWORD: return new org.mulesoft.restx.parameter.ParameterDefPassword(description, required, defaultValue)
@@ -58,7 +64,6 @@ function getServiceMeta(service) {
         
         parameterDef = getParameterDef(parameter.type,
                                        parameter.description,
-                                       uz(parameter.required, false),
                                        uz(parameter.defaultValue, null),
                                        uz(parameter.choices, null))
         
@@ -90,7 +95,6 @@ for (parameterName in parameters) {
     componentDescriptor.addParameter(parameterName,
                                      getParameterDef(parameter.type,
                                                      parameter.description,
-                                                     uz(parameter.required, false),
                                                      uz(parameter.defaultValue, null),
                                                      uz(parameter.choices, null)))
 }
