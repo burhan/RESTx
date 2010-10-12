@@ -210,7 +210,7 @@ def _accessComponentService(component, complete_resource_def, resource_name, ser
             params.update(runtime_param_dict)
 
         component.setBaseCapabilities(BaseCapabilities(component))
-        
+
         result = serviceMethodProxy(component, service_method, service_name, request,
                                     input, params, method, is_proxy_component=is_proxy_component)
         return result
@@ -245,6 +245,8 @@ def _getResourceDetails(resource_name):
     # is added to the public information about the resource.
     code_uri  = complete_resource_def['private']['code_uri']
     component = restx.core.codebrowser.getComponentObjectFromPath(code_uri, resource_name)
+    if not component:
+        return None
     services  = component._getServices(resource_home_uri)
     services  = languageStructToPython(component, services)
     public_resource_def['services'] = services
@@ -293,6 +295,8 @@ def accessResource(resource_uri, input=None, params=None, method=HTTP.GET):
     positional_params = path_components[2:]   # Doesn't throw exception if not present, just yields []
 
     rinfo = _getResourceDetails(resource_name)
+    if not rinfo:
+        return 404, "Unknown component"
 
     if params is None:
         params = dict()

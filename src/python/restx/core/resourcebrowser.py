@@ -189,6 +189,8 @@ class ResourceBrowser(BaseBrowser):
 
             # Get the public representation of the resource
             rinfo = _getResourceDetails(resource_name)
+            if not rinfo:
+                return Result.notFound("Unknown component")
             complete_resource_def = rinfo['complete_resource_def']
             resource_home_uri     = rinfo['resource_home_uri']
             public_resource_def   = rinfo['public_resource_def']
@@ -238,10 +240,14 @@ class ResourceBrowser(BaseBrowser):
                 # not expecting.
                 service_params = service_def.get('params')
                 if service_params:
+                    # Only_params is the list of defined service parameters. Passing this to
+                    # get_request_query_dict() means that all other runtime parameters are
+                    # filtered out.
                     only_params = service_params.keys()
+                    runtime_param_dict = get_request_query_dict(self.request, only_params)
                 else:
                     only_params = None
-                runtime_param_dict = get_request_query_dict(self.request, only_params)
+                    runtime_param_dict = dict()   # No service parameters defined? All runtime parameters are removed (ignored).
 
                 possible_output_types   = service_def.get('output_types')
                 if not possible_output_types:

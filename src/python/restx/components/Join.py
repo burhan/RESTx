@@ -154,10 +154,6 @@ as default prefixes.
                            "join" : {
                                "desc" : "Get the join result",
                                "output_types" : [ "application/json", "text/html" ],
-                                "params"     : {
-                                    "op"     : ParameterDef(PARAM_STRING, "The operation, such as 'select'", required=False, default=""),
-                                },
-                               
                            }
                        }
 
