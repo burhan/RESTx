@@ -161,11 +161,17 @@ The user submits the filled-out form and a new resource is created.
                     opt_str = "<br>optional, default: %s" % pdef.getDefaultVal()
                 else:
                     opt_str = ""
+                values = input_params.get(pname)
+                if type(values) is not list  and  pdef.isList():
+                    if values is None:
+                        values = []
+                    else:
+                        values = [ values ]
                 param_fields_html += \
 """<tr>
     <td valign=top id="%s_name">%s<br><small>(%s%s)</small></td>
     <td valign=top>%s</td>
-</tr>""" % (pname, pname, pdef.desc, opt_str, pdef.html_type("params__"+pname, input_params.get(pname)))
+</tr>""" % (pname, pname, pdef.desc, opt_str, pdef.html_type("params__"+pname, values))
 
         if message:
             msg = "<b><i><font color=red>%s</font></i></b><br><p>" % message

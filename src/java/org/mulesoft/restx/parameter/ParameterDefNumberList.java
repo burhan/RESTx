@@ -23,35 +23,38 @@ import org.mulesoft.restx.exception.RestxException;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.lang.Number;
+import java.util.List;
+import java.util.ArrayList;
 
-public class ParameterDefNumber extends ParameterDef
+public class ParameterDefNumberList extends ParameterDefList
 {
     private final BigDecimal defaultVal;
 
-    public ParameterDefNumber(String desc)
+    public ParameterDefNumberList(String desc)
     {
         this(desc, true, null);
     }
 
-    public ParameterDefNumber(String desc, float defaultVal)
+    public ParameterDefNumberList(String desc, float defaultVal)
     {
         this(desc, false, defaultVal);
     }
 
-    public ParameterDefNumber(String desc, BigDecimal defaultVal)
+    public ParameterDefNumberList(String desc, BigDecimal defaultVal)
     {
         this(desc, false, defaultVal);
     }
 
-    public ParameterDefNumber(String desc, boolean required, Number defaultVal)
+    public ParameterDefNumberList(String desc, boolean required, Number defaultVal)
     {
-        super(ParameterType.NUMBER, desc, required);
+        super(ParameterType.NUMBER_LIST, desc, required);
         this.defaultVal = toBigDecimal(defaultVal);
     }
 
-    public ParameterDefNumber(String desc, boolean required, Number defaultVal, String[] choices) throws RestxException
+    public ParameterDefNumberList(String desc, boolean required, Number defaultVal, String[] choices) throws RestxException
     {
-        super(ParameterType.NUMBER, desc, required);
+        super(ParameterType.NUMBER_LIST, desc, required);
         this.defaultVal = toBigDecimal(defaultVal);
         if (choices != null) {
             processChoices(choices);
@@ -79,9 +82,14 @@ public class ParameterDefNumber extends ParameterDef
         this.choices = strChoices;
     }
 
-    public String html_type(String name, Number initial)
+    public String html_type(String name, List initial)
     {
-        return this.html_type(name, initial.toString());
+        // Need to convert the list of numbers to list of strings
+        String[] initialStrs = new String[initial.size()];
+        for (int i=0; i<initial.size(); ++i) {
+            initialStrs[i] = initial.get(i).toString();
+        }
+        return this.html_type(name, initialStrs);
     }
 
     @Override
@@ -118,6 +126,15 @@ public class ParameterDefNumber extends ParameterDef
         }
 
         return null;
+    }
+
+    public static Number[] listToArray(List<BigDecimal> obj)
+    {
+        BigDecimal[] d = new BigDecimal[obj.size()];
+        for (int i=0; i<obj.size(); ++i) {
+            d[i] = obj.get(i);
+        }
+        return d;
     }
 
     @Override

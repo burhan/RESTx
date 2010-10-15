@@ -30,7 +30,7 @@ public class ParameterDefPassword extends ParameterDef
 
     public ParameterDefPassword(String desc, boolean required, String defaultVal)
     {
-        super("password", desc, required);
+        super(ParameterType.PASSWORD, desc, required);
         this.defaultVal = defaultVal;
     }
 

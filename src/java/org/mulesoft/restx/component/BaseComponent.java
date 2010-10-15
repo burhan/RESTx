@@ -55,6 +55,8 @@ import org.mulesoft.restx.parameter.ParameterDef;
 import org.mulesoft.restx.parameter.ParameterDefBoolean;
 import org.mulesoft.restx.parameter.ParameterDefNumber;
 import org.mulesoft.restx.parameter.ParameterDefString;
+import org.mulesoft.restx.parameter.ParameterDefStringList;
+import org.mulesoft.restx.parameter.ParameterDefNumberList;
 import org.mulesoft.restx.util.JsonProcessor;
 import org.mulesoft.restx.util.Url;
 
@@ -173,6 +175,20 @@ public abstract class BaseComponent
         if (paramType == String.class)
         {
             pdef = new ParameterDefString(desc, required, defaultVal, choices);
+        }
+        else if (paramType == BigDecimal[].class) {
+            BigDecimal defaultValue;
+            if (defaultVal == null) {
+                defaultValue = null;
+            }
+            else {
+                defaultValue = new BigDecimal(defaultVal);
+            }
+
+            pdef = new ParameterDefNumberList(desc, required, defaultValue, choices);
+        }
+        else if (paramType == String[].class) {
+            pdef = new ParameterDefStringList(desc, required, defaultVal, choices);
         }
         else if (paramType == Integer.class || paramType == BigDecimal.class || paramType == Double.class
                  || paramType == Float.class || paramType == int.class || paramType == float.class

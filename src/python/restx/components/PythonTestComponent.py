@@ -56,6 +56,8 @@ class PythonTestComponent(BaseComponent):
                            "another_parameter" : ParameterDef(PARAM_NUMBER_LIST, "Short description of this parameter",
                                                               required=False, default=123.4, choices=[ 1, 2, 123.4, 5, 6 ]),
                            "third_parameter" : ParameterDef(PARAM_STRING_LIST, "Short description of this parameter",
+                                                              required=False, default="A", choices=[ "A", "B", "C" ]),
+                           "fourth_parameter" : ParameterDef(PARAM_STRING, "Short description of this parameter",
                                                               required=False, default="A", choices=[ "A", "B", "C" ])
                        }
     

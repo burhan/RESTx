@@ -39,7 +39,7 @@ from restx.platform_specifics         import PLATFORM, PLATFORM_JYTHON
 
 from org.mulesoft.restx.exception     import *
 from org.mulesoft.restx.component.api import HTTP, HttpMethod, Result
-from org.mulesoft.restx.parameter     import ParameterDefNumber
+from org.mulesoft.restx.parameter     import ParameterDefNumber, ParameterDefNumberList
 
 if PLATFORM == PLATFORM_JYTHON:
     import java.lang.Exception
@@ -156,7 +156,10 @@ def __javaServiceMethodProxy(component, request, method, method_name, input, par
                 if is_proxy_component:
                     proxy_component_param_map[name] = params[name]
                 else:
-                    setattr(component, name, params[name])
+                    if type(component.componentDescriptor.getParamMap().get(name)) is ParameterDefNumberList:
+                        setattr(component, name, ParameterDefNumberList.listToArray([ BigDecimal(x) for x in params[name] ]))
+                    else:
+                        setattr(component, name, params[name])
                 
             del params[name]
 

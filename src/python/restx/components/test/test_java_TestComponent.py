@@ -32,6 +32,7 @@ from restx.languages              import languageStructToPython
 
 # Importing the component we wish to test
 from org.mulesoft.restx.component import TestComponent
+from org.mulesoft.restx.parameter import ParameterDefNumberList
 
 # Importing this one, because we need to provide a mock header for a test
 from org.mulesoft.restx           import RestxHttpRequest
@@ -82,6 +83,8 @@ def runtest():
         api_key         = "abcdefg",
         foo_1           = None,
         foo_2           = None,
+        foo_list        = [],
+        bar_list        = ParameterDefNumberList.listToArray([]),
     )
 
     # Create a component with our mock capabilities and request classes

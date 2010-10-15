@@ -286,8 +286,10 @@ def fillDefaults(param_def_dict, param_dict):
     for pname, pdict in param_def_dict.items():
         if not pdict['required']  and  pname not in param_dict:
             if pdict['default'] is not None:
-                param_dict[pname] = pdict['default']
-
+                if param_def_dict[pname]['type'] in [ PARAM_STRING_LIST, PARAM_NUMBER_LIST ]:
+                    param_dict[pname] = [ pdict['default'] ]
+                else:
+                    param_dict[pname] = pdict['default']
 
 def convertTypes(param_def_dict, param_dict):
     """

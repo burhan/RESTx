@@ -199,6 +199,17 @@ class ParameterDef(object):
                 raise RestxException("Specified default value is not listed in 'choices'")
             if self.ptype not in [ PARAM_STRING, PARAM_NUMBER, PARAM_STRING_LIST, PARAM_NUMBER_LIST ]:
                 raise RestxException("Choices are not supported for this type.")
+        if self.ptype in [ PARAM_STRING_LIST, PARAM_NUMBER_LIST ]:
+            self.is_list = True
+        else:
+            self.is_list = False
+
+    def isList(self):
+        """
+        Return an indication whether this is a list type or not.
+
+        """
+        return self.is_list
 
     def getDefaultVal(self):
         """
@@ -230,6 +241,8 @@ class ParameterDef(object):
             d['default'] = self.default
         if self.choices:
             d['val_choices'] = self.choices
+            if self.is_list:
+                d['multi_choice'] = True
         return d
 
 
@@ -255,8 +268,11 @@ class ParameterDef(object):
                 buf = '<select '
                 if self.ptype in [ PARAM_STRING_LIST, PARAM_NUMBER_LIST ]:
                     buf += "multiple size=%d " % min(8, len(self.choices))
+                    multiple = True
+                else:
+                    multiple = False
                 buf += 'name="%s" id="%s">' % (name, name)
-                if self.default:
+                if self.default  and  not multiple:
                     buf +=  '<option value="">--- Accept default ---</option>'
                 # Initial may be a string, since that all the type information we can have when we convert
                 # the form input to a data structure

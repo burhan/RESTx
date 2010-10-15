@@ -30,7 +30,7 @@ public class ParameterDefBoolean extends ParameterDef
 
     public ParameterDefBoolean(String desc, boolean required, boolean defaultVal)
     {
-        super("boolean", desc, required);
+        super(ParameterType.BOOLEAN, desc, required);
         this.defaultVal = defaultVal;
     }
 

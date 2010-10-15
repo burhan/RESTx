@@ -21,6 +21,7 @@ package org.mulesoft.restx.parameter;
 
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.lang.Math;
 
 public abstract class ParameterDef
 {
@@ -57,9 +58,17 @@ public abstract class ParameterDef
                 clist.add(s);
             }
             d.put("val_choices", clist);
+            if (isList()) {
+                d.put("multi_choice", true);
+            }
         }
 
         return d;
+    }
+
+    public boolean isList()
+    {
+        return false;
     }
 
     public String html_type(String name, String initial) // strange naming? This is called from
@@ -71,11 +80,11 @@ public abstract class ParameterDef
         }
 
         if (choices != null) {
-            String buf = "<select name=" + name + " id=" + name + ">";
+            String buf = "<select name=" + name + " id=" + name + " >";
+
             if (!this.required) {
                 // If we are not required then we definitely have a default value
                 buf += "<option value=\"\">--- Accept default ---</option>";
-
             }
                 
             for (String c: choices) {

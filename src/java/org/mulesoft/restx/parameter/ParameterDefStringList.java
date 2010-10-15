@@ -21,29 +21,32 @@ package org.mulesoft.restx.parameter;
 
 import org.mulesoft.restx.exception.RestxException;
 
-public class ParameterDefString extends ParameterDef
+import java.util.List;
+import java.util.ArrayList;
+
+public class ParameterDefStringList extends ParameterDefList
 {
     private final String defaultVal;
 
-    public ParameterDefString(String desc)
+    public ParameterDefStringList(String desc)
     {
         this(desc, true, (String)null);
     }
 
-    public ParameterDefString(String desc, boolean required, String defaultVal)
+    public ParameterDefStringList(String desc, boolean required, String defaultVal)
     {
-        super(ParameterType.STRING, desc, required);
+        super(ParameterType.STRING_LIST, desc, required);
         this.defaultVal = defaultVal;
     }
 
-    public ParameterDefString(String desc, boolean required, String[] choices) throws RestxException
+    public ParameterDefStringList(String desc, boolean required, String[] choices) throws RestxException
     {
         this(desc, required, null, choices);
     }
 
-    public ParameterDefString(String desc, boolean required, String defaultVal, String[] choices) throws RestxException
+    public ParameterDefStringList(String desc, boolean required, String defaultVal, String[] choices) throws RestxException
     {
-        super(ParameterType.STRING, desc, required);
+        super(ParameterType.STRING_LIST, desc, required);
         this.defaultVal = defaultVal;
         if (defaultVal != null  &&  choices != null) {
             boolean foundDefault = false;
@@ -58,6 +61,16 @@ public class ParameterDefString extends ParameterDef
             }
         }
         this.choices = choices;
+    }
+
+    public String html_type(String name, List initial)
+    {
+        // Need to convert the list of numbers to list of strings
+        String[] initialStrs = new String[initial.size()];
+        for (int i=0; i<initial.size(); ++i) {
+            initialStrs[i] = initial.get(i).toString();
+        }
+        return this.html_type(name, initialStrs);
     }
 
     @Override

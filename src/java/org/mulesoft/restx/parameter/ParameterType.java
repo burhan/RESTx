@@ -21,8 +21,10 @@ package org.mulesoft.restx.parameter;
 
 public class ParameterType
 {
-    public static final String STRING = "string";
-    public static final String NUMBER = "number";
-    public static final String BOOLEAN = "boolean";
-    public static final String PASSWORD = "password";
+    public static final String STRING      = "string";
+    public static final String STRING_LIST = "string_list";
+    public static final String NUMBER      = "number";
+    public static final String NUMBER_LIST = "number_list";
+    public static final String BOOLEAN     = "boolean";
+    public static final String PASSWORD    = "password";
 }

@@ -42,10 +42,20 @@ public class TestComponent extends BaseComponent
     @Default("Foo B")
     public String foo_1;
 
+    @Parameter(name = "foo_list", desc = "This is a string list choice type")
+    @Choices({"Foo A list item", "Foo B list item", "Foo C list item"})
+    @Default("Foo B list item")
+    public String[] foo_list;
+
     @Parameter(name = "foo_2", desc = "This is a number choice type")
     @Choices({"1", "2", "3"})
     @Default("3")
     public BigDecimal foo_2;
+
+    @Parameter(name = "bar_list", desc = "This is a numeric list choice type")
+    @Choices({"11", "22", "33", "44"})
+    @Default("22")
+    public BigDecimal[] bar_list;
 
     @Service(desc = "This is the foobar service")
     @InputType(InputType.NO_INPUT)
@@ -86,6 +96,16 @@ public class TestComponent extends BaseComponent
         v.add("Some text");
         v.add(123);
         v.add(res);
+
+        System.out.println("Foo list: " + foo_list);
+        for (String x: foo_list) {
+            System.out.println("  --- " + x);
+        }
+
+        System.out.println("Bar list: " + bar_list);
+        for (BigDecimal x: bar_list) {
+            System.out.println("  --- " + x);
+        }
 
         return Result.ok(v);
     }
