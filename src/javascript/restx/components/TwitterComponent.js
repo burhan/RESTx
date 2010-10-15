@@ -34,9 +34,9 @@ this.documentation = "The Twitter component is designed to provide access to a T
                    + "To create the resource, the Twitter account name and password need to be specified."
 
 this.parameters = {
-  accountName     : { type: TYPE.STRING, description: "Twitter account name", required: true },
-  accountNumber   : { type: TYPE.NUMBER, description: "Twitter account name", required: true },
-  accountPassword : { type: TYPE.PASSWORD, description: "Password", required: true }
+  accountName     : { type: TYPE.STRING, description: "Twitter account name" },
+  accountNumber   : { type: TYPE.NUMBER, description: "Twitter account name" },
+  accountPassword : { type: TYPE.PASSWORD, description: "Password" }
 }
 
 /*

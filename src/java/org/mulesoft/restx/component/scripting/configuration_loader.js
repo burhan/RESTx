@@ -40,11 +40,13 @@ function getParameterDef(type, description, defaultValue, choices) {
         required = false;
     }
     switch(type) {
-        case TYPE.STRING  : return new org.mulesoft.restx.parameter.ParameterDefString(description, required, defaultValue, choices)
-        case TYPE.PASSWORD: return new org.mulesoft.restx.parameter.ParameterDefPassword(description, required, defaultValue)
-        case TYPE.BOOLEAN : return new org.mulesoft.restx.parameter.ParameterDefBoolean(description, required, defaultValue)
-        case TYPE.NUMBER  : return new org.mulesoft.restx.parameter.ParameterDefNumber(description, required, defaultValue, choices)
-        default           : throw "Unsupported parameter type: " + type
+        case TYPE.STRING       : return new org.mulesoft.restx.parameter.ParameterDefString(description, required, defaultValue, choices)
+        case TYPE.STRING_LIST  : return new org.mulesoft.restx.parameter.ParameterDefStringList(description, required, defaultValue, choices)
+        case TYPE.PASSWORD     : return new org.mulesoft.restx.parameter.ParameterDefPassword(description, required, defaultValue)
+        case TYPE.BOOLEAN      : return new org.mulesoft.restx.parameter.ParameterDefBoolean(description, required, defaultValue)
+        case TYPE.NUMBER       : return new org.mulesoft.restx.parameter.ParameterDefNumber(description, required, defaultValue, choices)
+        case TYPE.NUMBER_LIST  : return new org.mulesoft.restx.parameter.ParameterDefNumberList(description, required, defaultValue, choices)
+        default                : throw "Unsupported parameter type: " + type
     }
 }
 
