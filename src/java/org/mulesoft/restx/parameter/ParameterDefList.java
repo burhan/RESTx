@@ -19,10 +19,6 @@
 
 package org.mulesoft.restx.parameter;
 
-import org.mulesoft.restx.exception.RestxException;
-
-import java.util.List;
-
 public abstract class ParameterDefList extends ParameterDef
 {
     public ParameterDefList(String ptype, String desc, boolean required)
@@ -30,6 +26,7 @@ public abstract class ParameterDefList extends ParameterDef
         super(ptype, desc, required);
     }
 
+    @Override
     public boolean isList()
     {
         return true;
@@ -37,8 +34,10 @@ public abstract class ParameterDefList extends ParameterDef
 
     private boolean findInArray(String[] arrayObj, String value)
     {
-        for (String v: arrayObj) {
-            if (v.equals(value)) {
+        for (final String v : arrayObj)
+        {
+            if (v.equals(value))
+            {
                 return true;
             }
         }
@@ -47,28 +46,36 @@ public abstract class ParameterDefList extends ParameterDef
 
     public String html_type(String name, String[] initial)
     {
-        if (choices != null) {
-            String buf = "<select name=" + name + " id=" + name + " multiple size=" + Math.min(8, choices.length) + " >";
+        if (choices != null)
+        {
+            final StringBuilder buf = new StringBuilder("<select name=" + name + " id=" + name
+                                                        + " multiple size=" + Math.min(8, choices.length)
+                                                        + " >");
 
             /*
-            if (!this.required) {
-                // If we are not required then we definitely have a default value
-                buf += "<option value=\"\">--- Accept default ---</option>";
-            }
-            */
-                
-            for (String c: choices) {
+             * if (!this.required) { // If we are not required then we definitely have a default value buf +=
+             * "<option value=\"\">--- Accept default ---</option>"; }
+             */
+
+            for (final String c : choices)
+            {
                 String args = "";
-                if ((initial != null)  &&  (findInArray(initial, c))) {
+                if ((initial != null) && (findInArray(initial, c)))
+                {
                     args = " selected=\"selected\"";
                 }
-                buf += "<option value=\"" + c + "\"" + args + ">" + c + "</option>";
+                buf.append("<option value=\"")
+                    .append(c)
+                    .append("\"")
+                    .append(args)
+                    .append(">")
+                    .append(c)
+                    .append("</option>");
             }
-            buf += "</select>";
-            return buf;
+            buf.append("</select>");
+            return buf.toString();
         }
-            
+
         return "<input type=text name=" + name + " id=" + name + "##### STRING FOR LIST #########" + "/>";
     }
 }
-

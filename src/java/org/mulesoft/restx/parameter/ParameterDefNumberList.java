@@ -19,13 +19,11 @@
 
 package org.mulesoft.restx.parameter;
 
-import org.mulesoft.restx.exception.RestxException;
-
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.lang.Number;
 import java.util.List;
-import java.util.ArrayList;
+
+import org.mulesoft.restx.exception.RestxException;
 
 public class ParameterDefNumberList extends ParameterDefList
 {
@@ -52,41 +50,48 @@ public class ParameterDefNumberList extends ParameterDefList
         this.defaultVal = toBigDecimal(defaultVal);
     }
 
-    public ParameterDefNumberList(String desc, boolean required, Number defaultVal, String[] choices) throws RestxException
+    public ParameterDefNumberList(String desc, boolean required, Number defaultVal, String[] choices)
+        throws RestxException
     {
         super(ParameterType.NUMBER_LIST, desc, required);
         this.defaultVal = toBigDecimal(defaultVal);
-        if (choices != null) {
+        if (choices != null)
+        {
             processChoices(choices);
         }
     }
 
     private void processChoices(String[] choices) throws RestxException
     {
-        String strChoices[] = new String[choices.length];
+        final String strChoices[] = new String[choices.length];
 
-        int        i = 0;
-        boolean    foundDefault = false;
-        for (String bvStr: choices) {
-            BigDecimal bv = new BigDecimal(bvStr);
-            if (defaultVal != null) {
-                if (bv.compareTo((BigDecimal)(this.defaultVal)) == 0) {
+        int i = 0;
+        boolean foundDefault = false;
+        for (final String bvStr : choices)
+        {
+            final BigDecimal bv = new BigDecimal(bvStr);
+            if (defaultVal != null)
+            {
+                if (bv.compareTo((this.defaultVal)) == 0)
+                {
                     foundDefault = true;
                 }
             }
             strChoices[i++] = bv.toString();
         }
-        if (defaultVal != null  &&  !foundDefault) {
+        if (defaultVal != null && !foundDefault)
+        {
             throw new RestxException("Specified default value is not listed in 'choices'");
         }
         this.choices = strChoices;
     }
 
-    public String html_type(String name, List initial)
+    public String html_type(String name, List<?> initial)
     {
         // Need to convert the list of numbers to list of strings
-        String[] initialStrs = new String[initial.size()];
-        for (int i=0; i<initial.size(); ++i) {
+        final String[] initialStrs = new String[initial.size()];
+        for (int i = 0; i < initial.size(); ++i)
+        {
             initialStrs[i] = initial.get(i).toString();
         }
         return this.html_type(name, initialStrs);
@@ -130,8 +135,9 @@ public class ParameterDefNumberList extends ParameterDefList
 
     public static Number[] listToArray(List<BigDecimal> obj)
     {
-        BigDecimal[] d = new BigDecimal[obj.size()];
-        for (int i=0; i<obj.size(); ++i) {
+        final BigDecimal[] d = new BigDecimal[obj.size()];
+        for (int i = 0; i < obj.size(); ++i)
+        {
             d[i] = obj.get(i);
         }
         return d;

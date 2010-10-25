@@ -19,18 +19,16 @@
 
 package org.mulesoft.restx.parameter;
 
-import java.util.HashMap;
 import java.util.ArrayList;
-import java.lang.Math;
+import java.util.HashMap;
 
 public abstract class ParameterDef
 {
-    public    String    ptype;
-    public    String    desc;
-    public    boolean   required;
+    public String ptype;
+    public String desc;
+    public boolean required;
 
-    protected String[]  choices = null;
-
+    protected String[] choices = null;
 
     public ParameterDef(String ptype, String desc, boolean required)
     {
@@ -48,17 +46,21 @@ public abstract class ParameterDef
         d.put("type", ptype);
         d.put("desc", desc);
         d.put("required", required);
-        if (!required) {
+        if (!required)
+        {
             d.put("default", getDefaultVal());
         }
 
-        if (choices != null) {
-            ArrayList<String> clist = new ArrayList<String>();
-            for (String s: choices) {
+        if (choices != null)
+        {
+            final ArrayList<String> clist = new ArrayList<String>();
+            for (final String s : choices)
+            {
                 clist.add(s);
             }
             d.put("val_choices", clist);
-            if (isList()) {
+            if (isList())
+            {
                 d.put("multi_choice", true);
             }
         }
@@ -72,32 +74,43 @@ public abstract class ParameterDef
     }
 
     public String html_type(String name, String initial) // strange naming? This is called from
-                                                         // Python code as well
+    // Python code as well
     {
         String init_val = " ";
-        if (initial != null  &&  initial.length() > 0) {
+        if (initial != null && initial.length() > 0)
+        {
             init_val = " value=\"" + initial + "\" ";
         }
 
-        if (choices != null) {
-            String buf = "<select name=" + name + " id=" + name + " >";
+        if (choices != null)
+        {
+            final StringBuilder buf = new StringBuilder("<select name=" + name + " id=" + name + " >");
 
-            if (!this.required) {
+            if (!this.required)
+            {
                 // If we are not required then we definitely have a default value
-                buf += "<option value=\"\">--- Accept default ---</option>";
+                buf.append("<option value=\"\">--- Accept default ---</option>");
             }
-                
-            for (String c: choices) {
+
+            for (final String c : choices)
+            {
                 String args = "";
-                if ((initial != null)  &&  (c.equals(initial))) {
+                if ((initial != null) && (c.equals(initial)))
+                {
                     args = " selected=\"selected\"";
                 }
-                buf += "<option value=\"" + c + "\"" + args + ">" + c + "</option>";
+                buf.append("<option value=\"")
+                    .append(c)
+                    .append("\"")
+                    .append(args)
+                    .append(">")
+                    .append(c)
+                    .append("</option>");
             }
-            buf += "</select>";
-            return buf;
+            buf.append("</select>");
+            return buf.toString();
         }
-            
+
         return "<input type=text name=" + name + " id=" + name + init_val + "/>";
     }
 

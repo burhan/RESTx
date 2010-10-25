@@ -19,10 +19,9 @@
 
 package org.mulesoft.restx.parameter;
 
-import org.mulesoft.restx.exception.RestxException;
-
 import java.util.List;
-import java.util.ArrayList;
+
+import org.mulesoft.restx.exception.RestxException;
 
 public class ParameterDefStringList extends ParameterDefList
 {
@@ -30,7 +29,7 @@ public class ParameterDefStringList extends ParameterDefList
 
     public ParameterDefStringList(String desc)
     {
-        this(desc, true, (String)null);
+        this(desc, true, (String) null);
     }
 
     public ParameterDefStringList(String desc, boolean required, String defaultVal)
@@ -44,30 +43,36 @@ public class ParameterDefStringList extends ParameterDefList
         this(desc, required, null, choices);
     }
 
-    public ParameterDefStringList(String desc, boolean required, String defaultVal, String[] choices) throws RestxException
+    public ParameterDefStringList(String desc, boolean required, String defaultVal, String[] choices)
+        throws RestxException
     {
         super(ParameterType.STRING_LIST, desc, required);
         this.defaultVal = defaultVal;
-        if (defaultVal != null  &&  choices != null) {
+        if (defaultVal != null && choices != null)
+        {
             boolean foundDefault = false;
-            for (String s: choices) {
-                if (s.equals(defaultVal)) {
+            for (final String s : choices)
+            {
+                if (s.equals(defaultVal))
+                {
                     foundDefault = true;
                     break;
                 }
             }
-            if (!foundDefault) {
+            if (!foundDefault)
+            {
                 throw new RestxException("Specified default value is not listed in 'choices'");
             }
         }
         this.choices = choices;
     }
 
-    public String html_type(String name, List initial)
+    public String html_type(String name, List<?> initial)
     {
         // Need to convert the list of numbers to list of strings
-        String[] initialStrs = new String[initial.size()];
-        for (int i=0; i<initial.size(); ++i) {
+        final String[] initialStrs = new String[initial.size()];
+        for (int i = 0; i < initial.size(); ++i)
+        {
             initialStrs[i] = initial.get(i).toString();
         }
         return this.html_type(name, initialStrs);
