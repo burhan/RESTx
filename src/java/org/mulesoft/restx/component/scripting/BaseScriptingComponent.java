@@ -40,8 +40,7 @@ import org.mulesoft.restx.exception.RestxException;
 import org.mulesoft.restx.parameter.ParameterType;
 
 /**
- * Common infrastructure for all components written in a scripting language supported
- * by a JSR-223-compatible engine.
+ * Common infrastructure for all components written in a scripting language supported by a JSR-223-compatible engine.
  */
 public abstract class BaseScriptingComponent extends BaseComponent
 {
@@ -57,9 +56,8 @@ public abstract class BaseScriptingComponent extends BaseComponent
     protected abstract ScriptEngine newScriptEngine(ScriptEngineManager scriptEngineManager);
 
     /**
-     * Get the script engine associated with this component's instance (or create a
-     * new one if there is none). RESTx creates a new instance per request so the
-     * engine is not shared accross requests.
+     * Get the script engine associated with this component's instance (or create a new one if there is none). RESTx
+     * creates a new instance per request so the engine is not shared accross requests.
      */
     protected final ScriptEngine getOrCreateScriptEngine()
     {
@@ -72,8 +70,8 @@ public abstract class BaseScriptingComponent extends BaseComponent
     }
 
     /**
-     * Get the component source code as a stream. Override this method in a subclass
-     * if you need to augment the script extra code.
+     * Get the component source code as a stream. Override this method in a subclass if you need to augment the script
+     * extra code.
      */
     protected InputStream getComponentCodeInputStream() throws FileNotFoundException
     {
@@ -81,8 +79,7 @@ public abstract class BaseScriptingComponent extends BaseComponent
     }
 
     /**
-     * Called by RESTx to initialize the component descriptor that contains the
-     * meta-data for the script component.
+     * Called by RESTx to initialize the component descriptor that contains the meta-data for the script component.
      */
     @Override
     protected final void initialiseComponentDescriptor() throws RestxException
@@ -101,13 +98,13 @@ public abstract class BaseScriptingComponent extends BaseComponent
     protected abstract ComponentDescriptor getComponentDescriptor() throws RestxException;
 
     /**
-     * Evaluate a script that is embedded with RESTx distribution and sits in the
-     * same directory as this class.
+     * Evaluate a script that is embedded with RESTx distribution and sits in the same directory as this class.
      */
     protected final Object evaluateEmbeddedScript(Bindings bindings, String resourceName)
         throws RestxException
     {
-        return evaluate(bindings, BaseScriptingComponent.class.getResourceAsStream(resourceName));
+        return evaluate(bindings, BaseScriptingComponent.class.getResourceAsStream(resourceName),
+            resourceName);
     }
 
     /**
@@ -117,7 +114,7 @@ public abstract class BaseScriptingComponent extends BaseComponent
     {
         try
         {
-            return evaluate(bindings, getComponentCodeInputStream());
+            return evaluate(bindings, getComponentCodeInputStream(), getComponentScriptSourceContext());
         }
         catch (final FileNotFoundException fnfe)
         {
@@ -126,8 +123,7 @@ public abstract class BaseScriptingComponent extends BaseComponent
     }
 
     /**
-     * Add the commonly bound supported classes and values uses by all script
-     * components.
+     * Add the commonly bound supported classes and values uses by all script components.
      */
     protected final void addCommonBindings(final Bindings bindings)
     {
@@ -150,12 +146,21 @@ public abstract class BaseScriptingComponent extends BaseComponent
      */
     public abstract Object _serviceMethodDispatch(String methodName, Object[] args) throws RestxException;
 
-    private File getComponentScriptFile()
+    /**
+     * For information purposes only. Override if getComponentCodeInputStream() has been overriden.
+     */
+    protected String getComponentScriptSourceContext()
+    {
+        return getComponentScriptFile().getPath();
+    }
+
+    private final File getComponentScriptFile()
     {
         return new File(Settings.getRootDir() + instanceConf.get("path"));
     }
 
-    private Object evaluate(Bindings bindings, InputStream inputStream) throws RestxException
+    private Object evaluate(Bindings bindings, InputStream inputStream, String scriptSource)
+        throws RestxException
     {
         try
         {
@@ -164,7 +169,7 @@ public abstract class BaseScriptingComponent extends BaseComponent
         }
         catch (final ScriptException se)
         {
-            throw new RestxException(se.getMessage());
+            throw new RestxException(se.getMessage() + " when executing script: " + scriptSource);
         }
     }
 }

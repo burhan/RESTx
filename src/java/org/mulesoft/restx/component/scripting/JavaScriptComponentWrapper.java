@@ -37,11 +37,13 @@ import org.mulesoft.restx.component.api.ComponentDescriptor;
 import org.mulesoft.restx.exception.RestxException;
 
 /**
- * Handler for JavaScript components that acts as a wrapper around the script and
- * connects it to the RESTx host infrastructure.
+ * Handler for JavaScript components that acts as a wrapper around the script and connects it to the RESTx host
+ * infrastructure.
  */
 public class JavaScriptComponentWrapper extends BaseScriptingComponent
 {
+    private static final String BASE_COMPONENT_JS = "base_component.js";
+
     @Override
     protected ScriptEngine newScriptEngine(ScriptEngineManager scriptEngineManager)
     {
@@ -52,8 +54,14 @@ public class JavaScriptComponentWrapper extends BaseScriptingComponent
     protected InputStream getComponentCodeInputStream() throws FileNotFoundException
     {
         // for JS, we wire-in a base_component with helper functions
-        return new SequenceInputStream(getClass().getResourceAsStream("base_component.js"),
+        return new SequenceInputStream(getClass().getResourceAsStream(BASE_COMPONENT_JS),
             super.getComponentCodeInputStream());
+    }
+
+    @Override
+    protected String getComponentScriptSourceContext()
+    {
+        return BASE_COMPONENT_JS + " concatenated with " + super.getComponentScriptSourceContext();
     }
 
     @SuppressWarnings("unchecked")
